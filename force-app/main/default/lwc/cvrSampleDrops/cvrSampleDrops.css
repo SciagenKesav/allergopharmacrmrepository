@@ -44,6 +44,24 @@
     margin-bottom: 1rem;
 }
 
+.cold-chain-section {
+    border-top: 1px dashed var(--brand-hairline);
+    padding-top: 0.75rem;
+    margin-bottom: 0.25rem;
+}
+
+.cold-chain-hint {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.75rem;
+    color: var(--brand-subtle);
+}
+
+.cold-chain-readout {
+    font-size: 0.75rem;
+    color: var(--brand-subtle);
+    margin-top: 0.15rem;
+}
+
 .detail-list {
     list-style: none;
     margin: 0;

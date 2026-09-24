@@ -149,13 +149,14 @@
                             <h4>Samples</h4>
                             <table class="detail-table">
                                 <thead>
-                                    <tr><th>Product</th><th>Qty</th></tr>
+                                    <tr><th>Product</th><th>Qty</th><th>Cold Chain</th></tr>
                                 </thead>
                                 <tbody>
                                     <template for:each={detail.sampleDrops} for:item="sd">
                                         <tr key={sd.id}>
                                             <td>{sd.productName}</td>
                                             <td>{sd.qty}</td>
+                                            <td>{sd.coldChainStatus} {sd.coldChainTagNumber}</td>
                                         </tr>
                                     </template>
                                 </tbody>

@@ -3,9 +3,14 @@ private class SciagenCVRControllerTest {
 
     @testSetup
     static void setup() {
+        // License_Verification_Status__c/License_Expiry_Date__c/Can_Prescribe__c
+        // are required for SampleEligibilityService to accept the Sample_Drop__c
+        // insert below (same pre-existing-fixture gap as the product fix above —
+        // this fixture predates that hard-enforced gate).
         Sciagen_Account__c hcp = new Sciagen_Account__c(
             Type__c = 'HCP', Name = 'Dr. CVR Test', Prefix__c = 'Dr.', First_Name__c = 'CVR',
-            Last_Name__c = 'Test', Specialty__c = 'Cardiology', HCP_Type__c = 'Physician'
+            Last_Name__c = 'Test', Specialty__c = 'Cardiology', HCP_Type__c = 'Physician',
+            License_Verification_Status__c = 'Verified', License_Expiry_Date__c = Date.today().addYears(2), Can_Prescribe__c = true
         );
         Sciagen_Account__c hco = new Sciagen_Account__c(
             Type__c = 'HCO', Name = 'CVR Test Hospital', HCO_Type__c = 'Hospital', Speciality__c = 'Other'
@@ -32,8 +37,22 @@ private class SciagenCVRControllerTest {
             Product__c = 'Emrok', Reaction__c = 'Positive', Locked__c = false
         );
         insert new Promo_Drop__c(CVR__c = inRange.Id, Item__c = 'Branded pen', Qty__c = 10);
-        Product__c product = new Product__c(Name = 'Emrok', Brand_Name__c = 'Emrok', Division__c = 'Cardiology', Product_Code__c = 'CVR-TEST-EMROK');
+        // Is_Sample_Product__c is required for SampleEligibilityService to accept
+        // the Sample_Drop__c insert below (SampleConfig.enforceRules defaults to
+        // true with no UCPMP_Tenant_Config__c row, so this is a hard block, not
+        // just a warning) — pre-existing gap in this fixture, unrelated to what
+        // this test class actually exercises.
+        // Requires_Signature__c defaults to true (field-level default) on any
+        // new Product__c, which would block submitCallReport below on "the
+        // doctor's signature is required" — this fixture is not exercising
+        // signature capture, so it opts out explicitly like SampleTestData's
+        // non-signature product fixtures do.
+        Product__c product = new Product__c(Name = 'Emrok', Brand_Name__c = 'Emrok', Division__c = 'Cardiology', Product_Code__c = 'CVR-TEST-EMROK',
+            Is_Sample_Product__c = true, Sample_Unit_Value_INR__c = 10, Pack_Size__c = 1, Requires_Signature__c = false);
         insert product;
+        // Stock, or SampleEligibilityService also blocks with "no active lot".
+        insert new Sample_Lot__c(Product__c = product.Id, Lot_Number__c = 'CVR-TEST-1', Expiry_Date__c = Date.today().addDays(180),
+            Initial_Quantity__c = 50, Available_Quantity__c = 50, Owner_User__c = UserInfo.getUserId());
         insert new Sample_Drop__c(CVR__c = inRange.Id, Product__c = product.Id, Qty__c = 5);
         insert new CVR_Attendee__c(CVR__c = inRange.Id, HCP__c = hcp.Id);
         insert new CVR_Internal_Attendee__c(CVR__c = inRange.Id, User__c = UserInfo.getUserId());

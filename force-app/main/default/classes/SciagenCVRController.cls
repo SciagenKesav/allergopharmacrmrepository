@@ -51,6 +51,12 @@ public with sharing class SciagenCVRController {
         @AuraEnabled public Id productId;
         @AuraEnabled public String productName;
         @AuraEnabled public Integer qty;
+        // Phase 0 (SM-CC-01/02/05): surfaced so a rep can see what was
+        // captured for a cold-chain product — cvrSampleDrops.js now captures
+        // these on the add/edit form, where before this row was unreadable
+        // back and the form never rendered them at all.
+        @AuraEnabled public String coldChainTagNumber;
+        @AuraEnabled public String coldChainStatus;
     }
 
     public class AttendeeItem {
@@ -227,7 +233,7 @@ public with sharing class SciagenCVRController {
 
         detail.sampleDrops = new List<SampleDropItem>();
         for (Sample_Drop__c sd : [
-            SELECT Id, Product__c, Product__r.Name, Product__r.SKUCode__c, Qty__c
+            SELECT Id, Product__c, Product__r.Name, Product__r.SKUCode__c, Qty__c, Cold_Chain_Tag_Number__c, Cold_Chain_Status__c
             FROM Sample_Drop__c
             WHERE CVR__c = :cvrId
             WITH USER_MODE
@@ -242,6 +248,8 @@ public with sharing class SciagenCVRController {
             item.productName = sd.Product__c == null ? null
                 : (String.isNotBlank(sd.Product__r.SKUCode__c) ? sd.Product__r.SKUCode__c : sd.Product__r.Name);
             item.qty = sd.Qty__c == null ? null : sd.Qty__c.intValue();
+            item.coldChainTagNumber = sd.Cold_Chain_Tag_Number__c;
+            item.coldChainStatus = sd.Cold_Chain_Status__c;
             detail.sampleDrops.add(item);
         }
 

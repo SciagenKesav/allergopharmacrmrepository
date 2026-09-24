@@ -16,7 +16,11 @@ export default class CvrSampleDrops extends LightningElement {
     isSaving = false;
 
     get displayRows() {
-        return (this.rows || []).map((r) => ({ ...r, isEditing: r.id === this.editingId }));
+        return (this.rows || []).map((r) => ({
+            ...r,
+            isEditing: r.id === this.editingId,
+            hasColdChain: !!(r.coldChainTagNumber || r.coldChainStatus),
+        }));
     }
 
     get hasRows() {
