@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Inventory_Applied__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>Set once this transaction has moved stock. Prevents it being applied twice.</description>
+    <label>Inventory Applied</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

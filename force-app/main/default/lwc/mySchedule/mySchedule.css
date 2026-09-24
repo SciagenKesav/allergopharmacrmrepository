@@ -1,0 +1,125 @@
+:host {
+    --brand-primary: #4F46E5;
+    --brand-ink: #0F172A;
+    --brand-subtle: #64748B;
+    --brand-hairline: #E2E8F0;
+    --brand-bg: #F3F4FB;
+}
+
+.schedule {
+    display: flex;
+    flex-direction: column;
+    background: var(--brand-bg);
+    min-height: 100vh;
+}
+
+.schedule-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: #ffffff;
+    border-bottom: 1px solid var(--brand-hairline);
+}
+
+.header-left {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+}
+
+.header-left h2 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--brand-ink);
+}
+
+.range-label {
+    color: var(--brand-subtle);
+    font-size: 0.85rem;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.agenda {
+    padding: 1rem 1.25rem;
+}
+
+.call-report-panel {
+    padding: 1rem 1.25rem;
+}
+
+.empty-state {
+    color: var(--brand-subtle);
+    font-size: 0.9rem;
+    padding: 2rem 0;
+    text-align: center;
+}
+
+.day-group {
+    margin-bottom: 1.25rem;
+}
+
+.day-header {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--brand-subtle);
+    margin-bottom: 0.4rem;
+}
+
+.call-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: #ffffff;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.5rem;
+    padding: 0.6rem 0.85rem;
+    margin-bottom: 0.4rem;
+}
+
+.call-time {
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: var(--brand-primary);
+    width: 80px;
+    flex-shrink: 0;
+}
+
+.call-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    min-width: 0;
+}
+
+.call-name {
+    font-weight: 600;
+    color: var(--brand-ink);
+    font-size: 0.9rem;
+}
+
+.call-subtitle {
+    color: var(--brand-subtle);
+    font-size: 0.78rem;
+}
+
+.pill {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.15rem 0.55rem;
+    border-radius: 0.75rem;
+    flex-shrink: 0;
+}

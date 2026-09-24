@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomTab xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customObject>true</customObject>
+    <description>HCP-to-HCO affiliation links (which practice locations a healthcare professional works at). Created automatically when a New HCP Data Change Request is approved; browsable here for direct admin fixes.</description>
+    <motif>Custom15: People</motif>
+</CustomTab>

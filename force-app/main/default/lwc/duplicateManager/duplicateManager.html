@@ -1,0 +1,262 @@
+<template>
+    <div class="page">
+        <div class="page-head">
+            <div>
+                <h2>Duplicate Manager</h2>
+                <p class="sub">Find and merge duplicate HCPs and HCOs. Nothing is deleted: a merged record is hidden, its history moves to the survivor, and every merge can be undone.</p>
+            </div>
+            <div class="head-actions">
+                <lightning-button label="Scan new and changed" onclick={handleScanChanged} disabled={scanBusy}></lightning-button>
+                <lightning-button variant="brand-outline" label="Full rescan" onclick={handleScanFull} disabled={scanBusy}></lightning-button>
+            </div>
+        </div>
+
+        <template if:true={error}>
+            <div class="slds-notify slds-notify_alert slds-alert_error" role="alert">{error}</div>
+        </template>
+
+        <template if:true={summary}>
+            <div class="tiles">
+                <div class="tile"><div class="tile-num">{summary.openHcp}</div><div class="tile-label">HCP pairs to review</div></div>
+                <div class="tile"><div class="tile-num">{summary.openHco}</div><div class="tile-label">HCO pairs to review</div></div>
+                <div class="tile tile-high"><div class="tile-num">{summary.high}</div><div class="tile-label">High confidence</div></div>
+                <div class="tile tile-med"><div class="tile-num">{summary.medium}</div><div class="tile-label">Medium</div></div>
+                <div class="tile tile-low"><div class="tile-num">{summary.low}</div><div class="tile-label">Low</div></div>
+                <div class="tile"><div class="tile-num">{summary.merged30d}</div><div class="tile-label">Merged, last 30 days</div></div>
+            </div>
+            <p class="scan-line">
+                {summary.totalRecords} active records. <template if:true={hasUnchecked}>{summary.unchecked} not yet checked. </template>
+                <template if:true={summary.lastScanAt}>Last checked <lightning-formatted-date-time value={summary.lastScanAt} year="numeric" month="short" day="2-digit" hour="2-digit" minute="2-digit"></lightning-formatted-date-time>.</template>
+                <template if:false={summary.scheduled}> No nightly scan is scheduled.</template>
+                <template if:true={summary.scheduled}> Scans run nightly at 2 AM.</template>
+            </p>
+        </template>
+
+        <lightning-tabset variant="scoped">
+            <lightning-tab label={queueTabLabel} value="queue">
+                <div class="filters">
+                    <lightning-combobox label="Type" value={fType} options={typeOptions} onchange={handleType}></lightning-combobox>
+                    <lightning-combobox label="Confidence" value={fConfidence} options={confidenceOptions} onchange={handleConfidence}></lightning-combobox>
+                    <lightning-combobox label="Status" value={fStatus} options={statusOptions} onchange={handleStatus}></lightning-combobox>
+                    <lightning-input type="search" label="Search name, phone or email" value={fSearch} onchange={handleSearchInput} onkeyup={handleSearchKey}></lightning-input>
+                </div>
+
+                <template if:true={isLoading}><div class="empty">Loading…</div></template>
+                <template if:true={showEmpty}>
+                    <div class="empty">
+                        <template if:true={isOpenView}>No duplicate pairs to review. Run a scan to look again.</template>
+                        <template if:false={isOpenView}>Nothing here.</template>
+                    </div>
+                </template>
+
+                <template if:true={hasCandidates}>
+                    <div class="table-wrap">
+                    <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                        <thead>
+                            <tr class="slds-line-height_reset">
+                                <th scope="col" class="c-score">Score</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Record A</th>
+                                <th scope="col">Record B</th>
+                                <th scope="col">Why they match</th>
+                                <th scope="col"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={rows} for:item="c">
+                                <tr key={c.id}>
+                                    <td><span class={c.badgeClass}>{c.scoreText}</span><div class="conf">{c.confidence}</div></td>
+                                    <td>{c.type}</td>
+                                    <td><div class="rname">{c.aName}</div><div class="rdetail">{c.aDetail}</div></td>
+                                    <td><div class="rname">{c.bName}</div><div class="rdetail">{c.bDetail}</div></td>
+                                    <td class="why">{c.whyText}</td>
+                                    <td><lightning-button label={c.actionLabel} data-id={c.id} onclick={openReview}></lightning-button></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                    </div>
+                </template>
+            </lightning-tab>
+
+            <lightning-tab label="Merge history" value="history">
+                <template if:false={hasMerges}><div class="empty">No merges yet.</div></template>
+                <template if:true={hasMerges}>
+                    <div class="table-wrap">
+                    <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                        <thead>
+                            <tr class="slds-line-height_reset">
+                                <th scope="col">Merge</th>
+                                <th scope="col">Kept</th>
+                                <th scope="col">Merged away</th>
+                                <th scope="col">Result</th>
+                                <th scope="col">By</th>
+                                <th scope="col">Status</th>
+                                <th scope="col"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={merges} for:item="m">
+                                <tr key={m.id}>
+                                    <td>{m.number_x}<div class="rdetail">{m.type} · {m.method}</div></td>
+                                    <td>{m.winnerName}</td>
+                                    <td>{m.loserName}</td>
+                                    <td class="why">{m.summary}</td>
+                                    <td>{m.mergedBy}<div class="rdetail"><lightning-formatted-date-time value={m.mergedAt} year="numeric" month="short" day="2-digit"></lightning-formatted-date-time></div></td>
+                                    <td><span class={m.statusClass}>{m.status}</span></td>
+                                    <td>
+                                        <template if:true={m.canUndo}>
+                                            <lightning-button label="Undo" data-id={m.id} onclick={handleUndo}></lightning-button>
+                                        </template>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                    </div>
+                </template>
+            </lightning-tab>
+
+            <lightning-tab label="Settings" value="settings">
+                <template if:true={settingsLoaded}>
+                    <div class="settings">
+                        <lightning-input type="toggle" label="Duplicate detection" checked={sEnabled} message-toggle-active="On" message-toggle-inactive="Off" onchange={handleSEnabled}></lightning-input>
+                        <p class="hint">When off, no scans run and no new candidates are created. Existing candidates stay.</p>
+
+                        <div class="score-row">
+                            <lightning-input type="number" label="Show pairs scoring at least" value={sMin} min="30" max="95" onchange={handleSMin} disabled={settingsDisabled}
+                                field-level-help="Pairs below this score are not recorded. Lower finds more, with more noise. Default 55."></lightning-input>
+                            <lightning-input type="number" label="High confidence from" value={sHigh} min="40" max="100" onchange={handleSHigh} disabled={settingsDisabled}
+                                field-level-help="Pairs at or above this score are High confidence. Default 85."></lightning-input>
+                        </div>
+
+                        <div class="slds-m-top_large">
+                            <lightning-input type="toggle" label="Auto-merge the clearest pairs" checked={sAuto} message-toggle-active="On" message-toggle-inactive="Off" onchange={handleSAuto} disabled={settingsDisabled}></lightning-input>
+                            <p class="hint">Merges a pair with no review, but only when its score is at least the value below <strong>and</strong> the two share a licence number, email, phone or external ID. Every auto-merge is logged and can be undone. Leave this off until you have reviewed some pairs and trust the scores.</p>
+                            <div class="score-row">
+                                <lightning-input type="number" label="Auto-merge from score" value={sAutoScore} min="60" max="100" onchange={handleSAutoScore} disabled={autoScoreDisabled}></lightning-input>
+                            </div>
+                        </div>
+
+                        <div class="slds-m-top_large">
+                            <lightning-button variant="brand" label="Save settings" onclick={handleSaveSettings} disabled={saveDisabled}></lightning-button>
+                        </div>
+
+                        <div class="slds-m-top_x-large">
+                            <h3 class="sect">Nightly scan</h3>
+                            <p class="hint">Checks records created or edited since the last scan, and merges automatically if you enabled it above.</p>
+                            <template if:true={summary.scheduled}>
+                                <lightning-button label="Turn off nightly scan" onclick={handleUnschedule}></lightning-button>
+                            </template>
+                            <template if:false={summary.scheduled}>
+                                <lightning-button variant="brand-outline" label="Schedule nightly at 2 AM" onclick={handleSchedule}></lightning-button>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </lightning-tab>
+        </lightning-tabset>
+    </div>
+
+    <!-- Review panel -->
+    <template if:true={review}>
+        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_large" aria-modal="true">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <h2 class="slds-modal__title">{review.candidate.type} duplicate · {review.candidate.number_x}</h2>
+                    <p class="modal-sub"><span class={review.badgeClass}>{review.scoreText}</span> {review.candidate.confidence} confidence</p>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium">
+
+                    <template if:true={confirming}>
+                        <div class="confirm">
+                            <h3 class="sect">Merge {loserName} into {winnerName}?</h3>
+                            <ul class="confirm-list">
+                                <li>{loserName} is hidden from the iPad app, search and lists. It is not deleted.</li>
+                                <li>Its call reports, consents, plans, territories, affiliations and other related records move to {winnerName}.</li>
+                                <li>Missing details on {winnerName} are filled from {loserName}, and your field choices below are applied.</li>
+                                <li>You can undo this from Merge history.</li>
+                            </ul>
+                        </div>
+                    </template>
+
+                    <template if:false={confirming}>
+                        <div class="reasons">
+                            <div class="sect">Why these were flagged</div>
+                            <ul>
+                                <template for:each={review.reasonList} for:item="rs">
+                                    <li key={rs.key}>{rs.text}</li>
+                                </template>
+                            </ul>
+                        </div>
+
+                        <div class="winner-row">
+                            <div class={aCardClass} data-side="A" onclick={pickWinner}>
+                                <div class="wc-top"><span class="wc-tag">Record A</span><template if:true={aSuggested}><span class="wc-sug">Suggested</span></template></div>
+                                <div class="wc-name">{review.candidate.aName}</div>
+                                <div class="wc-detail">{review.candidate.aDetail}</div>
+                                <div class="wc-counts">{aCountsText}</div>
+                                <div class="wc-keep">{aKeepText}</div>
+                            </div>
+                            <div class={bCardClass} data-side="B" onclick={pickWinner}>
+                                <div class="wc-top"><span class="wc-tag">Record B</span><template if:true={bSuggested}><span class="wc-sug">Suggested</span></template></div>
+                                <div class="wc-name">{review.candidate.bName}</div>
+                                <div class="wc-detail">{review.candidate.bDetail}</div>
+                                <div class="wc-counts">{bCountsText}</div>
+                                <div class="wc-keep">{bKeepText}</div>
+                            </div>
+                        </div>
+                        <p class="hint">The record you keep stays in the system; the other is merged into it. Suggested: {suggestedWhy}</p>
+
+                        <div class="sect slds-m-top_medium">Choose the value to keep for each difference</div>
+                        <p class="hint">Click a value to keep it. Blank fields are filled automatically from the other record.</p>
+                        <table class="slds-table slds-table_bordered cmp">
+                            <thead>
+                                <tr class="slds-line-height_reset">
+                                    <th scope="col" class="c-label">Field</th>
+                                    <th scope="col">Record A</th>
+                                    <th scope="col">Record B</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={diffRows} for:item="r">
+                                    <tr key={r.key}>
+                                        <td class="c-label">{r.label}</td>
+                                        <template if:true={r.auto}>
+                                            <td colspan="2" class="auto-cell">Combined automatically. A: {r.aText} · B: {r.bText}</td>
+                                        </template>
+                                        <template if:false={r.auto}>
+                                            <td class={r.aClass} data-key={r.key} data-side="A" onclick={pickValue}>{r.aText}</td>
+                                            <td class={r.bClass} data-key={r.key} data-side="B" onclick={pickValue}>{r.bText}</td>
+                                        </template>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                        <template if:false={hasDiffRows}><p class="hint">The two records have no conflicting values.</p></template>
+                        <template if:true={sameCount}>
+                            <p class="hint slds-m-top_small">{sameCount} field(s) already match and are not shown.</p>
+                        </template>
+                    </template>
+                </div>
+                <footer class="slds-modal__footer">
+                    <template if:false={confirming}>
+                        <lightning-button label="Close" onclick={closeReview}></lightning-button>
+                        <template if:true={review.isOpen}>
+                            <lightning-button label="Not a duplicate" class="slds-m-left_x-small" onclick={handleNotDuplicate} disabled={busy}></lightning-button>
+                            <lightning-button variant="brand" label="Continue to merge" class="slds-m-left_x-small" onclick={startConfirm} disabled={busy}></lightning-button>
+                        </template>
+                        <template if:false={review.isOpen}>
+                            <lightning-button label="Reopen" class="slds-m-left_x-small" onclick={handleReopen} disabled={busy}></lightning-button>
+                        </template>
+                    </template>
+                    <template if:true={confirming}>
+                        <lightning-button label="Back" onclick={cancelConfirm} disabled={busy}></lightning-button>
+                        <lightning-button variant="destructive" label="Merge now" class="slds-m-left_x-small" onclick={handleMerge} disabled={busy}></lightning-button>
+                    </template>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+    </template>
+</template>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomTab xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customObject>true</customObject>
+    <description>Mirror of each rep&apos;s sync activity (push/pull attempts, successes, failures) pushed from the iPad app — the Veeva Sync_Tracking_vod equivalent, giving admins visibility into sync health without touching a rep&apos;s device.</description>
+    <motif>Custom67: Gears</motif>
+</CustomTab>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Auto_Assign__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>Give each new request to the Business Admin with the fewest open requests.</description>
+    <label>Auto-assign New Requests</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

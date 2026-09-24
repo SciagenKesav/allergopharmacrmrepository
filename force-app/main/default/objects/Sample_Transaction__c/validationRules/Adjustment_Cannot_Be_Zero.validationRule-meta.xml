@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Adjustment_Cannot_Be_Zero</fullName>
+    <active>true</active>
+    <errorConditionFormula>AND(ISPICKVAL(Transaction_Type__c,&apos;Adjustment&apos;), Quantity__c = 0)</errorConditionFormula>
+    <errorDisplayField>Quantity__c</errorDisplayField>
+    <errorMessage>An adjustment can&apos;t be zero.</errorMessage>
+</ValidationRule>

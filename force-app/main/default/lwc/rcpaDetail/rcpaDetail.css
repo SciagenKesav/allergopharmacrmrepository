@@ -1,0 +1,406 @@
+/* Palette mirrors the iPad app's own design system (SciagenCRM/Theme.swift),
+   not the Sciagen brand-logo colors — see sciagenColors.js for the JS-side
+   equivalents used for status/trend pills. */
+:host {
+    --brand-primary: #4F46E5;
+    --brand-violet: #7C3AED;
+    --brand-accent: #059669;
+    --brand-amber: #F59E0B;
+    --brand-ink: #0F172A;
+    --brand-subtle: #64748B;
+    --brand-hairline: #E2E8F0;
+    --brand-red: #DC2626;
+    --brand-bg: #F3F4FB;
+    display: block;
+}
+
+/* Card convention matches the CLM components (clmLibrary.css /
+   clmPresentationViewer.css) — the newest, most polished part of this app —
+   rather than the older #e2e2ea/0.5rem pattern this file used to have. */
+.card {
+    background: #ffffff;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    padding: 1.1rem;
+    margin-bottom: 0.9rem;
+}
+
+.detail-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.header-text h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--brand-ink);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.subtitle {
+    margin: 0.15rem 0 0;
+    color: var(--brand-subtle);
+    font-size: 0.82rem;
+}
+
+.chip {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.1rem 0.55rem;
+    border-radius: 0.75rem;
+}
+
+.chip-amber {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--brand-amber);
+}
+
+.badge {
+    display: inline-block;
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.15rem 0.6rem;
+    border-radius: 1rem;
+    margin-top: 0.6rem;
+    margin-right: 0.4rem;
+}
+
+.badge-territory {
+    background: var(--brand-primary);
+}
+
+/* Generic status/trend pill — background & color set inline per value via
+   sciagenColors.js's pillStyle(), matching the iOS Chip component (a ~13%
+   tint fill with the same, opaque color as the text). */
+.pill {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.1rem 0.5rem;
+    border-radius: 0.75rem;
+    margin-top: 0.6rem;
+}
+
+/* Hero share stat — mirrors RCPADetailView.header's big "N%" figure. */
+.hero-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin: 1rem 0 0.75rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--brand-hairline);
+}
+
+.hero-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.hero-stat-right {
+    align-items: flex-end;
+    text-align: right;
+}
+
+.hero-label {
+    font-size: 0.78rem;
+    color: var(--brand-subtle);
+}
+
+.hero-value {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: var(--brand-accent);
+    font-variant-numeric: tabular-nums;
+}
+
+.hero-value-small {
+    font-size: 1.15rem;
+    color: var(--brand-ink);
+    font-variant-numeric: tabular-nums;
+}
+
+.share-bar {
+    height: 0.85rem;
+    background: var(--brand-hairline);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.share-bar-thin {
+    height: 0.6rem;
+    margin: 0.4rem 0;
+}
+
+.share-bar-fill {
+    height: 100%;
+    background: var(--brand-accent);
+    border-radius: 0.5rem;
+}
+
+.legend {
+    display: flex;
+    gap: 0.9rem;
+    margin-top: 0.6rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.72rem;
+    color: var(--brand-subtle);
+}
+
+.legend-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.legend-dot-own {
+    background: var(--brand-accent);
+}
+
+.legend-dot-comp {
+    background: rgba(220, 38, 38, 0.72);
+}
+
+.molecule-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.molecule-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--brand-ink);
+}
+
+.molecule-focus {
+    font-size: 0.72rem;
+    color: var(--brand-violet);
+    margin-top: 0.1rem;
+}
+
+.molecule-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.6rem;
+    font-size: 0.78rem;
+}
+
+.share-pct {
+    font-weight: 700;
+    color: var(--brand-accent);
+}
+
+.stock-ratio {
+    color: var(--brand-subtle);
+    font-variant-numeric: tabular-nums;
+}
+
+.brand-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+}
+
+.brand-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+}
+
+.brand-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.brand-dot-own {
+    background: var(--brand-accent);
+}
+
+.brand-dot-comp {
+    background: rgba(220, 38, 38, 0.72);
+}
+
+.brand-name {
+    flex: 1;
+    color: var(--brand-ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.brand-units {
+    color: var(--brand-subtle);
+    font-variant-numeric: tabular-nums;
+}
+
+.brand-pct {
+    width: 2.5rem;
+    text-align: right;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.prescriber-line {
+    margin-top: 0.5rem;
+    font-size: 0.78rem;
+    color: var(--brand-subtle);
+}
+
+.line-remarks {
+    margin-top: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--brand-subtle);
+    background: var(--brand-bg);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+}
+
+.observations-title {
+    margin: 0 0 0.6rem;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--brand-subtle);
+}
+
+.obs-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding: 0.35rem 0;
+}
+
+.obs-row + .obs-row {
+    border-top: 1px solid var(--brand-hairline);
+}
+
+.obs-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--brand-ink);
+}
+
+.obs-value {
+    font-size: 0.8rem;
+    color: var(--brand-subtle);
+    overflow-wrap: break-word;
+}
+
+.empty-state {
+    color: var(--brand-subtle);
+    font-size: 0.85rem;
+    padding: 1rem 0;
+}
+
+/* 220px was too narrow for this form's longer field labels ("Chemist OTP
+   Verified", "Competitor Activity", "Chemist Signer Name") — at that width
+   they wrapped into a squished, near-unreadable single-word-per-line stack
+   instead of the normal 1-2 line label SLDS renders everywhere else. */
+.edit-header {
+    margin-bottom: 1.1rem;
+    padding-bottom: 0.9rem;
+    border-bottom: 1px solid var(--brand-hairline);
+}
+
+.edit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+/* A hairline under each field — reads as a grid line per row of the form
+   (adjacent fields in the same row end at the same height, so their
+   borders line up into one row divider) instead of fields just floating
+   in space with only the grid gap between them. */
+.edit-grid > lightning-input-field {
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--brand-hairline);
+}
+
+.edit-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.error {
+    color: var(--brand-red);
+    background: #fdecea;
+    border-radius: 0.35rem;
+    padding: 0.5rem;
+    margin: 0.5rem 0;
+    font-size: 0.8rem;
+}
+
+/* Molecule-line edit grid — mirrors rcpaAuditForm.css's own .qty-row/
+   .qty-cell/.field-row rules exactly, so the editable form looks and
+   behaves the same as the create form the rep already knows. */
+.molecule-card {
+    margin-top: 0.75rem;
+}
+
+.qty-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 0.6rem 0;
+}
+
+.qty-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    width: 7.5rem;
+}
+
+.qty-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--brand-subtle);
+}
+
+.own-cell .qty-label {
+    color: var(--brand-accent);
+}
+
+.comp-qty-row {
+    display: flex;
+    align-items: center;
+    gap: 0.1rem;
+}
+
+.field-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.7rem;
+    margin-bottom: 0.6rem;
+}
+
+.field-wide {
+    display: block;
+    margin-top: 0.6rem;
+}

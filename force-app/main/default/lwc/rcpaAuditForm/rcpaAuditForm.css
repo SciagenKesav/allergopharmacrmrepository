@@ -1,0 +1,364 @@
+:host {
+    --brand-primary: #4F46E5;
+    --brand-ink: #0F172A;
+    --brand-subtle: #64748B;
+    --brand-hairline: #E2E8F0;
+    --brand-red: #DC2626;
+    --brand-amber: #F59E0B;
+    --brand-accent: #059669;
+    --brand-violet: #7C3AED;
+    --brand-bg: #F3F4FB;
+}
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 1rem;
+    z-index: 9000;
+    overflow-y: hidden;
+}
+
+.modal-panel {
+    background: var(--brand-bg);
+    border-radius: 0.9rem;
+    width: 100%;
+    max-width: 52rem;
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.25);
+}
+
+.modal-header {
+    position: relative;
+    padding: 1.25rem 1.5rem 0.9rem;
+    background: #ffffff;
+    border-bottom: 1px solid var(--brand-hairline);
+    border-radius: 0.9rem 0.9rem 0 0;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--brand-ink);
+}
+
+.modal-subtitle {
+    margin: 0.2rem 0 0;
+    font-size: 0.8rem;
+    color: var(--brand-subtle);
+}
+
+.close-button {
+    position: absolute;
+    top: 1rem;
+    right: 1.25rem;
+    border: none;
+    background: transparent;
+    font-size: 1.4rem;
+    line-height: 1;
+    color: var(--brand-subtle);
+    cursor: pointer;
+}
+
+.modal-body {
+    padding: 1rem 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+.error {
+    color: var(--brand-red);
+    background: #fdecea;
+    border-radius: 0.35rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+}
+
+.card {
+    background: #ffffff;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    padding: 1rem 1.1rem;
+}
+
+.card-title {
+    margin: 0 0 0.6rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--brand-ink);
+}
+
+.card-title-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 0.6rem;
+}
+
+.card-title-row .card-title {
+    margin: 0;
+}
+
+.hint,
+.hint-block {
+    font-size: 0.72rem;
+    color: var(--brand-subtle);
+}
+
+.hint-block {
+    margin: -0.3rem 0 0.7rem;
+}
+
+.field-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.7rem;
+    margin-bottom: 0.6rem;
+}
+
+.field-row:last-child {
+    margin-bottom: 0;
+}
+
+.field-wide {
+    display: block;
+    margin-top: 0.6rem;
+}
+
+/* Live share preview */
+.preview-card {
+    padding: 0.85rem 1.1rem;
+}
+
+.preview-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.4rem;
+}
+
+.preview-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--brand-subtle);
+}
+
+.preview-value {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--brand-ink);
+}
+
+.share-bar,
+.own-cell + .share-bar {
+    height: 10px;
+    background: rgba(220, 38, 38, 0.72);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.share-bar-own {
+    height: 100%;
+    background: var(--brand-accent);
+}
+
+/* Capture grid — one card per molecule line */
+.empty-text {
+    color: var(--brand-subtle);
+    font-size: 0.85rem;
+    margin: 0.5rem 0;
+}
+
+.line-card {
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.65rem;
+    padding: 0.85rem;
+    margin-bottom: 0.75rem;
+}
+
+.line-card:last-child {
+    margin-bottom: 0;
+}
+
+.line-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 0.6rem;
+}
+
+.line-molecule {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--brand-ink);
+}
+
+.line-brand {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--brand-accent);
+}
+
+.remove-button {
+    border: none;
+    background: transparent;
+    color: var(--brand-red);
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 0.2rem;
+}
+
+.qty-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+}
+
+.qty-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    width: 7.5rem;
+}
+
+.qty-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--brand-subtle);
+}
+
+.own-cell .qty-label {
+    color: var(--brand-accent);
+}
+
+.share-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    justify-content: center;
+}
+
+.share-pct {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--brand-accent);
+}
+
+/* Add molecule */
+.add-molecule lightning-button-menu {
+    width: 100%;
+}
+
+/* POB */
+.pob-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.6rem;
+    background: var(--brand-bg);
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.pob-name {
+    flex: 1;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--brand-ink);
+}
+
+.pob-qty {
+    font-size: 0.75rem;
+    color: var(--brand-subtle);
+}
+
+.pob-add-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.6rem;
+    margin: 0.4rem 0 0.8rem;
+}
+
+.pob-add-row .field {
+    flex: 1;
+}
+
+.qty-input {
+    width: 5.5rem;
+}
+
+.pob-total-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--brand-ink);
+    padding-top: 0.4rem;
+    border-top: 1px solid var(--brand-hairline);
+}
+
+.divider {
+    height: 1px;
+    background: var(--brand-hairline);
+    margin: 1rem 0;
+}
+
+.otp-verified {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--brand-accent);
+    margin-top: 0.5rem;
+}
+
+.otp-row {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-top: 0.5rem;
+}
+
+.otp-demo {
+    font-size: 0.75rem;
+    color: var(--brand-subtle);
+    font-family: monospace;
+}
+
+.otp-verify-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.6rem;
+    margin-top: 0.5rem;
+}
+
+.otp-verify-row .field {
+    flex: 1;
+}
+
+.signature-block {
+    margin-top: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    background: #ffffff;
+    border-top: 1px solid var(--brand-hairline);
+    border-radius: 0 0 0.9rem 0.9rem;
+}

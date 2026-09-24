@@ -1,0 +1,141 @@
+<template>
+    <template if:true={isLoadingOptions}>
+        <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+    </template>
+
+    <template if:true={error}>
+        <div class="error">{error}</div>
+    </template>
+
+    <template if:false={isLoadingOptions}>
+        <template if:false={hasDoctors}>
+            <div class="empty-state">
+                <p class="empty-title">No doctor data yet</p>
+                <p class="empty-subtitle">RCPA audits with a linked prescriber will show up here.</p>
+            </div>
+        </template>
+
+        <template if:true={hasDoctors}>
+            <div class="picker-row">
+                <lightning-combobox
+                    label="Doctor"
+                    variant="label-hidden"
+                    class="doctor-picker"
+                    value={selectedDoctorId}
+                    options={doctorOptions}
+                    onchange={handleDoctorChange}
+                ></lightning-combobox>
+            </div>
+
+            <template if:true={isLoadingMatrix}>
+                <lightning-spinner alternative-text="Loading matrix" size="medium"></lightning-spinner>
+            </template>
+
+            <template if:true={hasMatrix}>
+                <!-- Header card: doctor meta grid — mirrors
+                     RCPADoctorMatrixView.header (RCPAMatrixViews.swift). -->
+                <div class="card header-card">
+                    <h2 class="header-title">Doctor-Product Matrix</h2>
+                    <p class="header-subtitle">Prescribing picture across every captured molecule</p>
+                    <div class="meta-grid">
+                        <div class="meta-field">
+                            <span class="meta-label">Doctor Name</span>
+                            <span class="meta-value">{matrix.name}</span>
+                        </div>
+                        <div class="meta-field">
+                            <span class="meta-label">Speciality</span>
+                            <span class="meta-value">{matrix.specialty}</span>
+                        </div>
+                        <div class="meta-field">
+                            <span class="meta-label">PSR Name</span>
+                            <span class="meta-value">{matrix.rep}</span>
+                        </div>
+                        <div class="meta-field">
+                            <span class="meta-label">Last updated on</span>
+                            <span class="meta-value">{matrix.lastAuditDate}</span>
+                        </div>
+                        <div class="meta-field">
+                            <span class="meta-label">Audits captured</span>
+                            <span class="meta-value">{matrix.auditCount}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- One card per molecule: own + competitor brand columns. -->
+                <template for:each={moleculeCards} for:item="row">
+                    <div key={row.key} class="card molecule-card">
+                        <div class="molecule-top">
+                            <span class="molecule-name">{row.molecule}</span>
+                            <span class="chip">Own: {row.ownBrand}</span>
+                        </div>
+                        <div class="grid-scroll">
+                            <div class="grid-row grid-header">
+                                <template for:each={row.brands} for:item="b">
+                                    <div key={b.key} class={b.headerClass}>
+                                        {b.brand}
+                                    </div>
+                                </template>
+                                <div class="grid-cell grid-cell-header grid-cell-total">Total</div>
+                            </div>
+                            <div class="grid-row">
+                                <template for:each={row.brands} for:item="b">
+                                    <div key={b.key} class={b.valueClass}>
+                                        {b.qty}
+                                    </div>
+                                </template>
+                                <div class="grid-cell grid-cell-total grid-cell-total-value">{row.total}</div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- RCPA Trail — only molecules captured more than once. -->
+                <template if:true={hasTrails}>
+                    <div class="card trail-section">
+                        <h3 class="trail-title">RCPA Trail — Brand &amp; Rx Change History</h3>
+                        <template for:each={trailCards} for:item="trail">
+                            <div key={trail.key} class="trail-card">
+                                <div class="trail-header">
+                                    <div>
+                                        <span class="trail-brand">{trail.ownBrand}</span>
+                                        <span class="trail-molecule">{trail.molecule}</span>
+                                    </div>
+                                    <span class={trail.deltaClass}>{trail.deltaIcon} {trail.deltaLabel}</span>
+                                </div>
+                                <div class="trail-timeline">
+                                    <template for:each={trail.points} for:item="pt">
+                                        <div key={pt.key} class="trail-point">
+                                            <div class="trail-node-col">
+                                                <span class={pt.nodeClass}></span>
+                                                <template if:true={pt.isNotLast}>
+                                                    <span class="trail-line"></span>
+                                                </template>
+                                            </div>
+                                            <div class="trail-info">
+                                                <div class="trail-date-row">
+                                                    <span class="trail-date">{pt.auditDate}</span>
+                                                    <span class="trail-chemist">{pt.chemistName}</span>
+                                                </div>
+                                                <span class="pill" style={pt.trendStyle}>{pt.trend}</span>
+                                            </div>
+                                            <div class="trail-stats">
+                                                <span class="trail-units">{pt.ownUnits}u</span>
+                                                <span class="trail-share">{pt.sharePct}% share</span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                <!-- Grand total footer — mirrors grandTotalCard. -->
+                <div class="card grand-total-card">
+                    <span class="grand-total-label">Total prescription volume</span>
+                    <span class="grand-total-value">{grandTotal}</span>
+                </div>
+            </template>
+        </template>
+    </template>
+</template>

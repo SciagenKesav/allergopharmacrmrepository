@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomTab xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>My Schedule — the rep&apos;s planned visits (Planned_Call__c): Agenda, Week drag-and-drop scheduler, and Map views, with search and Kind/Specialty/Territory/Status/Custom-List filters.</description>
+    <flexiPage>My_Schedule_Page</flexiPage>
+    <label>My Schedule</label>
+    <motif>Custom18: Form</motif>
+</CustomTab>

@@ -1,0 +1,104 @@
+<template>
+    <div class="dashboard">
+        <div class="hero-row">
+            <div class="gauge-card">
+                <svg viewBox="0 0 100 100" class="gauge-svg">
+                    <circle cx="50" cy="50" r="40" class="gauge-track"></circle>
+                    <circle cx="50" cy="50" r="40" class="gauge-fill" stroke-dasharray={gaugeDashArray}></circle>
+                </svg>
+                <div class="gauge-label">
+                    <span class="gauge-percent">{gaugePercentDisplay}%</span>
+                    <span class="gauge-caption">Action Items Complete</span>
+                </div>
+            </div>
+
+            <div class="mission-card">
+                <div class="chip-row">
+                    <span class="pill" style={healthPillStyle}>{healthLabel}</span>
+                    <span class="pill" style={activePillStyle}>{activeLabel}</span>
+                </div>
+                <h4>Mission Statement</h4>
+                <p class="mission-text">{missionStatement}</p>
+            </div>
+        </div>
+
+        <div class="progress-card">
+            <div class="progress-row">
+                <div class="progress-label">
+                    <span>Strategies</span>
+                    <span>{workspace.completedStrategies}/{workspace.totalStrategies}</span>
+                </div>
+                <div class="share-bar"><div class="share-bar-fill" style={strategyBarStyle}></div></div>
+            </div>
+            <div class="progress-row">
+                <div class="progress-label">
+                    <span>Account Tactics</span>
+                    <span>{workspace.completedActivities}/{workspace.totalActivities}</span>
+                </div>
+                <div class="share-bar"><div class="share-bar-fill" style={activityBarStyle}></div></div>
+            </div>
+            <div class="progress-row">
+                <div class="progress-label">
+                    <span>Action Items</span>
+                    <span>{workspace.completedActionItems}/{workspace.totalActionItems}</span>
+                </div>
+                <div class="share-bar"><div class="share-bar-fill" style={actionItemBarStyle}></div></div>
+            </div>
+        </div>
+
+        <div class="split-row">
+            <div class="list-card">
+                <h4>Upcoming</h4>
+                <template if:true={hasUpcoming}>
+                    <ul class="upcoming-list">
+                        <template for:each={workspace.upcoming} for:item="item">
+                            <li key={item.id}>
+                                <span class="upcoming-title">{item.title}</span>
+                                <span class="upcoming-due">Due {item.dueDate}</span>
+                            </li>
+                        </template>
+                    </ul>
+                </template>
+                <template if:false={hasUpcoming}>
+                    <p class="empty-text">Nothing due soon.</p>
+                </template>
+            </div>
+
+            <div class="list-card">
+                <h4>Key Stakeholders</h4>
+                <template if:true={hasStakeholders}>
+                    <table class="mini-table">
+                        <template for:each={workspace.stakeholders} for:item="s">
+                            <tr key={s.id}>
+                                <td>{s.name}</td>
+                                <td class="muted">{s.role}</td>
+                                <td class="muted">{s.influence}</td>
+                            </tr>
+                        </template>
+                    </table>
+                </template>
+                <template if:false={hasStakeholders}>
+                    <p class="empty-text">No stakeholders added yet.</p>
+                </template>
+            </div>
+
+            <div class="list-card">
+                <h4>Account Team</h4>
+                <template if:true={hasTeamMembers}>
+                    <table class="mini-table">
+                        <template for:each={workspace.teamMembers} for:item="m">
+                            <tr key={m.id}>
+                                <td>{m.name}</td>
+                                <td class="muted">{m.role}</td>
+                                <td class="muted">{m.access}</td>
+                            </tr>
+                        </template>
+                    </table>
+                </template>
+                <template if:false={hasTeamMembers}>
+                    <p class="empty-text">No team members added yet.</p>
+                </template>
+            </div>
+        </div>
+    </div>
+</template>

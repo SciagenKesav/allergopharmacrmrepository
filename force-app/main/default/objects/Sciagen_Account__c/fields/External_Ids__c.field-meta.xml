@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>External_Ids__c</fullName>
+    <description>External identifiers for this HCP/HCO (e.g. NPI, MCI, GST, NABH), stored as JSON — {&quot;NPI&quot;: &quot;1234567890&quot;, &quot;MCI&quot;: &quot;MCI-9988&quot;}. Mirrors the Fields_Payload__c pattern used elsewhere for flexible key/value data.</description>
+    <label>External IDs</label>
+    <length>32768</length>
+    <trackTrending>false</trackTrending>
+    <type>LongTextArea</type>
+    <visibleLines>4</visibleLines>
+</CustomField>

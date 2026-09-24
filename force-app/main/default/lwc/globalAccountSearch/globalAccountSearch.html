@@ -1,0 +1,143 @@
+<template>
+    <div class="gas">
+        <div class="gas-header">
+            <h1>Global Account Search</h1>
+            <p class="gas-subtitle">Search every account in the organization, not just your territory, then add what you find to your territory.</p>
+        </div>
+
+        <div class="gas-form">
+            <div class="gas-row">
+                <lightning-input
+                    label="Name"
+                    value={name}
+                    data-field="name"
+                    onchange={handleFieldChange}
+                ></lightning-input>
+                <lightning-radio-group
+                    label="Match"
+                    options={nameMatchOptions}
+                    value={nameMatchType}
+                    onchange={handleNameMatchChange}
+                    type="button"
+                ></lightning-radio-group>
+            </div>
+
+            <div class="gas-row">
+                <lightning-input label="First Name" value={firstName} data-field="firstName" onchange={handleFieldChange}></lightning-input>
+                <lightning-input label="Last Name" value={lastName} data-field="lastName" onchange={handleFieldChange}></lightning-input>
+            </div>
+
+            <div class="gas-row">
+                <lightning-combobox label="Specialty" value={specialty} options={specialtyOptions} data-field="specialty" onchange={handleFieldChange}></lightning-combobox>
+                <lightning-record-picker
+                    label="Primary Parent"
+                    placeholder="Search HCOs..."
+                    object-api-name="Sciagen_Account__c"
+                    filter={parentAccountFilter}
+                    onchange={handleParentChange}
+                ></lightning-record-picker>
+            </div>
+
+            <div class="gas-row">
+                <lightning-input
+                    label="Address"
+                    value={addressLine1}
+                    data-field="addressLine1"
+                    onchange={handleFieldChange}
+                ></lightning-input>
+                <lightning-radio-group
+                    label="Match"
+                    options={addressMatchOptions}
+                    value={addressMatchType}
+                    onchange={handleAddressMatchChange}
+                    type="button"
+                ></lightning-radio-group>
+            </div>
+
+            <div class="gas-row">
+                <lightning-input label="City" value={city} data-field="city" onchange={handleFieldChange}></lightning-input>
+                <lightning-input label="State" value={state} data-field="state" onchange={handleFieldChange}></lightning-input>
+                <lightning-input label="Postal Code" value={postalCode} data-field="postalCode" onchange={handleFieldChange}></lightning-input>
+            </div>
+
+            <div class="gas-row">
+                <lightning-input label="Phone" value={phone} data-field="phone" onchange={handleFieldChange}></lightning-input>
+            </div>
+
+            <div class="gas-actions">
+                <lightning-button variant="brand" label="Search" onclick={handleSearch} disabled={isSearching}></lightning-button>
+            </div>
+
+            <template if:true={error}>
+                <div class="gas-error">{error}</div>
+            </template>
+        </div>
+
+        <div class="gas-results">
+            <template if:true={isSearching}>
+                <lightning-spinner alternative-text="Searching" size="small"></lightning-spinner>
+            </template>
+
+            <template if:true={hasNoResults}>
+                <div class="gas-empty">No accounts found.</div>
+            </template>
+
+            <template if:true={hasResults}>
+                <div class="gas-results-header">
+                    <h2>Results</h2>
+                    <lightning-button
+                        variant="brand"
+                        label="Add to Territory"
+                        onclick={handleAddToTerritory}
+                        disabled={hasNoSelection}
+                    ></lightning-button>
+                </div>
+
+                <div class="gas-table-wrap">
+                <table class="gas-table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Specialty</th>
+                            <th>Street</th>
+                            <th>City</th>
+                            <th>State</th>
+                            <th>Zip</th>
+                            <th>Created Date</th>
+                            <th>Created By</th>
+                            <th>In My Territory</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template for:each={results} for:item="row">
+                            <tr key={row.id}>
+                                <td>
+                                    <template if:false={row.inMyTerritory}>
+                                        <input type="checkbox" data-id={row.id} checked={row.checked} onchange={handleRowCheckboxChange} />
+                                    </template>
+                                </td>
+                                <td>{row.name}</td>
+                                <td>{row.type}</td>
+                                <td>{row.specialty}</td>
+                                <td class="gas-street" title={row.street}>{row.street}</td>
+                                <td>{row.city}</td>
+                                <td>{row.state}</td>
+                                <td>{row.postalCode}</td>
+                                <td>{row.createdDateLabel}</td>
+                                <td>{row.createdByName}</td>
+                                <td>
+                                    <template if:true={row.inMyTerritory}>
+                                        <lightning-icon icon-name="utility:check" size="x-small" title="In my territory"></lightning-icon>
+                                    </template>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+                </div>
+            </template>
+        </div>
+    </div>
+</template>

@@ -1,0 +1,295 @@
+<template>
+    <div class="page">
+        <template if:true={showNewPlan}>
+            <c-new-account-plan-modal onclose={handleCloseNewPlan} oncreated={handleNewPlanCreated}></c-new-account-plan-modal>
+        </template>
+
+        <div class="page-header">
+            <div class="mode-bar">
+                <button class={planTabClass} onclick={handleShowPlan}>Plan</button>
+                <button class={dashboardTabClass} onclick={handleShowDashboard}>Dashboard</button>
+            </div>
+            <div class="page-header-actions">
+                <lightning-button label="Refresh" icon-name="utility:refresh" onclick={handleRefresh}></lightning-button>
+                <lightning-button variant="brand" label="New Plan" icon-name="utility:add" onclick={handleNewPlan}></lightning-button>
+            </div>
+        </div>
+
+        <template if:true={isLoading}>
+            <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+        </template>
+
+        <template if:true={error}>
+            <div class="error">{error}</div>
+        </template>
+
+        <template if:true={isPlanMode}>
+        <div class="kpi-row">
+            <div class="kpi-tile">
+                <span class="kpi-icon kpi-icon-violet">AP</span>
+                <div class="kpi-text">
+                    <span class="kpi-label">Total Plans</span>
+                    <span class="kpi-value">{totalPlans}</span>
+                </div>
+            </div>
+            <div class="kpi-tile">
+                <span class="kpi-icon kpi-icon-accent">
+                    <lightning-icon icon-name="utility:check" size="x-small"></lightning-icon>
+                </span>
+                <div class="kpi-text">
+                    <span class="kpi-label">Active</span>
+                    <span class="kpi-value">{activeCount}</span>
+                </div>
+            </div>
+            <div class="kpi-tile">
+                <span class="kpi-icon kpi-icon-blue">D</span>
+                <div class="kpi-text">
+                    <span class="kpi-label">Draft</span>
+                    <span class="kpi-value">{draftCount}</span>
+                </div>
+            </div>
+            <div class="kpi-tile">
+                <span class="kpi-icon kpi-icon-amber">
+                    <lightning-icon icon-name="utility:flag" size="x-small"></lightning-icon>
+                </span>
+                <div class="kpi-text">
+                    <span class="kpi-label">Completed</span>
+                    <span class="kpi-value">{completedCount}</span>
+                </div>
+            </div>
+            <div class="kpi-tile">
+                <span class="kpi-icon kpi-icon-violet">%</span>
+                <div class="kpi-text">
+                    <span class="kpi-label">Avg. Progress</span>
+                    <span class="kpi-value">{avgProgress}%</span>
+                </div>
+            </div>
+        </div>
+        <div class="plans-card">
+            <div class="plans-toolbar">
+                <lightning-input
+                    type="search"
+                    label="Search Account Plans"
+                    variant="label-hidden"
+                    placeholder="Search Account Plans..."
+                    value={searchTerm}
+                    onchange={handleSearchChange}
+                    class="plans-search"
+                ></lightning-input>
+                <lightning-combobox
+                    label="Status"
+                    variant="label-hidden"
+                    value={statusFilter}
+                    options={statusOptions}
+                    onchange={handleStatusFilterChange}
+                ></lightning-combobox>
+                <lightning-combobox
+                    label="Stage"
+                    variant="label-hidden"
+                    value={stageFilter}
+                    options={stageOptions}
+                    onchange={handleStageFilterChange}
+                ></lightning-combobox>
+                <lightning-combobox
+                    label="Export"
+                    variant="label-hidden"
+                    placeholder="Export"
+                    value=""
+                    options={exportOptions}
+                    disabled={hasNoPlans}
+                    onchange={handleExportChange}
+                    class="plans-export"
+                ></lightning-combobox>
+                <a class="export-download-link" style="display: none;"></a>
+            </div>
+
+            <template if:true={isLoadingPlans}>
+                <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+            </template>
+            <template if:false={isLoadingPlans}>
+                <template if:true={hasPlans}>
+                    <table class="plans-table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Account</th>
+                                <th>Status</th>
+                                <th>Progress</th>
+                                <th>Stage</th>
+                                <th>Health</th>
+                                <th>Owner</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={planRows} for:item="p">
+                                <tr key={p.id} data-id={p.id} onclick={handlePlanClick} class="plan-row">
+                                    <td class="plan-title">{p.title}</td>
+                                    <td class="muted">{p.accountName}</td>
+                                    <td><span class="pill" style={p.statusPillStyle}>{p.status}</span></td>
+                                    <td>
+                                        <div class="progress-ring" style={p.progressRingStyle}>
+                                            <span class="progress-ring-label">{p.progressLabel}</span>
+                                        </div>
+                                    </td>
+                                    <td><span class="pill" style={p.stagePillStyle}>{p.stage}</span></td>
+                                    <td><span class="pill" style={p.healthPillStyle}>{p.health}</span></td>
+                                    <td class="muted">{p.ownerName}</td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </template>
+                <template if:false={hasPlans}>
+                    <p class="empty-text">No Account Plans match this search.</p>
+                </template>
+            </template>
+        </div>
+        </template>
+
+        <template if:true={isDashboardMode}>
+        <div class="insights-card">
+            <div class="insights-header">
+                <span class="icon-badge">
+                    <lightning-icon icon-name="utility:chart" size="x-small"></lightning-icon>
+                </span>
+                <h3>My Insights</h3>
+            </div>
+            <div class="insights-grid">
+                <div class="insight-tile insight-tile-violet">
+                    <span class="insight-value">{totalPlans}</span>
+                    <span class="insight-label">Account Plans</span>
+                </div>
+                <div class="insight-tile insight-tile-green">
+                    <span class="insight-value">{activeCount}</span>
+                    <span class="insight-label">Active</span>
+                </div>
+                <div class="insight-tile insight-tile-amber">
+                    <span class="insight-value">{openItemsCount}</span>
+                    <span class="insight-label">Open Items</span>
+                </div>
+                <div class="insight-tile insight-tile-red">
+                    <span class="insight-value">{overdueCount}</span>
+                    <span class="insight-label">Overdue</span>
+                </div>
+                <div class="insight-tile insight-tile-violet">
+                    <span class="insight-value">{avgProgress}%</span>
+                    <span class="insight-label">Avg. Progress</span>
+                </div>
+                <div class="insight-tile insight-tile-indigo">
+                    <span class="insight-value">{goalAttainment}%</span>
+                    <span class="insight-label">Goal Attainment</span>
+                </div>
+                <div class="insight-tile insight-tile-grey">
+                    <span class="insight-value">{draftCount}</span>
+                    <span class="insight-label">Draft</span>
+                </div>
+                <div class="insight-tile insight-tile-indigo">
+                    <span class="insight-value">{activeCount}</span>
+                    <span class="insight-label">Active</span>
+                </div>
+                <div class="insight-tile insight-tile-green">
+                    <span class="insight-value">{completedCount}</span>
+                    <span class="insight-label">Completed</span>
+                </div>
+                <div class="insight-tile insight-tile-amber">
+                    <span class="insight-value">{onHoldCount}</span>
+                    <span class="insight-label">On Hold</span>
+                </div>
+            </div>
+        </div>
+        <div class="grid">
+            <div class="chart-card card-violet">
+                <div class="card-header">
+                    <span class="card-icon">
+                        <lightning-icon icon-name="utility:trending" size="x-small"></lightning-icon>
+                    </span>
+                    <h4>Strategy Progress</h4>
+                </div>
+                <template if:true={hasStrategyProgress}>
+                    <template for:each={strategyProgressRows} for:item="row">
+                        <div class="bar-row" key={row.key}>
+                            <div class="bar-label">
+                                <span>{row.label}</span>
+                                <span class="bar-sub">{row.sub}</span>
+                            </div>
+                            <div class="share-bar"><div class="share-bar-fill" style={row.barStyle}></div></div>
+                        </div>
+                    </template>
+                </template>
+                <template if:false={hasStrategyProgress}>
+                    <p class="empty-text">No strategies yet.</p>
+                </template>
+            </div>
+
+            <div class="chart-card card-blue">
+                <div class="card-header">
+                    <span class="card-icon">
+                        <lightning-icon icon-name="utility:chart" size="x-small"></lightning-icon>
+                    </span>
+                    <h4>Plan Progress</h4>
+                </div>
+                <template if:true={hasPlanProgress}>
+                    <template for:each={planProgressRows} for:item="row">
+                        <div class="bar-row" key={row.key}>
+                            <div class="bar-label">
+                                <span>{row.label}</span>
+                                <span class="bar-sub">{row.sub}</span>
+                            </div>
+                            <div class="share-bar"><div class="share-bar-fill" style={row.barStyle}></div></div>
+                        </div>
+                    </template>
+                </template>
+                <template if:false={hasPlanProgress}>
+                    <p class="empty-text">No Account Plans yet.</p>
+                </template>
+            </div>
+
+            <div class="chart-card card-amber">
+                <div class="card-header">
+                    <span class="card-icon">
+                        <lightning-icon icon-name="utility:clock" size="x-small"></lightning-icon>
+                    </span>
+                    <h4>Key Account Activities (Last 30 Days)</h4>
+                </div>
+                <template if:true={hasRecentActivity}>
+                    <template for:each={recentActivityRows} for:item="row">
+                        <div class="bar-row" key={row.key}>
+                            <div class="bar-label">
+                                <span>{row.label}</span>
+                                <span class="bar-sub">{row.sub}</span>
+                            </div>
+                            <div class="share-bar"><div class="share-bar-fill" style={row.barStyle}></div></div>
+                        </div>
+                    </template>
+                </template>
+                <template if:false={hasRecentActivity}>
+                    <p class="empty-text">No recent activity.</p>
+                </template>
+            </div>
+
+            <div class="chart-card card-green">
+                <div class="card-header">
+                    <span class="card-icon">
+                        <lightning-icon icon-name="utility:groups" size="x-small"></lightning-icon>
+                    </span>
+                    <h4>Team Objective Achievement</h4>
+                </div>
+                <template if:true={hasTeamObjectiveAchievement}>
+                    <template for:each={teamObjectiveRows} for:item="row">
+                        <div class="bar-row" key={row.key}>
+                            <div class="bar-label">
+                                <span>{row.label}</span>
+                                <span class="bar-sub">{row.sub}</span>
+                            </div>
+                            <div class="share-bar"><div class="share-bar-fill" style={row.barStyle}></div></div>
+                        </div>
+                    </template>
+                </template>
+                <template if:false={hasTeamObjectiveAchievement}>
+                    <p class="empty-text">No Action Items yet.</p>
+                </template>
+            </div>
+        </div>
+        </template>
+    </div>
+</template>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Sample_Eligible__c</fullName>
+    <formula>AND(ISPICKVAL(License_Verification_Status__c, &apos;Verified&apos;), NOT(ISBLANK(License_Expiry_Date__c)), License_Expiry_Date__c &gt;= TODAY(), Can_Prescribe__c)</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    <label>Sample Eligible</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

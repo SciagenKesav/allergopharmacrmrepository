@@ -1,0 +1,122 @@
+<template>
+    <lightning-card title="Device Reset Requests" icon-name="utility:tablet_portrait">
+        <div class="slds-p-around_medium">
+
+            <!-- Filter bar -->
+            <div class="slds-grid slds-gutters slds-m-bottom_small">
+                <div class="slds-col slds-size_1-of-3">
+                    <lightning-combobox
+                        label="Filter by Status"
+                        value={statusFilter}
+                        options={statusOptions}
+                        onchange={handleStatusFilter}>
+                    </lightning-combobox>
+                </div>
+                <div class="slds-col slds-size_2-of-3 slds-align_absolute-center slds-m-top_large">
+                    <lightning-button
+                        label="Refresh"
+                        icon-name="utility:refresh"
+                        onclick={loadRequests}>
+                    </lightning-button>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+            </template>
+
+            <!-- Error -->
+            <template if:true={errorMessage}>
+                <div class="slds-notify slds-notify_alert slds-alert_error slds-m-bottom_small" role="alert">
+                    <lightning-icon icon-name="utility:error" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                    {errorMessage}
+                </div>
+            </template>
+
+            <!-- Empty state -->
+            <template if:true={isEmpty}>
+                <div class="slds-illustration slds-illustration_small slds-m-vertical_large" style="text-align:center;">
+                    <lightning-icon icon-name="utility:tablet_portrait" size="large" style="opacity:0.3;"></lightning-icon>
+                    <p class="slds-m-top_medium" style="color:#706e6b;">No device reset requests match the current filter.</p>
+                </div>
+            </template>
+
+            <!-- Requests table -->
+            <template if:true={hasRequests}>
+                <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped" role="grid">
+                    <thead>
+                        <tr>
+                            <th scope="col"><div class="slds-truncate">Request #</div></th>
+                            <th scope="col"><div class="slds-truncate">Rep</div></th>
+                            <th scope="col"><div class="slds-truncate">Manager</div></th>
+                            <th scope="col"><div class="slds-truncate">Reason</div></th>
+                            <th scope="col"><div class="slds-truncate">Status</div></th>
+                            <th scope="col"><div class="slds-truncate">OTP Code</div></th>
+                            <th scope="col"><div class="slds-truncate">Expires</div></th>
+                            <th scope="col"><div class="slds-truncate">Created</div></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template for:each={requests} for:item="req">
+                            <tr key={req.Id}>
+                                <td>
+                                    <a href={req.recordUrl} target="_blank" title={req.Name}>{req.Name}</a>
+                                </td>
+                                <td><div class="slds-truncate">{req.OwnerName}</div></td>
+                                <td><div class="slds-truncate">{req.ManagerName}</div></td>
+                                <td><div class="slds-truncate" title={req.Reason__c}>{req.Reason__c}</div></td>
+                                <td>
+                                    <lightning-badge
+                                        label={req.Status__c}
+                                        class={req.statusClass}>
+                                    </lightning-badge>
+                                </td>
+                                <td>
+                                    <template if:true={req.showOTP}>
+                                        <div class="slds-grid slds-gutters_xx-small">
+                                            <div class="slds-col">
+                                                <span class="otp-code">{req.OTP__c}</span>
+                                            </div>
+                                            <div class="slds-col">
+                                                <lightning-button-icon
+                                                    icon-name="utility:copy"
+                                                    variant="bare"
+                                                    title="Copy code"
+                                                    data-otp={req.OTP__c}
+                                                    onclick={handleCopyOTP}>
+                                                </lightning-button-icon>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <template if:false={req.showOTP}>
+                                        <span style="color:#706e6b;">—</span>
+                                    </template>
+                                </td>
+                                <td>
+                                    <div class="slds-truncate" title={req.expiresLabel}>
+                                        <template if:true={req.isExpired}>
+                                            <span style="color:#c23934;">{req.expiresLabel}</span>
+                                        </template>
+                                        <template if:false={req.isExpired}>
+                                            {req.expiresLabel}
+                                        </template>
+                                    </div>
+                                </td>
+                                <td><div class="slds-truncate">{req.createdLabel}</div></td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </template>
+
+            <!-- Copy success toast -->
+            <template if:true={copySuccess}>
+                <div class="slds-notify slds-notify_toast slds-theme_success copy-toast" role="status">
+                    <lightning-icon icon-name="utility:success" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                    Code copied to clipboard
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+</template>

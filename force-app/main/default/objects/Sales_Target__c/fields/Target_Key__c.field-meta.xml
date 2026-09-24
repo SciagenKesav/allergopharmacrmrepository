@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Target_Key__c</fullName>
+    <caseSensitive>false</caseSensitive>
+    <description>Set by the flat-file load as Product__r.SKU_Code__c + &apos;|&apos; + Territory__r.Territory_Code__c + &apos;|&apos; + Period__c (Territory_Code blank for an org-wide target) -- same upsert pattern as Sales_Transaction__c.Sales_Key__c.</description>
+    <externalId>true</externalId>
+    <label>Target Key</label>
+    <length>255</length>
+    <required>true</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>true</unique>
+</CustomField>

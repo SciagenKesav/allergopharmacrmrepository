@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Territory_Scope_Needs_Territory</fullName>
+    <active>true</active>
+    <errorConditionFormula>AND(ISPICKVAL(Limit_Scope__c,&apos;Territory_Product&apos;), ISBLANK(Territory__c))</errorConditionFormula>
+    <errorDisplayField>Territory__c</errorDisplayField>
+    <errorMessage>Choose the territory this limit applies to.</errorMessage>
+</ValidationRule>

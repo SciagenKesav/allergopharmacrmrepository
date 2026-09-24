@@ -1,0 +1,44 @@
+<apex:page controller="AccountPlanExportPdfController" renderAs="pdf" showHeader="false" sidebar="false"
+    applyHtmlTag="false" applyBodyTag="false" standardStylesheets="false" cache="false"
+    contentType="application/pdf#Account_Plans.pdf">
+<html>
+<head>
+<style>
+    body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #1a1a1a; }
+    h1 { font-size: 16px; margin: 0 0 2px; }
+    p.meta { color: #666; font-size: 10px; margin: 0 0 14px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 5px 6px; border-bottom: 1px solid #ddd; }
+    th { background: #f4f4f4; text-transform: uppercase; font-size: 9px; letter-spacing: 0.03em; color: #444; }
+</style>
+</head>
+<body>
+    <h1>Account Plans</h1>
+    <p class="meta">Generated {!generatedOn}</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Account</th>
+                <th>Status</th>
+                <th>Stage</th>
+                <th>Health</th>
+                <th>Owner</th>
+            </tr>
+        </thead>
+        <tbody>
+            <apex:repeat value="{!plans}" var="p">
+                <tr>
+                    <td>{!p.title}</td>
+                    <td>{!p.accountName}</td>
+                    <td>{!p.status}</td>
+                    <td>{!p.stage}</td>
+                    <td>{!p.health}</td>
+                    <td>{!p.ownerName}</td>
+                </tr>
+            </apex:repeat>
+        </tbody>
+    </table>
+</body>
+</html>
+</apex:page>

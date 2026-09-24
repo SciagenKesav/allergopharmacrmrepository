@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ListView xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>North_Delhi_Kesav_User</fullName>
+    <columns>NAME</columns>
+    <columns>Account__c</columns>
+    <columns>Territory__c</columns>
+    <columns>CREATED_DATE</columns>
+    <columns>CREATEDBY_USER</columns>
+    <filterScope>Everything</filterScope>
+    <filters>
+        <field>Territory__c</field>
+        <operation>equals</operation>
+        <value>North · Delhi NCR</value>
+    </filters>
+    <label>North Delhi Kesav User</label>
+</ListView>

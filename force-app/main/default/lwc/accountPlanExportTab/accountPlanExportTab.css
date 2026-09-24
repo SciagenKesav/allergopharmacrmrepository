@@ -1,0 +1,40 @@
+:host {
+    --brand-ink: #0F172A;
+    --brand-subtle: #64748B;
+    --brand-hairline: #E2E8F0;
+    display: block;
+}
+
+.export-card {
+    background: #ffffff;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    padding: 1.5rem;
+    max-width: 28rem;
+}
+
+.export-card h4 {
+    margin: 0 0 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--brand-ink);
+}
+
+.export-copy {
+    font-size: 0.82rem;
+    color: var(--brand-subtle);
+    margin: 0 0 1rem;
+}
+
+.template-picker {
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.coming-soon {
+    font-size: 0.75rem;
+    color: var(--brand-subtle);
+    margin: 0.75rem 0 0;
+    font-style: italic;
+}

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomPermission xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Lets a user reverse or correct applied sample transactions and approve held disbursements.</description>
+    <isLicensed>false</isLicensed>
+    <label>Manage Sample Inventory</label>
+</CustomPermission>

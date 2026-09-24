@@ -1,0 +1,24 @@
+<template>
+    <div class="export">
+        <div class="export-card">
+            <h4>Export to PowerPoint</h4>
+            <p class="export-copy">
+                Generate a PowerPoint deck from this Account Plan using a predefined template.
+            </p>
+            <lightning-combobox
+                label="Template"
+                value={templateName}
+                options={templateOptions}
+                onchange={handleTemplateChange}
+                class="template-picker"
+            ></lightning-combobox>
+            <lightning-button
+                label="Export to PowerPoint"
+                variant="brand"
+                disabled={isExporting}
+                onclick={handleExport}
+            ></lightning-button>
+            <p class="coming-soon">Coming soon — export isn’t available yet.</p>
+        </div>
+    </div>
+</template>

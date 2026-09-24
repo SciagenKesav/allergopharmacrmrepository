@@ -1,0 +1,125 @@
+<template>
+    <div class="schedule">
+        <div class="schedule-header">
+            <div class="header-left">
+                <h2>My Schedule</h2>
+                <span class="range-label">{rangeLabel}</span>
+            </div>
+            <div class="header-right">
+                <lightning-button-group>
+                    <lightning-button label="‹" onclick={handlePrev}></lightning-button>
+                    <lightning-button label="Today" onclick={handleToday}></lightning-button>
+                    <lightning-button label="›" onclick={handleNext}></lightning-button>
+                </lightning-button-group>
+                <lightning-button-group>
+                    <template for:each={modeButtons} for:item="m">
+                        <lightning-button key={m.key} label={m.label} variant={m.variant} data-value={m.key} onclick={handleModeChange}></lightning-button>
+                    </template>
+                </lightning-button-group>
+                <lightning-button variant="brand" label="Schedule" icon-name="utility:add" onclick={handleNewVisit}></lightning-button>
+            </div>
+        </div>
+
+        <template if:true={showCallReport}>
+            <div class="call-report-panel">
+                <c-call-visit-report-detail
+                    record-id={callReportRecordId}
+                    default-hcp-id={callReportDefaultHcpId}
+                    default-hco-id={callReportDefaultHcoId}
+                    source-planned-call-id={callReportSourcePlannedCallId}
+                    onclose={handleCallReportClose}
+                ></c-call-visit-report-detail>
+            </div>
+        </template>
+
+        <template if:false={showCallReport}>
+        <c-schedule-filter-bar
+            search-term={searchTerm}
+            kind={kind}
+            specialty={specialty}
+            territory={territory}
+            status={status}
+            custom-list-id={customListId}
+            specialty-options={specialtyOptions}
+            territory-options={territoryOptions}
+            custom-list-options={customListOptions}
+            saved-view-options={savedViewOptions}
+            onfilterchange={handleFilterChange}
+        ></c-schedule-filter-bar>
+
+        <template if:true={showForm}>
+            <c-schedule-call-form
+                record-id={editingCallId}
+                default-hcp-id={formDefaultHcpId}
+                default-hco-id={formDefaultHcoId}
+                default-date-time={formDefaultDateTime}
+                onsave={handleFormSave}
+                oncancel={handleFormCancel}
+            ></c-schedule-call-form>
+        </template>
+
+        <template if:true={isLoading}>
+            <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+        </template>
+
+        <template if:false={isLoading}>
+            <template if:true={isAgendaMode}>
+                <div class="agenda">
+                    <template if:false={hasAgendaResults}>
+                        <div class="empty-state">No visits in this range. Tap Schedule to add one.</div>
+                    </template>
+                    <template for:each={agendaGroups} for:item="group">
+                        <div class="day-group" key={group.key}>
+                            <div class="day-header">{group.dateLabel}</div>
+                            <template for:each={group.items} for:item="call">
+                                <div class="call-row" key={call.id}>
+                                    <div class="call-time">{call.timeLabel}</div>
+                                    <div class="call-main" data-account-id={call.hcpId} data-planned-call-id={call.id}
+                                         data-hcpid={call.hcpId} data-hcoid={call.hcoId} data-cvrid={call.resultingCVRId}
+                                         onclick={handleRowClick}>
+                                        <span class="call-name">{call.displayName}</span>
+                                        <span class="call-subtitle">{call.subtitle}</span>
+                                    </div>
+                                    <span class="pill" style={call.statusStyle}>{call.visitLabel}</span>
+                                    <lightning-button-menu alternative-text="Actions" icon-name="utility:down" menu-alignment="right">
+                                        <lightning-menu-item label="Edit" data-id={call.id} onclick={handleEditVisit}></lightning-menu-item>
+                                        <lightning-menu-item label={call.logVisitLabel} data-id={call.id} data-hcpid={call.hcpId} data-hcoid={call.hcoId} data-cvrid={call.resultingCVRId} onclick={handleLogVisit}></lightning-menu-item>
+                                        <lightning-menu-item label="Mark Completed" data-id={call.id} onclick={handleMarkCompleted}></lightning-menu-item>
+                                        <lightning-menu-item label="Mark Cancelled" data-id={call.id} onclick={handleMarkCancelled}></lightning-menu-item>
+                                        <lightning-menu-item label="Delete" value="delete" data-id={call.id} onclick={handleDeleteVisit}></lightning-menu-item>
+                                    </lightning-button-menu>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+            </template>
+
+            <template if:true={isWeekMode}>
+                <c-schedule-week-grid
+                    calls={filteredCalls}
+                    range-start={rangeStart}
+                    onscheduledrop={handleScheduleDrop}
+                    onedit={handleGridEditVisit}
+                ></c-schedule-week-grid>
+            </template>
+
+            <template if:true={isMonthMode}>
+                <c-schedule-month-grid
+                    calls={filteredCalls}
+                    range-start={rangeStart}
+                    anchor-date={selectedDate}
+                    onedit={handleGridEditVisit}
+                ></c-schedule-month-grid>
+            </template>
+
+            <template if:true={isMapMode}>
+                <c-schedule-map
+                    calls={filteredCalls}
+                    selected-date={selectedDate}
+                ></c-schedule-map>
+            </template>
+        </template>
+        </template>
+    </div>
+</template>

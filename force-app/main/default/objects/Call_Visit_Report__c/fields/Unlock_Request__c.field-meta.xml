@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Unlock_Request__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>The most recent support request that unlocked this call.</description>
+    <label>Unlock Request</label>
+    <referenceTo>Support_Request__c</referenceTo>
+    <relationshipLabel>Unlocked Call Reports</relationshipLabel>
+    <relationshipName>Unlocked_Call_Reports</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

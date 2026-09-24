@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Controlled_Substance_License__c</fullName>
+    <description>Drug-schedule licence needed to receive samples of a controlled substance.</description>
+    <externalId>false</externalId>
+    <label>Controlled Substance License</label>
+    <length>100</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

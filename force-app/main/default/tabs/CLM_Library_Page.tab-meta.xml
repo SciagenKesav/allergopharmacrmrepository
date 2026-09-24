@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomTab xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>CLM Library — browse approved Presentation__c decks (real Salesforce Files pushed in by the CMS) with inline slide preview. The plain Presentation__c tab remains available for admin list views and reports.</description>
+    <flexiPage>CLM_Library_Page</flexiPage>
+    <label>CLM Library</label>
+    <motif>Custom25: Alarm clock</motif>
+</CustomTab>

@@ -1,0 +1,111 @@
+.gas {
+    padding: 1rem 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.gas-header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem 0;
+}
+
+.gas-subtitle {
+    color: #5c5c5c;
+    margin: 0 0 1rem 0;
+}
+
+.gas-form {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.gas-row {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    margin-bottom: 0.75rem;
+}
+
+.gas-row > * {
+    flex: 1;
+    min-width: 0;
+}
+
+/* lightning-radio-group renders its SLDS markup in its own shadow DOM, so only
+   the outer element itself (not its internals) can be styled from here — give
+   it more of the row's width so the button-style labels have room. */
+.gas-row lightning-radio-group {
+    flex: 1.6;
+    min-width: 220px;
+}
+
+.gas-actions {
+    margin-top: 0.5rem;
+}
+
+.gas-error {
+    margin-top: 0.75rem;
+    color: #ba0517;
+    font-weight: 600;
+}
+
+.gas-results {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    min-height: 4rem;
+}
+
+.gas-results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.gas-results-header h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.gas-empty {
+    color: #5c5c5c;
+    padding: 1rem 0;
+}
+
+.gas-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.gas-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.gas-table th {
+    text-align: left;
+    border-bottom: 2px solid #e0e0e0;
+    padding: 0.4rem 0.5rem;
+    white-space: nowrap;
+}
+
+.gas-table td {
+    border-bottom: 1px solid #f0f0f0;
+    padding: 0.4rem 0.5rem;
+    white-space: nowrap;
+}
+
+.gas-street {
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: default;
+}

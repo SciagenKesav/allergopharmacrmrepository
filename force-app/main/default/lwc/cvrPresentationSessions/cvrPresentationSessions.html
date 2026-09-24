@@ -1,0 +1,82 @@
+<template>
+    <div class="card">
+        <div class="card-header">
+            <h3>Presentation Sessions</h3>
+            <template if:false={locked}>
+                <template if:false={showLogForm}>
+                    <lightning-button label="Log Presentation" onclick={handleAdd}></lightning-button>
+                </template>
+            </template>
+        </div>
+
+        <template if:true={showLogForm}>
+            <div class="log-form">
+                <template if:true={isLoadingPresentations}>
+                    <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+                </template>
+                <template if:false={isLoadingPresentations}>
+                    <lightning-combobox
+                        label="Presentation"
+                        placeholder="Select a presentation"
+                        options={presentationOptions}
+                        value={selectedPresentationId}
+                        onchange={handlePresentationChange}
+                    ></lightning-combobox>
+                </template>
+
+                <template if:true={isLoadingSlides}>
+                    <lightning-spinner alternative-text="Loading slides" size="small"></lightning-spinner>
+                </template>
+
+                <template if:true={hasSlideRows}>
+                    <div class="slide-checklist">
+                        <p class="checklist-label">Slides shown</p>
+                        <template for:each={slideCheckRows} for:item="slide">
+                            <div key={slide.id} class="slide-check-row">
+                                <lightning-input
+                                    type="checkbox"
+                                    label={slide.name}
+                                    checked={slide.checked}
+                                    data-id={slide.id}
+                                    onchange={handleSlideToggle}
+                                ></lightning-input>
+                            </div>
+                        </template>
+                    </div>
+
+                    <div class="edit-grid">
+                        <lightning-input type="datetime" label="Start Time" onchange={handleStartTimeChange}></lightning-input>
+                        <lightning-input type="datetime" label="End Time" onchange={handleEndTimeChange}></lightning-input>
+                        <lightning-input type="number" label="Annotation Seconds" onchange={handleAnnotationSecChange}></lightning-input>
+                        <template if:true={hasVideoSlideChecked}>
+                            <lightning-input type="number" label="Video Total Seconds" onchange={handleVideoTotalSecChange}></lightning-input>
+                            <lightning-input type="number" label="Video Watched Seconds" onchange={handleVideoWatchedSecChange}></lightning-input>
+                        </template>
+                    </div>
+                </template>
+
+                <div class="edit-actions">
+                    <lightning-button label="Cancel" onclick={handleCancelAdd} disabled={isSaving}></lightning-button>
+                    <lightning-button variant="brand" label="Save" disabled={isSaving} onclick={handleSave}></lightning-button>
+                </div>
+            </div>
+        </template>
+
+        <template if:true={hasRows}>
+            <ul class="detail-list">
+                <template for:each={displayRows} for:item="row">
+                    <li key={row.id}>
+                        <span class="pill" style={row.brandStyle}>{row.brand}</span>
+                        <strong>{row.presentationName}</strong>
+                        <div class="detail-list-sub">{row.totalSlides} slide(s)</div>
+                    </li>
+                </template>
+            </ul>
+        </template>
+        <template if:false={hasRows}>
+            <template if:false={showLogForm}>
+                <div class="empty-tab">No presentations logged yet.</div>
+            </template>
+        </template>
+    </div>
+</template>

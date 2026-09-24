@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Sales_Key__c</fullName>
+    <caseSensitive>false</caseSensitive>
+    <description>Set by the flat-file load as Product__r.SKU_Code__c + &apos;|&apos; + Stockist__r.Account_Code__c + &apos;|&apos; + Period__c, so a corrected re-upload of the same month upserts in place instead of duplicating -- same pattern as RCPA_Target__c.Target_Key__c.</description>
+    <externalId>true</externalId>
+    <label>Sales Key</label>
+    <length>255</length>
+    <required>true</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>true</unique>
+</CustomField>

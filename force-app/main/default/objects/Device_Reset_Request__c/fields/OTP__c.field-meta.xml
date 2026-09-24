@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>OTP__c</fullName>
+    <description>Blank until the manager approves -- DeviceResetRequestTrigger generates a random 6-digit code the moment Status__c becomes Approved, so it can never be guessed or set ahead of approval. The approver reads it off this record (or the notification email the trigger sends them) and relays it to the rep by phone or their own email; the rep types it into the app to unlock the wipe.</description>
+    <externalId>false</externalId>
+    <label>One-Time Code</label>
+    <length>6</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

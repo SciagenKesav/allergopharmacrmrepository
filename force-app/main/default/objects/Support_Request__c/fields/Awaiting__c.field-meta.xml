@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Awaiting__c</fullName>
+    <description>Whose turn it is to reply.</description>
+    <label>Awaiting</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Support</fullName>
+                <default>true</default>
+                <label>Support</label>
+            </value>
+            <value>
+                <fullName>Requester</fullName>
+                <default>false</default>
+                <label>Requester</label>
+            </value>
+            <value>
+                <fullName>Nobody</fullName>
+                <default>false</default>
+                <label>Nobody</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

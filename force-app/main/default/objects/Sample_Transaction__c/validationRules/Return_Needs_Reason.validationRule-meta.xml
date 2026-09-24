@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Return_Needs_Reason</fullName>
+    <active>true</active>
+    <errorConditionFormula>AND(ISPICKVAL(Transaction_Type__c,&apos;Return&apos;), ISPICKVAL(Return_Reason__c,&apos;&apos;))</errorConditionFormula>
+    <errorDisplayField>Return_Reason__c</errorDisplayField>
+    <errorMessage>Choose why the samples are being returned.</errorMessage>
+</ValidationRule>

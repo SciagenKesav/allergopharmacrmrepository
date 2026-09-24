@@ -1,0 +1,218 @@
+<template>
+    <section class="modal-backdrop" onclick={handleClose}>
+        <div class="modal-panel" onclick={stopPropagation}>
+            <div class="modal-header">
+                <span class="icon-badge">
+                    <lightning-icon icon-name="utility:call" size="x-small"></lightning-icon>
+                </span>
+                <div class="modal-header-text">
+                    <h3>{title}</h3>
+                    <p class="modal-subtitle">{subtitle}</p>
+                </div>
+                <template if:true={detail}>
+                    <span class="pill" style={statusStyle}>{detail.recordStatus}</span>
+                    <template if:true={isLocked}>
+                        <lightning-icon icon-name="utility:lock" size="xx-small" class="lock-icon"></lightning-icon>
+                    </template>
+                </template>
+                <button class="close-button" title="Close" onclick={handleClose}>&times;</button>
+            </div>
+
+            <template if:true={isLoading}>
+                <div class="modal-body">
+                    <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+                </div>
+            </template>
+
+            <template if:false={isLoading}>
+                <div class="modal-body">
+                    <div class="section">
+                        <h4>Call Information</h4>
+                        <div class="kv-row">
+                            <span class="kv-label">HCP</span>
+                            <span class="kv-value">{detail.hcpName}</span>
+                        </div>
+                        <template if:true={detail.hcoName}>
+                            <div class="kv-row">
+                                <span class="kv-label">HCO / Location</span>
+                                <span class="kv-value">{detail.hcoName}</span>
+                            </div>
+                        </template>
+                        <div class="kv-row">
+                            <span class="kv-label">Visit Date</span>
+                            <span class="kv-value">{detail.visitDate}</span>
+                        </div>
+                        <template if:true={detail.startTime}>
+                            <div class="kv-row">
+                                <span class="kv-label">Start Time</span>
+                                <span class="kv-value"><lightning-formatted-date-time value={detail.startTime} hour="2-digit" minute="2-digit"></lightning-formatted-date-time></span>
+                            </div>
+                        </template>
+                        <template if:true={detail.endTime}>
+                            <div class="kv-row">
+                                <span class="kv-label">End Time</span>
+                                <span class="kv-value"><lightning-formatted-date-time value={detail.endTime} hour="2-digit" minute="2-digit"></lightning-formatted-date-time></span>
+                            </div>
+                        </template>
+                        <template if:true={detail.callType}>
+                            <div class="kv-row">
+                                <span class="kv-label">Call Type</span>
+                                <span class="kv-value">{detail.callType}</span>
+                            </div>
+                        </template>
+                        <template if:true={detail.activityType}>
+                            <div class="kv-row">
+                                <span class="kv-label">Call Channel Type</span>
+                                <span class="kv-value">{detail.activityType}</span>
+                            </div>
+                        </template>
+                        <template if:true={detail.callStatus}>
+                            <div class="kv-row">
+                                <span class="kv-label">Call Status</span>
+                                <span class="kv-value">{detail.callStatus}</span>
+                            </div>
+                        </template>
+                        <template if:true={detail.rep}>
+                            <div class="kv-row">
+                                <span class="kv-label">Sales Representative</span>
+                                <span class="kv-value">{detail.rep}</span>
+                            </div>
+                        </template>
+                        <template if:true={detail.territoryName}>
+                            <div class="kv-row">
+                                <span class="kv-label">Territory</span>
+                                <span class="kv-value">{detail.territoryName}</span>
+                            </div>
+                        </template>
+                        <template if:true={detail.planName}>
+                            <div class="kv-row">
+                                <span class="kv-label">Account Plan</span>
+                                <span class="kv-value">{detail.planName}</span>
+                            </div>
+                        </template>
+                        <template if:true={detail.linkedEventCount}>
+                            <div class="kv-row">
+                                <span class="kv-label">Linked Events</span>
+                                <span class="kv-value">{detail.linkedEventCount}</span>
+                            </div>
+                        </template>
+                        <div class="kv-row">
+                            <span class="kv-label">Signature</span>
+                            <span class="kv-value">{signatureLabel}</span>
+                        </div>
+                    </div>
+
+                    <template if:true={hasAttendees}>
+                        <div class="section">
+                            <h4>Attendees</h4>
+                            <div class="chip-row">
+                                <template for:each={detail.attendees} for:item="a">
+                                    <span key={a.id} class="chip">{a.hcpName}</span>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template if:true={hasInternalAttendees}>
+                        <div class="section">
+                            <h4>Internal Attendees</h4>
+                            <div class="chip-row">
+                                <template for:each={detail.internalAttendees} for:item="ia">
+                                    <span key={ia.id} class="chip">{ia.userName}</span>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template if:true={hasKeyMessages}>
+                        <div class="section">
+                            <h4>Key Messages &amp; HCP Response</h4>
+                            <table class="detail-table">
+                                <thead>
+                                    <tr><th>Message</th><th>Product</th><th>Reaction</th></tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={detail.keyMessages} for:item="km">
+                                        <tr key={km.id}>
+                                            <td>{km.message}</td>
+                                            <td>{km.product}</td>
+                                            <td>{km.reaction}</td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </template>
+
+                    <template if:true={hasSamples}>
+                        <div class="section">
+                            <h4>Samples</h4>
+                            <table class="detail-table">
+                                <thead>
+                                    <tr><th>Product</th><th>Qty</th></tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={detail.sampleDrops} for:item="sd">
+                                        <tr key={sd.id}>
+                                            <td>{sd.productName}</td>
+                                            <td>{sd.qty}</td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </template>
+
+                    <template if:true={hasPromo}>
+                        <div class="section">
+                            <h4>Promotional Items</h4>
+                            <table class="detail-table">
+                                <thead>
+                                    <tr><th>Item</th><th>Qty</th></tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={detail.promoDrops} for:item="pd">
+                                        <tr key={pd.id}>
+                                            <td>{pd.item}</td>
+                                            <td>{pd.qty}</td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </template>
+
+                    <template if:true={hasNotes}>
+                        <div class="section">
+                            <h4>Call Notes</h4>
+                            <template if:true={detail.preCallNotes}>
+                                <div class="kv-row kv-row-stacked">
+                                    <span class="kv-label">Pre-Call Notes</span>
+                                    <span class="kv-value">{detail.preCallNotes}</span>
+                                </div>
+                            </template>
+                            <template if:true={detail.discussionSummary}>
+                                <div class="kv-row kv-row-stacked">
+                                    <span class="kv-label">Discussion Summary</span>
+                                    <span class="kv-value">{detail.discussionSummary}</span>
+                                </div>
+                            </template>
+                            <template if:true={detail.nextCallNotes}>
+                                <div class="kv-row kv-row-stacked">
+                                    <span class="kv-label">Next-Call Notes</span>
+                                    <span class="kv-value">{detail.nextCallNotes}</span>
+                                </div>
+                            </template>
+                            <template if:true={detail.nextVisitDate}>
+                                <div class="kv-row">
+                                    <span class="kv-label">Next Visit Date</span>
+                                    <span class="kv-value">{detail.nextVisitDate}</span>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+            </template>
+        </div>
+    </section>
+</template>

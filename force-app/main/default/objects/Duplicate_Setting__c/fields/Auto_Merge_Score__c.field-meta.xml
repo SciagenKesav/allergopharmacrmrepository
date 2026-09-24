@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Auto_Merge_Score__c</fullName>
+    <defaultValue>95</defaultValue>
+    <description>Only pairs at or above this score are auto-merged, and only when they also share a strong identifier. Default 95.</description>
+    <externalId>false</externalId>
+    <label>Auto-Merge Score</label>
+    <precision>3</precision>
+    <required>false</required>
+    <scale>0</scale>
+    <trackTrending>false</trackTrending>
+    <type>Number</type>
+    <unique>false</unique>
+</CustomField>

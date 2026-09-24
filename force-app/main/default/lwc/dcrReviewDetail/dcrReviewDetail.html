@@ -1,0 +1,148 @@
+<template>
+    <div class="detail">
+        <template if:true={isLoading}>
+            <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+        </template>
+
+        <template if:true={error}>
+            <div class="error">{error}</div>
+        </template>
+
+        <template if:true={record}>
+            <div class="header">
+                <div class="header-top">
+                    <span class="pill" style={statusPillStyle}>{record.status}</span>
+                    <h3>{record.subjectName}</h3>
+                </div>
+                <div class="header-meta">
+                    {record.type}
+                    <template if:true={record.submittedBy}> &middot; Submitted by {record.submittedBy}</template>
+                    <template if:true={record.submittedAt}> &middot; {record.submittedAt}</template>
+                </div>
+                <template if:true={hasRelatedHCO}>
+                    <div class="header-link">Affiliated HCO: {record.relatedHCOName}</div>
+                </template>
+                <template if:true={hasSubjectAccount}>
+                    <div class="header-link">Account on file: {record.subjectAccountName}</div>
+                </template>
+                <template if:true={hasRejectionReason}>
+                    <div class="rejection-reason">Rejection reason: {record.rejectionReason}</div>
+                </template>
+            </div>
+
+            <template if:true={hasSummary}>
+                <div class="section">
+                    <h4>Summary</h4>
+                    <p class="summary-text">{record.summary}</p>
+                </div>
+            </template>
+
+            <template if:true={hasFlatFields}>
+                <div class="section">
+                    <h4>Requested Details</h4>
+                    <table class="field-table">
+                        <template for:each={record.flatFields} for:item="f">
+                            <tr key={f.label}>
+                                <td class="field-label">{f.label}</td>
+                                <td class="field-value">{f.value}</td>
+                            </tr>
+                        </template>
+                    </table>
+                </div>
+            </template>
+
+            <template if:true={hasDiffFields}>
+                <div class="section">
+                    <h4>Requested Changes</h4>
+                    <table class="diff-table">
+                        <tr>
+                            <th>Field</th>
+                            <th>Current</th>
+                            <th></th>
+                            <th>Requested</th>
+                        </tr>
+                        <template for:each={record.diffFields} for:item="d">
+                            <tr key={d.label}>
+                                <td class="field-label">{d.label}</td>
+                                <td class="diff-current">{d.current}</td>
+                                <td class="diff-arrow">&rarr;</td>
+                                <td class="diff-requested">{d.requested}</td>
+                            </tr>
+                        </template>
+                    </table>
+                </div>
+            </template>
+
+            <template if:true={hasPhoto}>
+                <div class="section">
+                    <h4>Proof Photo</h4>
+                    <a href={photoUrl} target="_blank" rel="noopener">
+                        <img src={photoUrl} alt="Proof photo" class="proof-photo" />
+                    </a>
+                </div>
+            </template>
+
+            <template if:true={isPending}>
+                <div class="actions">
+                    <template if:false={isRejecting}>
+                        <div class="action-row">
+                            <lightning-button variant="destructive" label="Reject" onclick={handleShowReject} disabled={isSaving}></lightning-button>
+                            <lightning-button variant="brand" label="Approve" onclick={handleApprove} disabled={isSaving}></lightning-button>
+                        </div>
+                    </template>
+                    <template if:true={isRejecting}>
+                        <lightning-textarea
+                            label="Rejection reason"
+                            value={rejectionReasonInput}
+                            onchange={handleReasonChange}
+                        ></lightning-textarea>
+                        <div class="reject-actions">
+                            <lightning-button label="Cancel" onclick={handleCancelReject} disabled={isSaving}></lightning-button>
+                            <lightning-button variant="destructive" label="Confirm Reject" onclick={handleConfirmReject} disabled={isSaving}></lightning-button>
+                        </div>
+                    </template>
+                </div>
+            </template>
+
+            <div class="section comment-section">
+                <h4>Comments</h4>
+                <template if:true={isLoadingComments}>
+                    <lightning-spinner alternative-text="Loading comments" size="x-small"></lightning-spinner>
+                </template>
+                <template if:true={hasComments}>
+                    <div class="comment-thread">
+                        <template for:each={comments} for:item="c">
+                            <div key={c.id} class={c.cssClass}>
+                                <div class="comment-meta">
+                                    <span class="comment-role">{c.authorRole}</span>
+                                    <template if:true={c.authorName}> &middot; {c.authorName}</template>
+                                    <template if:true={c.createdAt}> &middot; {c.createdAt}</template>
+                                </div>
+                                <div class="comment-body">{c.body}</div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+                <template if:false={hasComments}>
+                    <template if:false={isLoadingComments}>
+                        <p class="no-comments">No comments yet.</p>
+                    </template>
+                </template>
+                <div class="reply-composer">
+                    <lightning-textarea
+                        label="Reply as Business Admin"
+                        value={replyInput}
+                        onchange={handleReplyChange}
+                    ></lightning-textarea>
+                    <lightning-button
+                        variant="brand"
+                        label="Send Reply"
+                        onclick={handleSendReply}
+                        disabled={isReplying}
+                        class="reply-send"
+                    ></lightning-button>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomTab xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Author, target (all users / a profile / a specific user), prioritize, and retire the broadcast alerts shown on the iPad app&apos;s Home &quot;My Alerts&quot; tile.</description>
+    <flexiPage>Alert_Admin_Page</flexiPage>
+    <label>My Alerts Admin</label>
+    <motif>Custom5: Leaf</motif>
+</CustomTab>

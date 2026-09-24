@@ -1,0 +1,597 @@
+/* Palette mirrors the iPad app's own design system (SciagenCRM/Theme.swift),
+   not the Sciagen brand-logo colors — see sciagenColors.js for the JS-side
+   equivalents used for status/trend pills. */
+:host {
+    --brand-primary: #4F46E5;
+    --brand-violet: #7C3AED;
+    --brand-accent: #059669;
+    --brand-amber: #F59E0B;
+    --brand-red: #DC2626;
+    --brand-ink: #0F172A;
+    --brand-subtle: #64748B;
+    --brand-bg: #F3F4FB;
+    --brand-hairline: #E2E8F0;
+    display: block;
+}
+
+.detail-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    background: #ffffff;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.detail-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--brand-ink);
+}
+
+.subtitle {
+    margin: 0.2rem 0 0.5rem;
+    color: var(--brand-subtle);
+    font-size: 0.85rem;
+}
+
+.header-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0.1rem 0 0.5rem;
+}
+
+.header-badges .pill {
+    margin-right: 0;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.6rem;
+}
+
+.badge {
+    display: inline-block;
+    background: var(--brand-primary);
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.15rem 0.6rem;
+    border-radius: 1rem;
+}
+
+.call-report-panel {
+    min-width: 0;
+}
+
+.profile-summary-body {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Placeholder for a future HCP profile photo — a generic initials avatar
+   until real photo capture/upload exists. */
+.profile-avatar {
+    flex-shrink: 0;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    background: var(--brand-primary);
+    color: #ffffff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-summary-text {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--brand-ink);
+}
+
+.pill-primary {
+    background: var(--brand-primary);
+    color: #ffffff;
+    margin-left: 0.4rem;
+}
+
+/* padding was 0 — the clickable area was exactly the text's own tight
+   bounding box (a few px tall), easy to miss entirely on a real click/tap,
+   which read as "the edit form doesn't show up" rather than "I missed the
+   link". The extra padding enlarges the hit area without changing how big
+   the text itself looks. */
+.link-button {
+    border: none;
+    background: transparent;
+    color: var(--brand-primary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.35rem 0.5rem;
+    margin: -0.35rem 0 -0.35rem 0.1rem;
+}
+
+.link-button:hover {
+    text-decoration: underline;
+}
+
+.link-button:disabled {
+    color: var(--brand-subtle);
+    cursor: default;
+    text-decoration: none;
+}
+
+.nav-card {
+    padding-bottom: 1.1rem;
+}
+
+.nav-address {
+    font-size: 0.85rem;
+    color: var(--brand-ink);
+    margin: 0 0 0.75rem;
+}
+
+.nav-map {
+    height: 480px;
+    display: block;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.detail-body {
+    display: flex;
+    gap: 1.25rem;
+    align-items: flex-start;
+}
+
+.section-rail {
+    width: 12rem;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    position: sticky;
+    top: 0;
+}
+
+.section-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.75rem;
+    border: none;
+    background: transparent;
+    border-radius: 0.5rem;
+    text-align: left;
+    font-size: 0.85rem;
+    font-family: inherit;
+    color: var(--brand-ink);
+    cursor: pointer;
+}
+
+.section-nav-item:hover {
+    background: var(--brand-bg);
+}
+
+.section-nav-item.active {
+    background: var(--brand-primary);
+    color: #ffffff;
+}
+
+.section-nav-item.active lightning-icon {
+    --sds-c-icon-color-foreground-default: #ffffff;
+}
+
+.section-content {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Profile and Engagement tabs: every section reads top-to-bottom as one
+   full-width card per row — a plain single-column SLDS-style page layout. */
+.profile-section-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.card {
+    background: #ffffff;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.08), 0 0 1px 0 rgba(0, 0, 0, 0.08);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 1rem;
+}
+
+/* Rounded, tinted icon chip — matches the iPad app's IconBadge (Theme.swift):
+   a ~12%-opacity tint fill behind a same-color icon. Defaults to primary;
+   add icon-badge-violet/accent/amber for a card whose iOS DetailCard(tint:)
+   counterpart uses a different color. */
+.icon-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 0.5rem;
+    background: rgba(79, 70, 229, 0.12);
+    flex-shrink: 0;
+}
+
+.icon-badge lightning-icon {
+    --sds-c-icon-color-foreground-default: var(--brand-primary);
+}
+
+.icon-badge-violet {
+    background: rgba(124, 58, 237, 0.12);
+}
+
+.icon-badge-violet lightning-icon {
+    --sds-c-icon-color-foreground-default: var(--brand-violet);
+}
+
+.icon-badge-accent {
+    background: rgba(5, 150, 105, 0.12);
+}
+
+.icon-badge-accent lightning-icon {
+    --sds-c-icon-color-foreground-default: var(--brand-accent);
+}
+
+.icon-badge-amber {
+    background: rgba(245, 158, 11, 0.12);
+}
+
+.icon-badge-amber lightning-icon {
+    --sds-c-icon-color-foreground-default: var(--brand-amber);
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--brand-ink);
+}
+
+/* Row list — matches the iPad app's DRow: a fixed-width uppercase label on
+   the left, the value filling the rest of the line, a hairline under every
+   row except the last. Replaces the old multi-column card-grid so Salesforce
+   and the iPad app read as the same information, laid out the same way. */
+.detail-grid {
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-field {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    min-width: 0;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--brand-hairline);
+}
+
+.detail-grid > .detail-field:last-child {
+    border-bottom: none;
+}
+
+.detail-field-wide {
+    /* No longer a grid-span concern now .detail-grid is a single column —
+       kept as a no-op selector so existing markup doesn't need to change. */
+}
+
+.detail-label {
+    flex: 0 0 11rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--brand-subtle);
+}
+
+.detail-value {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.9rem;
+    color: var(--brand-ink);
+    overflow-wrap: break-word;
+}
+
+.detail-value a {
+    color: var(--brand-primary);
+}
+
+.detail-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.detail-list li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--brand-hairline);
+    font-size: 0.85rem;
+}
+
+.detail-list li:last-child {
+    border-bottom: none;
+}
+
+/* Only the Activity tab's real Call_Visit_Report__c rows are clickable (see
+   accountDetail.js's handleCvrRowClick / CVRItem.isCVR) — the Planned_Call__c
+   -sourced "Completed" rows merged into the same list have no CVR record to
+   open a view for, so they keep the default (non-interactive) cursor. */
+.detail-list li[data-is-cvr="true"] {
+    cursor: pointer;
+}
+
+.detail-list li[data-is-cvr="true"]:hover {
+    background: var(--brand-bg);
+}
+
+.muted {
+    color: var(--brand-subtle);
+}
+
+.empty-tab {
+    color: var(--brand-subtle);
+    font-size: 0.85rem;
+    padding: 1rem 0;
+}
+
+/* Generic status/trend/kind/type pill — background & color set inline per
+   value via sciagenColors.js's pillStyle(), matching the iOS Chip component
+   (a ~13% tint fill with the same, opaque color as the text). */
+.pill {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.1rem 0.5rem;
+    border-radius: 0.75rem;
+    margin-right: 0.4rem;
+}
+
+.detail-list-sub {
+    margin-top: 0.2rem;
+    font-size: 0.8rem;
+    color: var(--brand-subtle);
+}
+
+/* Hierarchy tab — vertical org-chart graph (node "pills" + relationship
+   connectors on a dotted canvas), replacing the old flat indented-list
+   layout so parent/self/child/affiliated-HCP relationships read visually,
+   not just as grouped text rows. */
+.hier-canvas {
+    background-color: #F7F9FC;
+    background-image: radial-gradient(circle, #D7DEE6 1px, transparent 1px);
+    background-size: 18px 18px;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.75rem;
+    overflow: auto;
+    padding: 1.5rem 1rem;
+}
+
+.hier-tree {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.hier-branch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.hier-node {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    max-width: 20rem;
+    background: #FFFFFF;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 999px;
+    padding: 0.45rem 0.7rem 0.45rem 0.45rem;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.hier-node-link {
+    cursor: pointer;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.hier-node-link:hover {
+    border-color: var(--brand-primary);
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.16);
+}
+
+.hier-node-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.hier-node-icon lightning-icon {
+    --sds-c-icon-color-foreground-default: #FFFFFF;
+}
+
+.hier-node-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.hier-node-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--brand-ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 12rem;
+}
+
+.hier-node-sub {
+    font-size: 0.7rem;
+    color: var(--brand-subtle);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 12rem;
+}
+
+.hier-node-chevron {
+    margin-left: 0.25rem;
+    color: var(--brand-subtle);
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+/* The currently-viewed record — visually anchors the graph, matching the
+   "selected node" treatment (dark fill, elevated) in the design this was
+   built from. */
+.hier-node-self {
+    background: var(--brand-ink);
+    border: 2px solid var(--brand-primary);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.28);
+    padding: 0.55rem 0.9rem 0.55rem 0.5rem;
+}
+
+.hier-node-icon-self {
+    border: 2px solid rgba(255, 255, 255, 0.25);
+}
+
+.hier-node-title-self {
+    color: #FFFFFF;
+}
+
+.hier-node-sub-self {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.hier-connector {
+    position: relative;
+    height: 2.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hier-connector-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 2px;
+    background: var(--brand-hairline);
+    transform: translateX(-50%);
+}
+
+.hier-rel-pill {
+    position: relative;
+    z-index: 1;
+    background: #FFFFFF;
+    border: 1px solid var(--brand-primary);
+    color: var(--brand-primary);
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.edit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 0.75rem;
+}
+
+.edit-grid > lightning-input-field {
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--brand-hairline);
+}
+
+.edit-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+/* MARK: - Key Account Manager "Delete" (unassign) confirmation modal */
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 10, 30, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9000;
+}
+
+.modal {
+    background: #ffffff;
+    border-radius: 0.5rem;
+    width: min(640px, 92vw);
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+}
+
+.modal-small {
+    width: min(420px, 92vw);
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #eeeef2;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--brand-ink);
+}
+
+.modal-body {
+    padding: 1.25rem;
+}
+
+.modal-body p {
+    margin: 0 0 1rem 0;
+    color: var(--brand-ink);
+    font-size: 0.9rem;
+}
+
+.error {
+    color: var(--brand-red);
+    background: #fdecea;
+    border-radius: 0.35rem;
+    padding: 0.5rem;
+    margin: 0.5rem 0;
+    font-size: 0.8rem;
+}

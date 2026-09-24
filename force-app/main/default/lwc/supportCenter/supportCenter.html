@@ -1,0 +1,120 @@
+<template>
+    <div class="page">
+        <div class="page-head">
+            <div>
+                <h1>Help and Support</h1>
+                <p class="sub">Ask the Business Admin team for help, for example to unlock a submitted call. Your manager is copied, and replies show up here.</p>
+            </div>
+            <lightning-button variant="brand" label="New request" icon-name="utility:add" onclick={openNew}></lightning-button>
+        </div>
+
+        <div class={layoutClass}>
+            <section class="left">
+                <div class="tabs" role="tablist">
+                    <template for:each={tabs} for:item="t">
+                        <button key={t.value} type="button" role="tab" aria-selected={t.selected} class={t.cls} data-tab={t.value} onclick={setTab}>{t.label}</button>
+                    </template>
+                    <button type="button" class="refresh" onclick={refresh} title="Refresh" aria-label="Refresh">
+                        <lightning-icon icon-name="utility:refresh" size="x-small"></lightning-icon>
+                    </button>
+                </div>
+                <div class="search">
+                    <lightning-input type="search" variant="label-hidden" label="Search" placeholder="Search by number or subject" onchange={searchChanged}></lightning-input>
+                </div>
+                <template if:true={error}><div class="err" role="alert">{error}</div></template>
+                <div class="list">
+                    <template for:each={items} for:item="r">
+                        <button key={r.key} type="button" class={r.cls} data-id={r.id} onclick={open}>
+                            <div class="item-top">
+                                <span class="item-num">{r.name}</span>
+                                <span class={r.statusClass}>{r.status}</span>
+                            </div>
+                            <div class="item-subject">{r.subject}</div>
+                            <div class="item-meta">
+                                <span>{r.category}</span>
+                                <span>{r.ago}</span>
+                                <template if:true={r.files}><span class="clip"><lightning-icon icon-name="utility:attach" size="xx-small"></lightning-icon>{r.files}</span></template>
+                            </div>
+                            <template if:true={r.who}><div class="item-who">{r.who}</div></template>
+                            <template if:true={r.turn}><div class="item-turn">{r.turn}</div></template>
+                            <template if:true={r.unread}><span class="dot" aria-label="New reply"></span></template>
+                        </button>
+                    </template>
+                    <template if:true={showEmpty}>
+                        <div class="empty">
+                            <lightning-icon icon-name="utility:chat" size="medium"></lightning-icon>
+                            <h3>{emptyTitle}</h3>
+                            <p>{emptyText}</p>
+                        </div>
+                    </template>
+                    <template if:true={hasMore}>
+                        <div class="more"><lightning-button variant="neutral" label="Show more" onclick={loadMore} disabled={loading}></lightning-button></div>
+                    </template>
+                    <template if:true={loading}><div class="spin"><lightning-spinner alternative-text="Loading" size="small"></lightning-spinner></div></template>
+                </div>
+                <div class="count">{countText}</div>
+            </section>
+
+            <section class="right">
+                <template if:true={selectedId}>
+                    <button type="button" class="back" onclick={back}>Back to requests</button>
+                    <c-support-thread request-id={selectedId} onchange={handleChange}></c-support-thread>
+                </template>
+                <template if:false={selectedId}>
+                    <div class="placeholder">
+                        <lightning-icon icon-name="utility:comments" size="large"></lightning-icon>
+                        <h3>Pick a request to read the conversation</h3>
+                        <p>Or send a new one. Screenshots help us fix things faster.</p>
+                    </div>
+                </template>
+            </section>
+        </div>
+
+        <template if:true={showNew}>
+            <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="new-title" class="slds-modal slds-fade-in-open slds-modal_medium">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <button class="slds-button slds-button_icon slds-modal__close" title="Close" onclick={closeNew}>
+                            <lightning-icon icon-name="utility:close" size="small" variant="inverse"></lightning-icon>
+                            <span class="slds-assistive-text">Close</span>
+                        </button>
+                        <h2 id="new-title" class="slds-modal__title slds-hyphenate">New support request</h2>
+                        <p class="modal-sub">{managerNote}</p>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <lightning-combobox label="What do you need help with?" value={form.category} options={categoryOptions} onchange={categoryChanged}></lightning-combobox>
+                        <p class="hint">{categoryHint}</p>
+                        <template if:true={isUnlock}>
+                            <lightning-combobox label="Which call?" value={form.callId} options={callOptions} placeholder="Choose one of your submitted calls" onchange={callChanged} required></lightning-combobox>
+                        </template>
+                        <lightning-input label="Subject" value={form.subject} maxlength="120" onchange={subjectChanged} required></lightning-input>
+                        <label class="lbl" for="desc">Tell us what happened</label>
+                        <textarea id="desc" class="area" rows="5" value={form.description} placeholder="What were you doing, and what did you expect? You can paste a screenshot here." oninput={descriptionChanged} onpaste={handlePaste}></textarea>
+                        <lightning-combobox label="How urgent is it?" value={form.priority} options={priorityOptions} onchange={priorityChanged}></lightning-combobox>
+
+                        <div class="attach">
+                            <input type="file" class="hidden" multiple accept={accept} onchange={handlePicked} />
+                            <lightning-button variant="neutral" icon-name="utility:attach" label="Add screenshot or file" onclick={pickFiles}></lightning-button>
+                            <span class="hint">Up to 5 files, 4 MB each. Paste works too.</span>
+                        </div>
+                        <div class="pending">
+                            <template for:each={pendingFiles} for:item="f">
+                                <div key={f.key} class="chip">
+                                    <template if:true={f.isImage}><img class="chip-img" src={f.previewUrl} alt={f.name} /></template>
+                                    <span class="chip-name">{f.name}</span><span class="size">{f.sizeText}</span>
+                                    <button class="chip-x" type="button" data-key={f.key} onclick={removeFile} aria-label="Remove file">x</button>
+                                </div>
+                            </template>
+                        </div>
+                        <template if:true={formError}><div class="err" role="alert">{formError}</div></template>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <lightning-button variant="neutral" label="Cancel" onclick={closeNew} disabled={saving}></lightning-button>
+                        <lightning-button variant="brand" label={sendLabel} onclick={submit} disabled={sendDisabled} class="slds-m-left_x-small"></lightning-button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </template>
+    </div>
+</template>

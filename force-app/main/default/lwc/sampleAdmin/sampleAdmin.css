@@ -1,0 +1,17 @@
+.page { padding: 1rem 1.25rem; max-width: 90rem; }
+.page-head h2 { font-size: 1.35rem; font-weight: 700; margin: 0; }
+.sub { color: #5c5c5c; margin: 0.25rem 0 0.75rem; max-width: 46rem; }
+.hint { color: #5c5c5c; font-size: 0.8125rem; margin: 0.25rem 0 0.5rem; }
+.filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 0.75rem; margin: 0.5rem 0 0.75rem; align-items: end; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 0.75rem; }
+.bulk { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.5rem; }
+.xfer { min-width: 13rem; }
+.count { color: #5c5c5c; font-size: 0.8125rem; margin-right: 0.5rem; }
+.table-wrap { overflow-x: auto; }
+.results { margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.25rem; }
+.r-ok { color: #05713c; font-size: 0.8125rem; }
+.r-bad { color: #b42318; font-size: 0.8125rem; }
+.approval { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; padding: 0.6rem 0; border-bottom: 1px solid #e5e5e5; }
+.rname { font-weight: 600; }
+.rdetail { color: #5c5c5c; font-size: 0.8125rem; }
+.actions { display: flex; gap: 0.5rem; }

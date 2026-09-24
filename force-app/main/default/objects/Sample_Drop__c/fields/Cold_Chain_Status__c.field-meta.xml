@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Cold_Chain_Status__c</fullName>
+    <label>Cold Chain Status</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Normal</fullName>
+                <default>false</default>
+                <label>Normal</label>
+            </value>
+            <value>
+                <fullName>Alert</fullName>
+                <default>false</default>
+                <label>Alert</label>
+            </value>
+            <value>
+                <fullName>Breach</fullName>
+                <default>false</default>
+                <label>Breach</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

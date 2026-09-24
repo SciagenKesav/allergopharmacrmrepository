@@ -1,0 +1,178 @@
+<template>
+    <section class="modal-backdrop" onclick={handleClose}>
+        <div class="modal-panel" onclick={stopPropagation}>
+            <div class="modal-header">
+                <h3>New RCPA Audit</h3>
+                <p class="modal-subtitle">Retail Chemist Prescription Audit</p>
+                <button class="close-button" title="Close" onclick={handleClose}>&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <template if:true={error}>
+                    <div class="error">{error}</div>
+                </template>
+
+                <div class="card">
+                    <h4 class="card-title">Retail Chemist</h4>
+                    <div class="field-row">
+                        <lightning-record-picker
+                            label="Chemist / Pharmacy (HCO)"
+                            placeholder="Search Accounts..."
+                            object-api-name="Sciagen_Account__c"
+                            filter={chemistFilter}
+                            onchange={handleChemistChange}
+                            class="field"
+                        ></lightning-record-picker>
+                        <lightning-input type="date" label="Audit Date" value={auditDate} onchange={handleAuditDateChange} class="field"></lightning-input>
+                    </div>
+                    <div class="field-row">
+                        <lightning-input label="Audit Name" value={name} onchange={handleNameChange} class="field"></lightning-input>
+                        <lightning-record-picker label="Territory" placeholder="Search Territories..." object-api-name="Territory__c" onchange={handleTerritoryChange} class="field"></lightning-record-picker>
+                        <lightning-input label="Rep" value={rep} onchange={handleRepChange} class="field"></lightning-input>
+                    </div>
+                </div>
+
+                <div class="card preview-card">
+                    <div class="preview-row">
+                        <span class="preview-label">Live Rx share</span>
+                        <span class="preview-value">{ownSharePct}%  ·  {ownUnits}:{competitorUnits} units/wk</span>
+                    </div>
+                    <div class="share-bar"><div class="share-bar-own" style={shareBarStyle}></div></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title-row">
+                        <h4 class="card-title">RCPA Capture Table</h4>
+                        <span class="hint">Type weekly qty per brand</span>
+                    </div>
+                    <template if:true={hasNoLines}>
+                        <p class="empty-text">Add a molecule below to start the audit table.</p>
+                    </template>
+                    <template for:each={lineRows} for:item="line">
+                        <div key={line.key} class="line-card">
+                            <div class="line-head">
+                                <div>
+                                    <div class="line-molecule">{line.molecule}</div>
+                                    <div class="line-brand">{line.ownBrand}</div>
+                                </div>
+                                <button class="remove-button" data-key={line.key} onclick={handleRemoveLine} title="Remove molecule">&times;</button>
+                            </div>
+                            <div class="qty-row">
+                                <div class="qty-cell own-cell">
+                                    <span class="qty-label">Ours / wk</span>
+                                    <lightning-input type="number" variant="label-hidden" label="Ours" value={line.ownUnitsPerWeek} data-key={line.key} oninput={handleOwnQtyChange} onchange={handleOwnQtyChange} min="0"></lightning-input>
+                                </div>
+                                <template for:each={line.competitors} for:item="comp">
+                                    <div key={comp.key} class="qty-cell">
+                                        <span class="qty-label">{comp.brand}</span>
+                                        <lightning-input
+                                            type="number"
+                                            variant="label-hidden"
+                                            label={comp.brand}
+                                            value={comp.unitsPerWeek}
+                                            data-line-key={line.key}
+                                            data-comp-key={comp.key}
+                                            oninput={handleCompetitorQtyChange}
+                                            onchange={handleCompetitorQtyChange}
+                                            min="0"
+                                        ></lightning-input>
+                                    </div>
+                                </template>
+                            </div>
+                            <div class="field-row">
+                                <lightning-record-picker
+                                    label="Prescriber (HCP)"
+                                    placeholder="Search HCPs..."
+                                    object-api-name="Sciagen_Account__c"
+                                    filter={prescriberFilter}
+                                    data-key={line.key}
+                                    onchange={handlePrescriberChange}
+                                    class="field"
+                                ></lightning-record-picker>
+                                <lightning-combobox label="Rx Trend" value={line.trend} options={trendOptions} data-key={line.key} onchange={handleTrendChange} class="field"></lightning-combobox>
+                                <div class="share-cell">
+                                    <span class="qty-label">Share</span>
+                                    <span class="share-pct">{line.sharePct}%</span>
+                                </div>
+                            </div>
+                            <lightning-input label="Remarks" value={line.remarks} data-key={line.key} onchange={handleLineRemarksChange} class="field-wide"></lightning-input>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="add-molecule">
+                    <lightning-button-menu label={addMoleculeLabel} menu-alignment="left" onselect={handleAddMolecule}>
+                        <template if:true={hasNoAddableMolecules}>
+                            <lightning-menu-item value="" label="All focus molecules added" disabled></lightning-menu-item>
+                        </template>
+                        <template for:each={addableMolecules} for:item="m">
+                            <lightning-menu-item key={m.molecule} value={m.molecule} label={m.menuLabel}></lightning-menu-item>
+                        </template>
+                    </lightning-button-menu>
+                </div>
+
+                <div class="card">
+                    <h4 class="card-title">Personal Order Booking (POB)</h4>
+                    <p class="hint-block">Capture the order at SKU level, then confirm with the chemist by OTP and signature.</p>
+                    <template for:each={pobLines} for:item="p">
+                        <div key={p.key} class="pob-row">
+                            <span class="pob-name">{p.name}</span>
+                            <span class="pob-qty">Qty {p.qty}</span>
+                            <button class="remove-button" data-key={p.key} onclick={handleRemovePOBLine} title="Remove">&times;</button>
+                        </div>
+                    </template>
+                    <div class="pob-add-row">
+                        <lightning-combobox label="SKU" variant="label-hidden" placeholder="Select SKU" value={pobSelectedSku} options={skuOptions} onchange={handlePobSkuChange} class="field"></lightning-combobox>
+                        <lightning-input type="number" label="Qty" variant="label-hidden" value={pobQty} oninput={handlePobQtyChange} onchange={handlePobQtyChange} min="1" class="qty-input"></lightning-input>
+                        <lightning-button label="Add" variant="brand" onclick={handleAddPobLine} disabled={pobAddDisabled}></lightning-button>
+                    </div>
+                    <div class="pob-total-row">
+                        <span>Total POB units</span>
+                        <strong>{pobTotal}</strong>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <h4 class="card-title">Chemist / Medical Shop Confirmation</h4>
+                    <lightning-input label="Chemist Signer Name" value={chemistSignerName} onchange={handleSignerNameChange} class="field-wide"></lightning-input>
+
+                    <template if:true={chemistOtpVerified}>
+                        <div class="otp-verified">OTP verified with {chemistSignerNameOrDefault}</div>
+                    </template>
+                    <template if:false={chemistOtpVerified}>
+                        <div class="otp-row">
+                            <lightning-button label={otpButtonLabel} onclick={handleSendOtp}></lightning-button>
+                            <template if:true={otpCode}>
+                                <span class="otp-demo">Demo: {otpCode}</span>
+                            </template>
+                        </div>
+                        <template if:true={otpCode}>
+                            <div class="otp-verify-row">
+                                <lightning-input label="6-digit OTP" variant="label-hidden" placeholder="6-digit OTP" value={otpEntry} onchange={handleOtpEntryChange} class="field"></lightning-input>
+                                <lightning-button label="Verify" variant="brand" onclick={handleVerifyOtp} disabled={otpVerifyDisabled}></lightning-button>
+                            </div>
+                        </template>
+                    </template>
+
+                    <div class="signature-block">
+                        <span class="qty-label">Signature</span>
+                        <c-rcpa-signature-pad onchange={handleSignatureChange}></c-rcpa-signature-pad>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h4 class="card-title">Field Observations</h4>
+                    <lightning-textarea label="Competitor activity — schemes / bonus offers" value={competitorActivity} onchange={handleCompetitorActivityChange} class="field-wide"></lightning-textarea>
+                    <lightning-textarea label="Stock issues — breakage / expiry / non-moving" value={stockIssues} onchange={handleStockIssuesChange} class="field-wide"></lightning-textarea>
+                    <lightning-textarea label="General remarks" value={generalRemarks} onchange={handleGeneralRemarksChange} class="field-wide"></lightning-textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <lightning-button label="Cancel" onclick={handleClose} disabled={isSaving}></lightning-button>
+                <lightning-button label="Save as Draft" onclick={handleSaveDraft} disabled={saveDraftDisabled}></lightning-button>
+                <lightning-button variant="brand" label="Submit Audit" onclick={handleSubmitAudit} disabled={submitDisabled}></lightning-button>
+            </div>
+        </div>
+    </section>
+</template>

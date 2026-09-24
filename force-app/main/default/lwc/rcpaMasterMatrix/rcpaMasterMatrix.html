@@ -1,0 +1,211 @@
+<template>
+    <template if:true={isLoading}>
+        <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+    </template>
+
+    <template if:true={error}>
+        <div class="error">{error}</div>
+    </template>
+
+    <template if:true={showNoDataYet}>
+        <div class="empty-state">
+            <p class="empty-title">No matrix yet</p>
+            <p class="empty-subtitle">RCPA audits with prescriber lines will populate this view.</p>
+        </div>
+    </template>
+
+    <template if:true={showMatrix}>
+        <!-- KPI tile row — mirrors RCPAMasterMatrixView's Territory Potential card. -->
+        <div class="kpi-row">
+            <template for:each={kpis} for:item="kpi">
+                <button key={kpi.key} class="kpi-tile" data-kind={kpi.key} onclick={handleKpiClick}>
+                    <span class="kpi-label">{kpi.label}</span>
+                    <span class="kpi-value">{kpi.value}</span>
+                </button>
+            </template>
+        </div>
+
+        <!-- Group-by segmented control + filter toggle. -->
+        <div class="control-bar">
+            <div class="mode-bar">
+                <template for:each={groupButtons} for:item="g">
+                    <button key={g.value} class={g.buttonClass} data-value={g.value} onclick={handleGroupByChange}>
+                        {g.label}
+                    </button>
+                </template>
+            </div>
+            <button class={filterToggleClass} onclick={handleToggleFilters}>Filters</button>
+        </div>
+
+        <template if:true={showFilters}>
+            <div class="card filter-panel">
+                <lightning-input
+                    type="search"
+                    label="Search doctor"
+                    variant="label-hidden"
+                    placeholder="Search doctor name..."
+                    value={searchTerm}
+                    onchange={handleSearchChange}
+                ></lightning-input>
+                <div class="filter-grid">
+                    <lightning-checkbox-group
+                        label="Therapy"
+                        options={therapyFilterOptions}
+                        value={selectedTherapies}
+                        onchange={handleTherapyFilterChange}
+                    ></lightning-checkbox-group>
+                    <lightning-checkbox-group
+                        label="Molecule"
+                        options={moleculeFilterOptions}
+                        value={selectedMolecules}
+                        onchange={handleMoleculeFilterChange}
+                    ></lightning-checkbox-group>
+                    <lightning-checkbox-group
+                        label="Brand"
+                        options={brandFilterOptions}
+                        value={selectedBrands}
+                        onchange={handleBrandFilterChange}
+                    ></lightning-checkbox-group>
+                    <lightning-checkbox-group
+                        label="Segment"
+                        options={segmentFilterOptions}
+                        value={selectedSegments}
+                        onchange={handleSegmentFilterChange}
+                    ></lightning-checkbox-group>
+                </div>
+                <button class="clear-filters" onclick={handleClearFilters}>Clear all</button>
+            </div>
+        </template>
+
+        <template if:true={showNoFilterResults}>
+            <div class="empty-state">
+                <p class="empty-title">No results match your filters</p>
+                <button class="clear-filters" onclick={handleClearFilters}>Clear filters</button>
+            </div>
+        </template>
+
+        <!-- Crosstab table (Doctor / Molecule / Therapy grouping). -->
+        <template if:true={isCrosstabGrouping}>
+            <template if:true={hasFilteredResults}>
+                <div class="card table-card">
+                    <div class="table-scroll">
+                        <table class="matrix-table">
+                            <thead>
+                                <tr>
+                                    <th class="col-label">Group</th>
+                                    <template if:true={isDoctorGrouping}>
+                                        <th class="col-seg">Seg</th>
+                                    </template>
+                                    <template for:each={crosstabColumns} for:item="col">
+                                        <th key={col.key} class={col.headerClass}>{col.name}</th>
+                                    </template>
+                                    <th class="col-num">Total</th>
+                                    <th class="col-num col-own">Ours</th>
+                                    <th class="col-num">Potential Value</th>
+                                    <th class="col-num col-own">Our Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={crosstabRows} for:item="row">
+                                    <tr key={row.key}>
+                                        <td class="col-label">{row.label}</td>
+                                        <template if:true={isDoctorGrouping}>
+                                            <td class="col-seg">
+                                                <span class="seg-badge" style={row.segStyle}>{row.seg}</span>
+                                            </td>
+                                        </template>
+                                        <template for:each={row.cells} for:item="cell">
+                                            <td key={cell.key} class={cell.cellClass}>
+                                                <template if:true={cell.hasValue}>{cell.value}</template>
+                                                <template if:false={cell.hasValue}>–</template>
+                                            </td>
+                                        </template>
+                                        <td class="col-num">{row.total}</td>
+                                        <td class="col-num col-own">{row.own}</td>
+                                        <td class="col-num">{row.potentialValue}</td>
+                                        <td class="col-num col-own">{row.ownValue}</td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </template>
+        </template>
+
+        <!-- Brand-grouped table, with editable Target Qty. -->
+        <template if:true={isBrandGrouping}>
+            <template if:true={hasFilteredResults}>
+                <div class="card table-card">
+                    <div class="table-scroll">
+                        <table class="matrix-table">
+                            <thead>
+                                <tr>
+                                    <th class="col-label">Brand</th>
+                                    <th class="col-label">Class</th>
+                                    <th class="col-label">Molecule</th>
+                                    <th class="col-label">Therapy</th>
+                                    <th class="col-num">Total Qty</th>
+                                    <th class="col-num">Potential Value</th>
+                                    <th class="col-num col-own">Our Value</th>
+                                    <th class="col-num">Target Qty</th>
+                                    <th class="col-num">Target Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={brandRows} for:item="row">
+                                    <tr key={row.key}>
+                                        <td class={row.brandClass}>{row.brand}</td>
+                                        <td class="col-label">{row.classLabel}</td>
+                                        <td class="col-label">{row.molecule}</td>
+                                        <td class="col-label">{row.therapy}</td>
+                                        <td class="col-num">{row.total}</td>
+                                        <td class="col-num">{row.potentialValue}</td>
+                                        <td class="col-num col-own">{row.ourValue}</td>
+                                        <td class="col-num">
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                class="target-input"
+                                                value={row.targetQty}
+                                                data-molecule={row.molecule}
+                                                onchange={handleTargetChange}
+                                            />
+                                        </td>
+                                        <td class="col-num col-target">{row.targetValue}</td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </template>
+        </template>
+
+        <p class="legend-note">
+            Own-brand columns are tinted green. "Seg" reflects each doctor's current ABC classification.
+            Target Qty is web-only and does not sync with the iPad app's local targets.
+        </p>
+    </template>
+
+    <!-- Drill-down overlay — mirrors RCPADrillSheet. -->
+    <template if:true={hasDrill}>
+        <div class="drill-backdrop" onclick={handleCloseDrill}>
+            <div class="drill-panel" onclick={handleDrillPanelClick}>
+                <div class="drill-header">
+                    <h3>{drill.title}</h3>
+                    <button class="drill-close" onclick={handleCloseDrill}>✕</button>
+                </div>
+                <ul class="drill-list">
+                    <template for:each={drill.rows} for:item="row">
+                        <li key={row.key} class="drill-row">
+                            <span class="drill-label">{row.label}</span>
+                            <span class="drill-sub">{row.sub}</span>
+                            <span class="drill-value">{row.display}</span>
+                        </li>
+                    </template>
+                </ul>
+            </div>
+        </div>
+    </template>
+</template>

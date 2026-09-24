@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Unit_Value_At_Transaction__c</fullName>
+    <description>Snapshot of the product&apos;s per-unit value when the transaction happened.</description>
+    <label>Unit Value At Transaction (INR)</label>
+    <precision>14</precision>
+    <required>false</required>
+    <scale>4</scale>
+    <trackTrending>false</trackTrending>
+    <type>Currency</type>
+</CustomField>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ListView xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>HCPs</fullName>
+    <columns>NAME</columns>
+    <columns>Status__c</columns>
+    <columns>HCP_Type__c</columns>
+    <columns>Specialty__c</columns>
+    <columns>Focus_Area__c</columns>
+    <columns>License_Number__c</columns>
+    <columns>Phone__c</columns>
+    <columns>Email__c</columns>
+    <columns>Account_Code__c</columns>
+    <filterScope>Everything</filterScope>
+    <filters>
+        <field>Type__c</field>
+        <operation>equals</operation>
+        <value>HCP</value>
+    </filters>
+    <label>HCPs</label>
+    <sharedTo>
+        <allInternalUsers></allInternalUsers>
+    </sharedTo>
+</ListView>

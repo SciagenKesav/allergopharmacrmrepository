@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Valuation_Method__c</fullName>
+    <label>Valuation Method</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Stockist_Price</fullName>
+                <default>true</default>
+                <label>Stockist Price</label>
+            </value>
+            <value>
+                <fullName>Purchase_Price</fullName>
+                <default>false</default>
+                <label>Purchase Price</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

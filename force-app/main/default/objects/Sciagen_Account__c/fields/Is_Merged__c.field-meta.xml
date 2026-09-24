@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Is_Merged__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>True when this record was merged into another (the losing record). Merged records are hidden from the iPad and from search; their data and history are kept for audit and undo.</description>
+    <label>Is Merged</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

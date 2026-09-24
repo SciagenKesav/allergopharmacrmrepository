@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Paired_Transaction__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <label>Paired Transaction</label>
+    <referenceTo>Sample_Transaction__c</referenceTo>
+    <relationshipLabel>Paired Transactions</relationshipLabel>
+    <relationshipName>PairedTransactions</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

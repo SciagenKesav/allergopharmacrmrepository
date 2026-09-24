@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Expiry_Must_Be_Future_On_Create</fullName>
+    <active>true</active>
+    <errorConditionFormula>AND(ISNEW(), Expiry_Date__c &lt;= TODAY())</errorConditionFormula>
+    <errorDisplayField>Expiry_Date__c</errorDisplayField>
+    <errorMessage>A new lot must expire in the future.</errorMessage>
+</ValidationRule>

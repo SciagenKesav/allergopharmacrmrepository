@@ -1,0 +1,7 @@
+<aura:component implements="force:lightningQuickActionWithoutHeader" access="global">
+    <!-- TODO: replace with the real TestFlight / App Store / OTA install URL
+         once iPad distribution is finalized. Note: some install destinations
+         (e.g. the App Store, TestFlight) refuse to render inside an iframe —
+         if this shows blank once the real URL is in, fall back to a tap-to-open link. -->
+    <iframe class="installFrame" src="https://sciagen.ai/install-sciagen-crm" title="Install Sciagen CRM"></iframe>
+</aura:component>

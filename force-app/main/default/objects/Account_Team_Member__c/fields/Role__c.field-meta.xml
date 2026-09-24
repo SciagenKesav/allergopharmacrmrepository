@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Role__c</fullName>
+    <label>Role</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>KAM</fullName>
+                <default>false</default>
+                <label>KAM</label>
+            </value>
+            <value>
+                <fullName>RSM</fullName>
+                <default>false</default>
+                <label>RSM</label>
+            </value>
+            <value>
+                <fullName>Sales Rep</fullName>
+                <default>false</default>
+                <label>Sales Rep</label>
+            </value>
+            <value>
+                <fullName>MSL</fullName>
+                <default>false</default>
+                <label>MSL</label>
+            </value>
+            <value>
+                <fullName>Brand Manager</fullName>
+                <default>false</default>
+                <label>Brand Manager</label>
+            </value>
+            <value>
+                <fullName>Medical Advisor</fullName>
+                <default>false</default>
+                <label>Medical Advisor</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

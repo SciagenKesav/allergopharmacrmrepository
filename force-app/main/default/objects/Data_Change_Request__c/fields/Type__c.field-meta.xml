@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Type__c</fullName>
+    <label>Type</label>
+    <required>true</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>New HCP</fullName>
+                <default>false</default>
+                <label>New HCP</label>
+            </value>
+            <value>
+                <fullName>New HCO</fullName>
+                <default>false</default>
+                <label>New HCO</label>
+            </value>
+            <value>
+                <fullName>Edit HCP</fullName>
+                <default>false</default>
+                <label>Edit HCP</label>
+            </value>
+            <value>
+                <fullName>Edit HCO</fullName>
+                <default>false</default>
+                <label>Edit HCO</label>
+            </value>
+            <value>
+                <fullName>Unassign HCP</fullName>
+                <default>false</default>
+                <label>Unassign HCP</label>
+            </value>
+            <value>
+                <fullName>Unassign HCO</fullName>
+                <default>false</default>
+                <label>Unassign HCO</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

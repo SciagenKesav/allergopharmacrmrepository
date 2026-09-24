@@ -1,0 +1,140 @@
+:host {
+    --brand-primary: #4F46E5;
+    --brand-ink: #0F172A;
+    --brand-subtle: #64748B;
+    --brand-hairline: #E2E8F0;
+    --brand-bg: #F3F4FB;
+}
+
+.month-grid {
+    background: #ffffff;
+}
+
+.month-weekday-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border-bottom: 1px solid var(--brand-hairline);
+    position: sticky;
+    top: 0;
+    background: #ffffff;
+    z-index: 1;
+}
+
+.month-weekday {
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--brand-subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0.5rem 0;
+}
+
+.month-week-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.month-cell {
+    min-height: 110px;
+    min-width: 0; /* grid items default to min-width:auto — without this, an
+                     unbreakable long name (e.g. "Apollo Hospitals, Navi
+                     Mumbai") forces this whole column wider than its 1fr
+                     share instead of truncating, throwing off every other
+                     day's alignment in the row. */
+    border-right: 1px solid var(--brand-hairline);
+    border-bottom: 1px solid var(--brand-hairline);
+    padding: 0.35rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.month-cell-outside {
+    background: var(--brand-bg);
+}
+
+.month-cell-outside .month-day-number {
+    color: var(--brand-subtle);
+}
+
+.month-cell-today {
+    background: rgba(79, 70, 229, 0.05);
+}
+
+.month-day-number {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--brand-ink);
+    align-self: flex-start;
+}
+
+.month-day-number-today {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.35rem;
+    height: 1.35rem;
+    padding: 0 0.3rem;
+    border-radius: 999px;
+    background: var(--brand-primary);
+    color: #ffffff;
+}
+
+.month-day-calls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.month-call-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 0.1rem 0.25rem;
+    border-radius: 0.3rem;
+    background: var(--brand-bg);
+    cursor: pointer;
+}
+
+.month-call-chip:hover {
+    background: rgba(79, 70, 229, 0.12);
+}
+
+.month-call-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.month-call-time {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--brand-primary);
+    flex-shrink: 0;
+}
+
+.month-call-name {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--brand-ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.month-call-overflow {
+    font-size: 0.64rem;
+    font-weight: 600;
+    color: var(--brand-subtle);
+    padding: 0.05rem 0.25rem;
+}

@@ -1,0 +1,223 @@
+:host {
+    --brand-primary: #4F46E5;
+    --brand-ink: #0F172A;
+    --brand-subtle: #64748B;
+    --brand-red: #DC2626;
+    --brand-hairline: #E2E8F0;
+}
+
+.error {
+    color: var(--brand-red);
+    background: #fdecea;
+    border-radius: 0.5rem;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.85rem;
+}
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 3rem 1rem;
+    z-index: 9000;
+    overflow-y: hidden;
+}
+
+.modal-panel {
+    background: #ffffff;
+    border-radius: 0.9rem;
+    width: 100%;
+    max-width: 52rem;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.25);
+}
+
+.modal-error {
+    margin: 1rem 1.5rem 0;
+}
+
+.modal-header {
+    position: relative;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--brand-hairline);
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--brand-ink);
+}
+
+.close-button {
+    position: absolute;
+    top: 1rem;
+    right: 1.25rem;
+    border: none;
+    background: transparent;
+    font-size: 1.4rem;
+    line-height: 1;
+    color: var(--brand-subtle);
+    cursor: pointer;
+}
+
+/* lightning-record-edit-form (the direct parent of .modal-body/.modal-footer
+   here) renders as a plain display:block element and doesn't pass its
+   slotted children's flex-shrink through to modal-panel's flex column no
+   matter how the form itself is styled — confirmed live: .modal-body still
+   rendered at its full ~800px content height regardless. A viewport-relative
+   max-height sidesteps that whole broken chain since it's resolved against
+   the viewport, not the (non-shrinking) parent — 140px is roughly
+   modal-header + modal-footer's combined height, leaving .modal-body the
+   rest of modal-panel's own 85vh budget to scroll within. */
+.modal-body {
+    padding: 1.25rem 1.5rem;
+    overflow-y: auto;
+    max-height: calc(85vh - 140px);
+    flex: 1;
+    min-height: 0;
+}
+
+.edit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.9rem;
+    margin-bottom: 1.25rem;
+}
+
+/* A 220px column is too narrow for this field's own label ("Medical
+   Engagement Plan") without wrapping into a squished multi-line stack —
+   give it double width regardless of how many columns the row has. */
+.field-span-wide {
+    grid-column: span 2;
+}
+
+.edit-grid-wide {
+    margin-bottom: 1.25rem;
+}
+
+.form-section-title {
+    margin: 0 0 0.6rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--brand-subtle);
+}
+
+/* Fixed 2 columns (not auto-fit) — with 4 large SWOT textareas, auto-fit at
+   this modal's width was cramming 3 into the first row (each squeezed to
+   ~250px, labels wrapping) and stranding Threats alone on the second. A
+   clean 2x2 always fits exactly 2 per row regardless of container width. */
+.swot-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.9rem;
+}
+
+.custom-field-label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--brand-ink);
+}
+
+.product-search-field {
+    grid-column: 1 / -1;
+    position: relative;
+}
+
+.product-search-input-wrap {
+    position: relative;
+}
+
+.product-results {
+    position: absolute;
+    z-index: 10;
+    top: calc(100% + 2px);
+    left: 0;
+    right: 0;
+    max-height: 14rem;
+    overflow-y: auto;
+    background: #ffffff;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+    margin: 0;
+    padding: 0.25rem;
+    list-style: none;
+}
+
+.product-result-button {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: left;
+    padding: 0.5rem 0.6rem;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.product-result-button:hover {
+    background: #f3f4fb;
+}
+
+.product-result-name {
+    font-size: 0.85rem;
+    color: var(--brand-ink);
+    font-weight: 600;
+}
+
+.product-result-brand {
+    font-size: 0.72rem;
+    color: var(--brand-subtle);
+    flex-shrink: 0;
+}
+
+.product-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.6rem;
+}
+
+.product-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(79, 70, 229, 0.1);
+    color: var(--brand-primary);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.3rem 0.4rem 0.3rem 0.7rem;
+    border-radius: 999px;
+}
+
+.product-chip-remove {
+    border: none;
+    background: transparent;
+    color: inherit;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 0.15rem;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--brand-hairline);
+}

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>HCO_Type__c</fullName>
+    <label>HCO Type</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Hospital</fullName>
+                <default>false</default>
+                <label>Hospital</label>
+            </value>
+            <value>
+                <fullName>Clinic</fullName>
+                <default>false</default>
+                <label>Clinic</label>
+            </value>
+            <value>
+                <fullName>Nursing Home</fullName>
+                <default>false</default>
+                <label>Nursing Home</label>
+            </value>
+            <value>
+                <fullName>Pharmacy</fullName>
+                <default>false</default>
+                <label>Pharmacy</label>
+            </value>
+            <value>
+                <fullName>Medical Shop</fullName>
+                <default>false</default>
+                <label>Medical Shop</label>
+            </value>
+            <value>
+                <fullName>Chemist Shop</fullName>
+                <default>false</default>
+                <label>Chemist Shop</label>
+            </value>
+            <value>
+                <fullName>Stockist</fullName>
+                <default>false</default>
+                <label>Stockist</label>
+            </value>
+            <value>
+                <fullName>Health System</fullName>
+                <default>false</default>
+                <label>Health System</label>
+            </value>
+            <value>
+                <fullName>Diagnostic Centre</fullName>
+                <default>false</default>
+                <label>Diagnostic Centre</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

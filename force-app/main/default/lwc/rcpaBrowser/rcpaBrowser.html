@@ -1,0 +1,113 @@
+<template>
+    <div class="page">
+        <div class="page-header">
+            <c-sciagen-logo size="small"></c-sciagen-logo>
+            <div class="page-title">
+                <h2>RCPA</h2>
+                <p class="page-subtitle">Retail Chemist Prescription Audit</p>
+            </div>
+            <lightning-button
+                class="new-audit-button"
+                variant="brand"
+                label="New Audit"
+                icon-name="utility:add"
+                onclick={handleNewAudit}
+            ></lightning-button>
+        </div>
+
+        <template if:true={showCreateForm}>
+            <c-rcpa-audit-form oncreated={handleAuditCreated} onclose={handleCloseCreate}></c-rcpa-audit-form>
+        </template>
+
+        <!-- Segmented mode switch — mirrors RCPAHomeView's Picker(...).pickerStyle(.segmented). -->
+        <div class="mode-bar">
+            <template for:each={modeButtons} for:item="m">
+                <button key={m.value} class={m.buttonClass} data-mode={m.value} onclick={handleModeChange}>
+                    {m.label}
+                </button>
+            </template>
+        </div>
+
+        <template if:true={isAuditsMode}>
+            <div class="browser">
+                <div class="list-pane">
+                    <lightning-input
+                        type="search"
+                        label="Search RCPA Audits"
+                        variant="label-hidden"
+                        placeholder="Search by chemist or rep..."
+                        value={searchTerm}
+                        onchange={handleSearchChange}
+                    ></lightning-input>
+
+                    <div class="filter-row">
+                        <lightning-combobox
+                            label="Status"
+                            variant="label-hidden"
+                            value={statusFilter}
+                            options={statusOptions}
+                            onchange={handleStatusFilterChange}
+                        ></lightning-combobox>
+                        <lightning-combobox
+                            label="Territory"
+                            variant="label-hidden"
+                            value={territoryFilter}
+                            options={territoryOptions}
+                            onchange={handleTerritoryFilterChange}
+                        ></lightning-combobox>
+                    </div>
+
+                    <template if:true={error}>
+                        <div class="error">{error}</div>
+                    </template>
+
+                    <template if:true={isSearching}>
+                        <lightning-spinner alternative-text="Searching" size="small"></lightning-spinner>
+                    </template>
+
+                    <template if:false={isSearching}>
+                        <template if:true={hasResults}>
+                            <ul class="result-list">
+                                <template for:each={rows} for:item="row">
+                                    <li key={row.id} class={row.rowClass} data-id={row.id} onclick={handleSelect}>
+                                        <div class="result-top">
+                                            <span class="pill" style={row.statusStyle}>{row.status}</span>
+                                            <div class="result-name">{row.chemistName}</div>
+                                        </div>
+                                        <div class="result-meta">
+                                            <template if:true={row.chemistArea}>{row.chemistArea} &middot; </template>{row.auditDate}
+                                            <template if:true={row.rep}> &middot; {row.rep}</template>
+                                        </div>
+                                        <template if:true={row.territory}>
+                                            <div class="result-territory">{row.territory}</div>
+                                        </template>
+                                    </li>
+                                </template>
+                            </ul>
+                        </template>
+                        <template if:false={hasResults}>
+                            <div class="empty">No RCPA audits found.</div>
+                        </template>
+                    </template>
+                </div>
+
+                <div class="detail-pane">
+                    <template if:true={hasSelection}>
+                        <c-rcpa-detail record-id={selectedId} ondetailloaded={handleAuditDetailLoaded}></c-rcpa-detail>
+                    </template>
+                    <template if:false={hasSelection}>
+                        <div class="empty-detail">Select an RCPA audit to view details.</div>
+                    </template>
+                </div>
+            </div>
+        </template>
+
+        <template if:true={isDoctorMatrixMode}>
+            <c-rcpa-doctor-matrix default-doctor-id={selectedPrescriberId}></c-rcpa-doctor-matrix>
+        </template>
+
+        <template if:true={isMasterMatrixMode}>
+            <c-rcpa-master-matrix></c-rcpa-master-matrix>
+        </template>
+    </div>
+</template>

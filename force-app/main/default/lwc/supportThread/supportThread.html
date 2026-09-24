@@ -1,0 +1,160 @@
+<template>
+    <div class="wrap">
+        <template if:true={loading}>
+            <div class="loading"><lightning-spinner alternative-text="Loading" size="small"></lightning-spinner></div>
+        </template>
+
+        <template if:true={hasDetail}>
+            <header class="head">
+                <div class="head-top">
+                    <div class="head-title">
+                        <span class="num">{row.name}</span>
+                        <h2>{row.subject}</h2>
+                    </div>
+                    <div class="head-pills">
+                        <span class={statusPillClass}>{row.status}</span>
+                        <template if:true={turnLabel}><span class={turnClass}>{turnLabel}</span></template>
+                    </div>
+                </div>
+                <dl class="meta">
+                    <div><dt>Category</dt><dd>{row.category}</dd></div>
+                    <div><dt>Priority</dt><dd><span class={priorityPillClass}>{row.priority}</span></dd></div>
+                    <template if:true={isAgent}>
+                        <div><dt>Raised by</dt><dd>{requestedBy}</dd></div>
+                        <div><dt>Raised</dt><dd>{raisedAt}</dd></div>
+                    </template>
+                    <div><dt>Assigned to</dt><dd>{assignedLabel}</dd></div>
+                    <div><dt>Manager copied</dt><dd>{managerLabel}</dd></div>
+                    <template if:true={hasCall}>
+                        <div class="meta-wide"><dt>Call</dt><dd>{row.callSummary}</dd></div>
+                    </template>
+                    <template if:true={showSla}>
+                        <div><dt>First reply due</dt><dd><span class={slaClass}>{sla.text}</span></dd></div>
+                    </template>
+                </dl>
+                <template if:true={unlockOutcomeText}><p class="outcome">{unlockOutcomeText}</p></template>
+                <div class="head-actions">
+                    <template if:true={showCancel}>
+                        <lightning-button variant="neutral" label="Cancel request" onclick={cancel}></lightning-button>
+                    </template>
+                    <template if:true={showReopen}>
+                        <lightning-button variant="neutral" label="Reopen request" onclick={reopen}></lightning-button>
+                    </template>
+                </div>
+            </header>
+
+            <template if:true={isAgent}>
+                <section class="manage">
+                    <lightning-combobox class="mg-field" label="Assigned to" value={assignedValue} options={agentOptions} onchange={assignChanged}></lightning-combobox>
+                    <lightning-combobox class="mg-field" label="Priority" value={row.priority} options={priorityOptions} onchange={priorityChanged}></lightning-combobox>
+                    <template if:true={showUnlock}>
+                        <div class="mg-buttons">
+                            <lightning-button variant="brand" label="Unlock this call" onclick={toggleUnlock}></lightning-button>
+                            <lightning-button variant="neutral" label="Decline" onclick={toggleDecline}></lightning-button>
+                        </div>
+                    </template>
+                    <template if:true={row.isOpen}>
+                        <div class="mg-buttons">
+                            <lightning-button variant="base" label="Close without reply" onclick={closeNow}></lightning-button>
+                        </div>
+                    </template>
+                </section>
+                <template if:true={unlockOpen}>
+                    <section class="panel">
+                        <p class="panel-text">The call goes back to Saved so the rep can correct it and submit it again. The request closes by itself when they do. Add a note for the rep (optional).</p>
+                        <textarea class="area" rows="2" placeholder="For example: Unlocked. Please fix the product and submit again today." onchange={unlockNoteChanged}></textarea>
+                        <lightning-button variant="brand" label="Unlock call and notify the rep" onclick={confirmUnlock}></lightning-button>
+                    </section>
+                </template>
+                <template if:true={declineOpen}>
+                    <section class="panel">
+                        <p class="panel-text">Tell the rep why this call cannot be unlocked.</p>
+                        <textarea class="area" rows="2" placeholder="For example: The monthly cut-off has passed. Please ask your manager." onchange={declineChanged}></textarea>
+                        <lightning-button variant="destructive" label="Decline and resolve" onclick={confirmDecline}></lightning-button>
+                    </section>
+                </template>
+            </template>
+
+            <div class="thread">
+                <template for:each={bubbles} for:item="b">
+                    <div key={b.key} class={b.wrapClass}>
+                        <template if:true={b.isEvent}>
+                            <span class="evt-text">{b.body}</span><span class="evt-time">{b.ago}</span>
+                        </template>
+                        <template if:false={b.isEvent}>
+                            <div class={b.bubbleClass}>
+                                <div class="who"><strong>{b.author}</strong><span class="role">{b.roleLabel}</span></div>
+                                <p class="body">{b.body}</p>
+                                <template if:true={b.hasAttachments}>
+                                    <div class="atts">
+                                        <template for:each={b.images} for:item="img">
+                                            <a key={img.key} class="thumb-link" href={img.url} target="_blank" title={img.title}>
+                                                <img class="thumb" src={img.previewUrl} alt={img.title} loading="lazy" />
+                                            </a>
+                                        </template>
+                                        <template for:each={b.files} for:item="f">
+                                            <a key={f.key} class="file" href={f.url} target="_blank">
+                                                <lightning-icon icon-name="utility:attach" size="xx-small"></lightning-icon>
+                                                <span>{f.label}</span><span class="size">{f.sizeText}</span>
+                                            </a>
+                                        </template>
+                                    </div>
+                                </template>
+                                <div class="stamp" title={b.time}>{b.ago}<template if:true={b.via}> - {b.via}</template></div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+            </div>
+
+            <template if:true={error}><div class="err" role="alert">{error}</div></template>
+
+            <template if:true={closedNote}><div class="closed-note">{closedNote}</div></template>
+
+            <template if:true={showComposer}>
+                <section class={composerClass} ondragover={handleDragOver} ondragleave={handleDragLeave} ondrop={handleDrop}>
+                    <label class="composer-label" for="reply">{composerLabel}</label>
+                    <textarea id="reply" class="area" rows="3" value={text} placeholder="Write your message. Paste or drop a screenshot to attach it. Ctrl+Enter sends."
+                        oninput={handleText} onkeydown={handleKey} onpaste={handlePaste}></textarea>
+                    <template if:true={hasPending}>
+                        <div class="pending">
+                            <template for:each={pendingFiles} for:item="f">
+                                <div key={f.key} class="chip">
+                                    <template if:true={f.isImage}><img class="chip-img" src={f.previewUrl} alt={f.name} /></template>
+                                    <span class="chip-name">{f.name}</span><span class="size">{f.sizeText}</span>
+                                    <button class="chip-x" type="button" data-key={f.key} onclick={removeFile} aria-label="Remove file">x</button>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    <template if:true={fileError}><p class="file-err">{fileError}</p></template>
+                    <div class="composer-bar">
+                        <div class="composer-left">
+                            <input type="file" class="hidden" multiple accept={accept} onchange={handlePicked} />
+                            <lightning-button variant="neutral" icon-name="utility:attach" label="Attach" onclick={pickFiles} disabled={sending}></lightning-button>
+                            <span class="hint">Up to 5 files, 4 MB each</span>
+                        </div>
+                        <template if:true={isAgent}>
+                            <div class="modes" role="radiogroup" aria-label="After sending">
+                                <template for:each={replyModes} for:item="m">
+                                    <label key={m.value} class="mode">
+                                        <input type="radio" name="mode" value={m.value} checked={m.selected} onchange={handleMode} />
+                                        <span>{m.label}</span>
+                                    </label>
+                                </template>
+                            </div>
+                            <template if:true={resolveSelected}>
+                                <lightning-combobox class="res" label="Resolution" variant="label-hidden" value={resolution} options={resolutionOptions} onchange={handleResolution}></lightning-combobox>
+                            </template>
+                        </template>
+                        <lightning-button variant="brand" label={sendLabel} onclick={send} disabled={canSendDisabled}></lightning-button>
+                    </div>
+                </section>
+            </template>
+        </template>
+
+        <template if:false={hasDetail}>
+            <template if:true={error}><div class="err" role="alert">{error}</div></template>
+        </template>
+    </div>
+</template>

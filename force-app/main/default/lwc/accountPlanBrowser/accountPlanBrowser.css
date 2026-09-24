@@ -1,0 +1,573 @@
+:host {
+    --brand-primary: #4F46E5;
+    --brand-violet: #7C3AED;
+    --brand-accent: #059669;
+    --brand-amber: #F59E0B;
+    --brand-blue: #2563EB;
+    --brand-red: #DC2626;
+    --brand-ink: #0F172A;
+    --brand-subtle: #64748B;
+    --brand-bg: #F3F4FB;
+    --brand-hairline: #E2E8F0;
+    display: block;
+}
+
+.page {
+    background: var(--brand-bg);
+    padding: 1rem 1.25rem;
+    min-height: 100%;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    background: #ffffff;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.9rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    padding: 1.1rem 1.4rem;
+    margin-bottom: 1rem;
+}
+
+.header-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    flex-shrink: 0;
+    border-radius: 0.9rem;
+    background: rgba(124, 58, 237, 0.14);
+    color: var(--brand-violet);
+    font-weight: 800;
+    font-size: 1.05rem;
+}
+
+.header-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.header-text h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--brand-ink);
+}
+
+.page-subtitle {
+    margin: 0.1rem 0 0;
+    font-size: 0.85rem;
+    color: var(--brand-subtle);
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.mode-bar {
+    display: flex;
+    background: #e9e9f2;
+    border-radius: 999px;
+    padding: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+.mode-button {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--brand-subtle);
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 0.6rem 1rem;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.mode-button-active {
+    background: #ffffff;
+    color: var(--brand-ink);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
+}
+
+/* "My Insights" panel — Dashboard tab's lead section: a labeled card of
+   solid-tint metric tiles (big centered number over a label), distinct from
+   the plain .kpi-row style used on the Plan tab. Fixed 4-column grid (not
+   auto-fit) so a short last row leaves real gaps instead of stretching. */
+.insights-card {
+    background: #ffffff;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.9rem;
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.08), 0 0 1px 0 rgba(0, 0, 0, 0.08);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.insights-header {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 1rem;
+}
+
+.insights-header .icon-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 0.6rem;
+    background: rgba(124, 58, 237, 0.14);
+    flex-shrink: 0;
+}
+
+.insights-header .icon-badge lightning-icon {
+    --sds-c-icon-color-foreground-default: var(--brand-violet);
+}
+
+.insights-header h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--brand-ink);
+}
+
+.insights-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+.insight-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border-radius: 1rem;
+    padding: 1.75rem 1rem;
+    text-align: center;
+    border: 1px solid transparent;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.insight-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.1);
+}
+
+.insight-value {
+    font-size: 2.25rem;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.insight-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+/* My Insights tiles — generic SLDS blue (brand blue #0176D3 on its
+   lightest tint), one consistent accent across all 10 tiles instead of the
+   earlier per-metric rainbow, per explicit request to plainly follow the
+   Lightning Design System's own brand color here. */
+.insight-tile-violet,
+.insight-tile-green,
+.insight-tile-amber,
+.insight-tile-red,
+.insight-tile-indigo,
+.insight-tile-grey {
+    background: #EAF5FE;
+    border-color: rgba(1, 118, 211, 0.18);
+}
+
+.insight-tile-violet .insight-value,
+.insight-tile-green .insight-value,
+.insight-tile-amber .insight-value,
+.insight-tile-red .insight-value,
+.insight-tile-indigo .insight-value,
+.insight-tile-grey .insight-value {
+    color: #0176D3;
+}
+
+.kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.kpi-tile {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    background: #ffffff;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.9rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    padding: 1.1rem 1.25rem;
+}
+
+.kpi-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+    border-radius: 0.75rem;
+    font-weight: 800;
+    font-size: 0.95rem;
+}
+
+.kpi-icon-violet {
+    background: rgba(124, 58, 237, 0.14);
+    color: var(--brand-violet);
+}
+
+.kpi-icon-accent {
+    background: rgba(5, 150, 105, 0.14);
+    color: var(--brand-accent);
+}
+
+.kpi-icon-accent lightning-icon {
+    --sds-c-icon-color-foreground-default: var(--brand-accent);
+}
+
+.kpi-icon-blue {
+    background: rgba(37, 99, 235, 0.14);
+    color: var(--brand-blue);
+}
+
+.kpi-icon-amber {
+    background: rgba(245, 158, 11, 0.14);
+    color: var(--brand-amber);
+}
+
+.kpi-icon-amber lightning-icon {
+    --sds-c-icon-color-foreground-default: var(--brand-amber);
+}
+
+.kpi-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.kpi-label {
+    font-size: 0.8rem;
+    color: var(--brand-subtle);
+}
+
+.kpi-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--brand-ink);
+}
+
+.filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #ffffff;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.9rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.search-input {
+    flex: 1;
+    min-width: 240px;
+}
+
+.status-pills {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.status-pill {
+    border: 1px solid var(--brand-hairline);
+    background: #ffffff;
+    color: var(--brand-subtle);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.status-pill-active {
+    background: var(--brand-primary);
+    border-color: var(--brand-primary);
+    color: #ffffff;
+}
+
+.table-wrap {
+    background: #ffffff;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.9rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    overflow-x: auto;
+}
+
+.plan-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+.plan-table th {
+    text-align: left;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--brand-subtle);
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--brand-hairline);
+}
+
+.plan-table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--brand-hairline);
+    color: var(--brand-ink);
+    vertical-align: middle;
+}
+
+.plan-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.plan-table a {
+    color: var(--brand-primary);
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.plan-table a:hover {
+    text-decoration: underline;
+}
+
+.pill {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 0.75rem;
+    margin-right: 0.3rem;
+}
+
+.pill-neutral {
+    background: rgba(100, 116, 139, 0.14);
+    color: var(--brand-subtle);
+}
+
+.pill-open {
+    background: rgba(245, 158, 11, 0.16);
+    color: #B45309;
+}
+
+/* Circular progress ring — conic-gradient arc + a white center disc, matching
+   the iPad app's ProgressRing (KAMViews.swift): a colored stroke sweeping to
+   the plan's own progress%, over a light track. */
+.progress-ring {
+    position: relative;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    background: conic-gradient(var(--ring-color, #4F46E5) calc(var(--pct, 0) * 1%), rgba(100, 116, 139, 0.15) 0);
+}
+
+.progress-ring::before {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    background: #ffffff;
+}
+
+.progress-ring-label {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: var(--brand-ink);
+}
+
+.empty-state {
+    padding: 2.5rem 1rem;
+    text-align: center;
+    color: var(--brand-subtle);
+    font-size: 0.9rem;
+    background: #ffffff;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.9rem;
+}
+
+.error {
+    color: var(--brand-red);
+    background: #fdecea;
+    border-radius: 0.5rem;
+    padding: 0.6rem 0.9rem;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+}
+
+/* Dashboard tab */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1rem;
+}
+
+.dashboard-grid .card {
+    background: #ffffff;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.9rem;
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.08), 0 0 1px 0 rgba(0, 0, 0, 0.08);
+    padding: 1.25rem;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.dashboard-grid .card:hover {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.1), 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+}
+
+.dashboard-grid .card h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--brand-ink);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+}
+
+.card-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 0.55rem;
+    flex-shrink: 0;
+}
+
+.card-violet .card-icon {
+    background: rgba(124, 58, 237, 0.14);
+}
+
+.card-violet .card-icon lightning-icon {
+    --sds-c-icon-color-foreground-default: var(--brand-violet);
+}
+
+.card-blue .card-icon {
+    background: rgba(37, 99, 235, 0.14);
+}
+
+.card-blue .card-icon lightning-icon {
+    --sds-c-icon-color-foreground-default: var(--brand-blue);
+}
+
+.card-amber .card-icon {
+    background: rgba(245, 158, 11, 0.14);
+}
+
+.card-amber .card-icon lightning-icon {
+    --sds-c-icon-color-foreground-default: var(--brand-amber);
+}
+
+.card-green .card-icon {
+    background: rgba(5, 150, 105, 0.14);
+}
+
+.card-green .card-icon lightning-icon {
+    --sds-c-icon-color-foreground-default: var(--brand-accent);
+}
+
+.bar-row {
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid var(--brand-hairline);
+}
+
+.bar-row:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.bar-row-label {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--brand-ink);
+    margin-bottom: 0.4rem;
+}
+
+.bar-row-sub {
+    color: var(--brand-subtle);
+    font-weight: 700;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.bar-track {
+    height: 10px;
+    background: rgba(100, 116, 139, 0.14);
+    border-radius: 999px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.bar-fill {
+    height: 100%;
+    background: var(--brand-primary);
+    border-radius: 999px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-violet .bar-fill {
+    background: linear-gradient(90deg, var(--brand-violet), #9F7AEA);
+}
+
+.card-blue .bar-fill {
+    background: linear-gradient(90deg, var(--brand-blue), #60A5FA);
+}
+
+.card-amber .bar-fill {
+    background: linear-gradient(90deg, var(--brand-amber), #FBBF24);
+}
+
+.card-green .bar-fill {
+    background: var(--brand-accent);
+}

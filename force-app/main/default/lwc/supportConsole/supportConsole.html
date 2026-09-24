@@ -1,0 +1,144 @@
+<template>
+    <div class="page">
+        <div class="page-head">
+            <div>
+                <h1>Support Console</h1>
+                <p class="sub">Every request from the field, with the manager copied. Reply, assign, resolve, and unlock calls from here.</p>
+            </div>
+            <div class="head-actions">
+                <lightning-button variant="neutral" icon-name="utility:download" label="Export CSV" onclick={exportCsv} disabled={exporting}></lightning-button>
+                <lightning-button variant="neutral" icon-name="utility:refresh" label="Refresh" onclick={refreshAll}></lightning-button>
+            </div>
+        </div>
+
+        <template if:true={stale}>
+            <div class="stale" role="status">There is new activity. <button type="button" class="linkbtn" onclick={refreshAll}>Refresh the list</button></div>
+        </template>
+        <template if:true={error}><div class="err" role="alert">{error}</div></template>
+
+        <section class="tiles" aria-label="Summary">
+            <template for:each={tiles} for:item="t">
+                <button key={t.key} type="button" class={t.cls} data-view={t.view} onclick={tileClick}>
+                    <span class="tile-num">{t.value}</span><span class="tile-label">{t.label}</span>
+                </button>
+            </template>
+        </section>
+
+        <div class="insight-bar">
+            <span class="oldest">{oldestText}</span>
+            <button type="button" class="linkbtn" onclick={toggleInsights}>{insightsLabel}</button>
+        </div>
+        <template if:true={showInsights}>
+            <section class="insights">
+                <div class="card">
+                    <h3>Raised and resolved, last 14 days</h3>
+                    <div class="bars">
+                        <template for:each={trend} for:item="d">
+                            <div key={d.key} class="bar-col" title={d.title}>
+                                <div class="bar-pair"><div class="bar bar-raised" style={d.raisedStyle}></div><div class="bar bar-resolved" style={d.resolvedStyle}></div></div>
+                                <span class="bar-label">{d.label}</span>
+                            </div>
+                        </template>
+                    </div>
+                    <p class="legend"><span class="key key-raised"></span>Raised <span class="key key-resolved"></span>Resolved</p>
+                </div>
+                <div class="card">
+                    <h3>Open requests by category</h3>
+                    <template for:each={categories} for:item="c">
+                        <div key={c.key} class="hbar"><span class="hbar-name">{c.category}</span><span class="hbar-track"><span class="hbar-fill" style={c.style}></span></span><span class="hbar-n">{c.count}</span></div>
+                    </template>
+                </div>
+            </section>
+        </template>
+
+        <div class="vtabs" role="tablist">
+            <template for:each={views} for:item="v">
+                <button key={v.key} type="button" role="tab" aria-selected={v.selected} class={v.cls} data-view={v.value} onclick={setView}>
+                    {v.label}<template if:true={v.count}><span class="vcount">{v.count}</span></template>
+                </button>
+            </template>
+        </div>
+
+        <div class="filters">
+            <lightning-input type="search" label="Search" variant="label-hidden" placeholder="Number, subject, rep or call" value={f.text} data-name="text" onchange={filterChanged}></lightning-input>
+            <lightning-combobox label="Category" variant="label-hidden" value={f.category} options={categoryOptions} data-name="category" onchange={filterChanged}></lightning-combobox>
+            <lightning-combobox label="Priority" variant="label-hidden" value={f.priority} options={priorityOptions} data-name="priority" onchange={filterChanged}></lightning-combobox>
+            <lightning-combobox label="Assigned to" variant="label-hidden" value={f.assignedToId} options={assigneeOptions} data-name="assignedToId" onchange={filterChanged}></lightning-combobox>
+            <lightning-input type="search" label="Territory" variant="label-hidden" placeholder="Territory" value={f.territory} data-name="territory" onchange={filterChanged}></lightning-input>
+            <lightning-input type="date" label="From" variant="label-hidden" value={f.fromDate} data-name="fromDate" onchange={filterChanged} title="Raised from"></lightning-input>
+            <lightning-input type="date" label="To" variant="label-hidden" value={f.toDate} data-name="toDate" onchange={filterChanged} title="Raised up to"></lightning-input>
+            <lightning-combobox label="Sort" variant="label-hidden" value={f.sort} options={sortOptions} onchange={sortChanged}></lightning-combobox>
+            <template if:true={hasFilters}><lightning-button variant="base" label="Clear filters" onclick={clearFilters}></lightning-button></template>
+        </div>
+
+        <template if:true={hasSelection}>
+            <section class="bulk" aria-label="Bulk actions">
+                <strong>{bulkLabel}</strong>
+                <lightning-button variant="neutral" label="Assign to me" onclick={assignToMe}></lightning-button>
+                <lightning-combobox class="bulk-field" label="Assign to" variant="label-hidden" value={bulkAssignee} options={bulkAssigneeOptions} onchange={bulkAssigneeChanged}></lightning-combobox>
+                <lightning-button variant="neutral" label="Assign" onclick={doAssign} disabled={bulkAssigneeMissing}></lightning-button>
+                <lightning-combobox class="bulk-field" label="Priority" variant="label-hidden" value={bulkPriority} options={bulkPriorityOptions} onchange={bulkPriorityChanged}></lightning-combobox>
+                <lightning-button variant="neutral" label="Waiting on rep" onclick={doWaiting}></lightning-button>
+                <lightning-combobox class="bulk-field" label="Resolution" variant="label-hidden" value={bulkResolution} options={resolutionOptions} onchange={bulkResolutionChanged}></lightning-combobox>
+                <lightning-button variant="brand" label="Resolve" onclick={doResolve}></lightning-button>
+                <lightning-button variant="neutral" label="Close" onclick={doClose}></lightning-button>
+                <lightning-button variant="base" label="Clear" onclick={clearSelection}></lightning-button>
+                <template if:true={bulkMessage}><span class="bulk-msg">{bulkMessage}</span></template>
+            </section>
+        </template>
+
+        <div class={pageClass}>
+            <section class="tablewrap">
+                <div class="scroll">
+                    <table class="grid">
+                        <thead>
+                            <tr>
+                                <th class="c-check"><input type="checkbox" checked={allChecked} onchange={toggleAll} aria-label="Select all shown" /></th>
+                                <th class="c-main">Request</th>
+                                <th>Category</th>
+                                <th>Status</th>
+                                <th>Priority</th>
+                                <th>Assigned to</th>
+                                <th>First reply</th>
+                                <th>Activity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={lines} for:item="r">
+                                <tr key={r.key} class={r.rowClass} data-id={r.id} onclick={openRow}>
+                                    <td class="c-check" onclick={stop}><input type="checkbox" checked={r.checked} data-id={r.id} onchange={toggleOne} aria-label="Select request" /></td>
+                                    <td class="c-main">
+                                        <div class="r-num">{r.name}<span class="r-raised"> - raised {r.raised}</span></div>
+                                        <div class="r-subject">{r.subject}</div>
+                                        <div class="r-who">{r.who}</div>
+                                    </td>
+                                    <td>{r.category}</td>
+                                    <td><span class={r.statusClass}>{r.status}</span><template if:true={r.turn}><div class={r.turnClass}>{r.turn}</div></template></td>
+                                    <td><span class={r.priorityClass}>{r.priority}</span></td>
+                                    <td class={r.assignedClass}>{r.assigned}</td>
+                                    <td><span class={r.slaClass}>{r.sla}</span></td>
+                                    <td><div>{r.ago}</div><div class="r-counts">{r.counts}</div></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                    <template if:true={showEmpty}>
+                        <div class="empty"><h3>Nothing here</h3><p>No requests match this view and these filters.</p></div>
+                    </template>
+                    <template if:true={loading}><div class="spin"><lightning-spinner alternative-text="Loading" size="small"></lightning-spinner></div></template>
+                </div>
+                <div class="foot">
+                    <span>{countText}</span>
+                    <template if:true={hasMore}><lightning-button variant="neutral" label="Show 50 more" onclick={loadMore} disabled={loading}></lightning-button></template>
+                </div>
+            </section>
+
+            <template if:true={selectedId}>
+                <aside class="drawer">
+                    <button type="button" class="drawer-close" onclick={closeDrawer} aria-label="Close conversation">Close</button>
+                    <c-support-thread request-id={selectedId} onchange={handleChange}></c-support-thread>
+                </aside>
+            </template>
+        </div>
+    </div>
+</template>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>CMS_Document_Id__c</fullName>
+    <caseSensitive>false</caseSensitive>
+    <description>Sciagen CMS document number, e.g. Wockhardt_P-2026-0001</description>
+    <externalId>true</externalId>
+    <label>CMS Document Id</label>
+    <length>40</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>true</unique>
+</CustomField>

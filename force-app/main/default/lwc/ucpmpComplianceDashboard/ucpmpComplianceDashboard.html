@@ -1,0 +1,118 @@
+<template>
+    <div class="page">
+        <div class="page-head">
+            <div>
+                <h2>UCPMP Compliance</h2>
+                <p class="sub">Free samples against the UCPMP 2024 ceiling: their value may not exceed 2% of domestic sales in a year (clause 5.1).</p>
+            </div>
+            <div class="head-actions">
+                <lightning-combobox label="Financial year" variant="label-hidden" value={fy} options={fyOptions} onchange={handleFy}></lightning-combobox>
+                <lightning-button label="Settings" icon-name="utility:settings" onclick={toggleSettings}></lightning-button>
+                <lightning-button variant="brand" label="Generate UCPMP Disclosure Form" icon-name="utility:download" onclick={generate} disabled={generating}></lightning-button>
+            </div>
+        </div>
+
+        <template if:true={error}>
+            <div class="slds-notify slds-notify_alert slds-alert_error" role="alert">{error}</div>
+        </template>
+        <template if:true={loading}><lightning-spinner alternative-text="Loading" size="small"></lightning-spinner></template>
+
+        <template if:true={showSettings}>
+            <lightning-card title="Company and sales figures" icon-name="standard:settings">
+                <div class="slds-p-horizontal_medium settings">
+                    <p class="hint">These fill the disclosure form. Domestic sales is for the year shown; the 2% cap is worked out from it.</p>
+                    <div class="grid">
+                        <lightning-input label="Financial year" value={cfg.financialYear} data-field="financialYear" onchange={handleCfg} disabled={cannotEdit}></lightning-input>
+                        <lightning-input type="number" step="0.01" label="Domestic sales (crore Rs.)" value={cfg.domesticSalesCrore} data-field="domesticSalesCrore" onchange={handleCfg} disabled={cannotEdit}></lightning-input>
+                        <lightning-input label="Company name" value={cfg.companyName} data-field="companyName" onchange={handleCfg} disabled={cannotEdit}></lightning-input>
+                        <lightning-input label="CIN / FCRN" value={cfg.cin} data-field="cin" onchange={handleCfg} disabled={cannotEdit}></lightning-input>
+                        <lightning-input label="Registered office address" value={cfg.address} data-field="address" onchange={handleCfg} disabled={cannotEdit}></lightning-input>
+                        <lightning-input label="Company email" value={cfg.email} data-field="email" onchange={handleCfg} disabled={cannotEdit}></lightning-input>
+                        <lightning-input label="Company PAN" value={cfg.pan} data-field="pan" onchange={handleCfg} disabled={cannotEdit}></lightning-input>
+                        <lightning-input label="Signatory designation" value={cfg.designation} data-field="designation" onchange={handleCfg} disabled={cannotEdit}></lightning-input>
+                        <lightning-input label="Signatory DIN or PAN" value={cfg.dinOrPan} data-field="dinOrPan" onchange={handleCfg} disabled={cannotEdit}></lightning-input>
+                        <lightning-input label="Signatory mobile" value={cfg.mobile} data-field="mobile" onchange={handleCfg} disabled={cannotEdit}></lightning-input>
+                        <lightning-input label="Signatory email" value={cfg.signEmail} data-field="signEmail" onchange={handleCfg} disabled={cannotEdit}></lightning-input>
+                    </div>
+                    <template if:true={cannotEdit}><p class="hint">Only a sample manager can change these.</p></template>
+                    <div class="slds-m-vertical_small">
+                        <lightning-button variant="brand" label="Save" onclick={saveCfg} disabled={cannotEdit}></lightning-button>
+                    </div>
+                </div>
+            </lightning-card>
+        </template>
+
+        <lightning-card title={summaryTitle} icon-name="standard:currency">
+            <div class="slds-p-horizontal_medium">
+                <template if:true={summary}>
+                    <div class="tiles">
+                        <div class="tile"><div class="num">{salesText}</div><div class="lab">Domestic sales</div></div>
+                        <div class="tile"><div class="num">{capText}</div><div class="lab">2% cap</div></div>
+                        <div class="tile"><div class="num">{spentText}</div><div class="lab">Sample value given</div></div>
+                        <div class="tile"><div class="num">{summary.packs}</div><div class="lab">Packs ({summary.units} units)</div></div>
+                        <div class="tile"><div class="num">{summary.hcpCount}</div><div class="lab">Doctors sampled</div></div>
+                    </div>
+                    <div class="gauge-row">
+                        <div class="gauge" role="img" aria-label={gaugeLabel}>
+                            <div class={gaugeFillClass} style={gaugeStyle}></div>
+                        </div>
+                        <div class="gauge-text"><span class={statusClass}>{summary.status}</span> {percentText}</div>
+                    </div>
+                    <template if:false={summary.salesConfigured}>
+                        <p class="hint">Enter this year's domestic sales in Settings to see the cap.</p>
+                    </template>
+                </template>
+            </div>
+        </lightning-card>
+
+        <lightning-card title="Distribution by doctor (top 20 by value)" icon-name="standard:people">
+            <div class="slds-p-horizontal_medium table-wrap">
+                <template if:true={hasRows}>
+                    <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                        <thead><tr class="slds-line-height_reset">
+                            <th>Doctor</th><th>Reg #</th><th>Product</th><th class="num-col">Packs</th><th class="num-col">Value (Rs.)</th><th>Of 12-pack limit</th>
+                        </tr></thead>
+                        <tbody>
+                            <template for:each={rows} for:item="r">
+                                <tr key={r.key}>
+                                    <td>{r.hcpName}</td><td>{r.registration}</td><td>{r.productName}</td>
+                                    <td class="num-col">{r.packs}</td><td class="num-col">{r.valueText}</td>
+                                    <td><div class="mini-track"><div class={r.barClass} style={r.barStyle}></div></div><span class="mini-text">{r.limitText}</span></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </template>
+                <template if:false={hasRows}><p class="hint slds-m-vertical_small">No samples given in this financial year.</p></template>
+            </div>
+        </lightning-card>
+
+        <lightning-card title="Restricted products and blocked attempts (last 90 days)" icon-name="standard:incident">
+            <div class="slds-p-horizontal_medium">
+                <template if:true={restricted}>
+                    <p class="hint">Restricted products (can never be sampled): {restrictedList}</p>
+                    <div class="tiles">
+                        <div class="tile"><div class="num">{restricted.blockedTotal}</div><div class="lab">Attempts blocked</div></div>
+                        <div class="tile"><div class="num">{restricted.blockedRestricted}</div><div class="lab">Restricted product attempts</div></div>
+                        <template for:each={typeCounts} for:item="t">
+                            <div class="tile" key={t.type}><div class="num">{t.count}</div><div class="lab">{t.label}</div></div>
+                        </template>
+                    </div>
+                    <template if:true={hasAttempts}>
+                        <div class="table-wrap">
+                            <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                                <thead><tr class="slds-line-height_reset"><th>When</th><th>Rep</th><th>Doctor</th><th>Product</th><th>Why</th></tr></thead>
+                                <tbody>
+                                    <template for:each={restricted.attempts} for:item="a">
+                                        <tr key={a.id}><td>{a.attemptedAt}</td><td>{a.repName}</td><td>{a.hcpName}</td><td>{a.productName}</td><td class="why">{a.reason}</td></tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </template>
+                    <template if:false={hasAttempts}><p class="hint slds-m-vertical_small">No blocked attempts in the last 90 days.</p></template>
+                </template>
+            </div>
+        </lightning-card>
+    </div>
+</template>

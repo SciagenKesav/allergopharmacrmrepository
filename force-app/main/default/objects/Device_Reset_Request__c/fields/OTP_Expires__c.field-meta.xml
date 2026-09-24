@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>OTP_Expires__c</fullName>
+    <description>Set by DeviceResetRequestTrigger to 24 hours after approval, alongside OTP__c. The app refuses a code entered after this time, so an approved-but-unused request can&apos;t be redeemed indefinitely.</description>
+    <label>One-Time Code Expires</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>DateTime</type>
+</CustomField>

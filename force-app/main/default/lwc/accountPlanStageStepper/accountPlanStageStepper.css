@@ -1,0 +1,92 @@
+:host {
+    --brand-primary: #4F46E5;
+    --brand-ink: #0F172A;
+    --brand-subtle: #64748B;
+    --brand-hairline: #E2E8F0;
+    --brand-accent: #059669;
+    display: block;
+}
+
+.stepper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background: #ffffff;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.steps {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    position: relative;
+    flex: 1;
+}
+
+.step-track {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: center;
+}
+
+.step-dot {
+    width: 0.85rem;
+    height: 0.85rem;
+    border-radius: 50%;
+    background: var(--brand-hairline);
+    border: 2px solid var(--brand-hairline);
+    display: inline-block;
+}
+
+.step-dot-complete {
+    background: var(--brand-accent);
+    border-color: var(--brand-accent);
+}
+
+.step-dot-current {
+    background: #ffffff;
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.18);
+}
+
+.step-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--brand-subtle);
+    white-space: nowrap;
+}
+
+.step-label-active {
+    color: var(--brand-ink);
+}
+
+.step:not(:first-child)::before {
+    content: '';
+    position: absolute;
+    top: 0.42rem;
+    right: 50%;
+    width: 100%;
+    height: 2px;
+    background: var(--brand-hairline);
+    z-index: 0;
+}
+
+.final-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--brand-accent);
+    white-space: nowrap;
+}

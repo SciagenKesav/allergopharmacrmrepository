@@ -1,0 +1,41 @@
+:host {
+    --brand-ink: #0F172A;
+    --brand-subtle: #64748B;
+    --brand-hairline: #E2E8F0;
+    --brand-amber: #F59E0B;
+}
+
+.map-mode {
+    padding: 1rem 1.25rem;
+}
+
+.map-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.day-label {
+    font-weight: 700;
+    color: var(--brand-ink);
+}
+
+.empty-state {
+    color: var(--brand-subtle);
+    font-size: 0.9rem;
+    padding: 2rem 0;
+    text-align: center;
+}
+
+.unmapped-note {
+    font-size: 0.78rem;
+    color: var(--brand-amber);
+    margin-bottom: 0.5rem;
+}
+
+.map-layout {
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}

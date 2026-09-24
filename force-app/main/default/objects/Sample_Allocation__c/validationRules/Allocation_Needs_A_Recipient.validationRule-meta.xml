@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Allocation_Needs_A_Recipient</fullName>
+    <active>true</active>
+    <errorConditionFormula>AND(ISBLANK(Allocated_To_User__c), ISBLANK(Allocated_To_Territory__c))</errorConditionFormula>
+    <errorDisplayField>Allocated_To_User__c</errorDisplayField>
+    <errorMessage>Allocate to a rep or a territory.</errorMessage>
+</ValidationRule>

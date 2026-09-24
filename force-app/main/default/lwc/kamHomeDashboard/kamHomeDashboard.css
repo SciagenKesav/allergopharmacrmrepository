@@ -1,0 +1,520 @@
+:host {
+    --brand-primary: #4F46E5;
+    --brand-ink: #0F172A;
+    --brand-subtle: #64748B;
+    --brand-hairline: #E2E8F0;
+    --brand-red: #DC2626;
+    --brand-accent: #059669;
+    --brand-violet: #7C3AED;
+    --brand-blue: #2563EB;
+    --brand-amber: #F59E0B;
+    --brand-bg: #F3F4FB;
+    display: block;
+    /* Pulls content up into the App Page template's own reserved region
+       padding above this component — that space belongs to the platform
+       template, not this component, so it can't be closed from inside
+       .page's own padding; this is the only lever that reaches it. */
+    margin-top: -0.5rem;
+}
+
+.page {
+    background: var(--brand-bg);
+    padding: 0.25rem 1.25rem 1rem;
+    min-height: 100%;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+}
+
+.page-title {
+    flex: 1;
+    min-width: 0;
+}
+
+.page-title h2 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--brand-ink);
+}
+
+.page-header-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.page-subtitle {
+    margin: 0.1rem 0 0;
+    font-size: 0.8rem;
+    color: var(--brand-subtle);
+}
+
+.error {
+    color: var(--brand-red);
+    background: #FEF2F2;
+    border: 1px solid #FCA5A5;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+}
+
+/* Plan/Dashboard toggle — same look as accountPlanBrowser's mode-bar, so the
+   two Account-Plan-list pages read as one consistent design. */
+.mode-bar {
+    display: flex;
+    background: #e9e9f2;
+    border-radius: 999px;
+    padding: 0.25rem;
+}
+
+.mode-button {
+    flex: 1;
+    min-width: 11rem;
+    border: none;
+    background: transparent;
+    color: var(--brand-subtle);
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 0.4rem 1rem;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.mode-button-active {
+    background: #ffffff;
+    color: var(--brand-ink);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
+}
+
+/* KPI tiles — same design as accountPlanBrowser's, so the two Account-Plan-
+   list pages read as one consistent product. */
+/* "My Insights" panel — Dashboard tab's lead section: a labeled card of
+   solid-tint metric tiles (big centered number over a label), distinct from
+   the plain .kpi-row style used on the Plan tab. Fixed 4-column grid (not
+   auto-fit) so a short last row leaves real gaps instead of stretching. */
+.insights-card {
+    background: #ffffff;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.9rem;
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.08), 0 0 1px 0 rgba(0, 0, 0, 0.08);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.insights-header {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 1rem;
+}
+
+.insights-header .icon-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 0.6rem;
+    background: rgba(124, 58, 237, 0.14);
+    flex-shrink: 0;
+}
+
+.insights-header .icon-badge lightning-icon {
+    --sds-c-icon-color-foreground-default: var(--brand-violet);
+}
+
+.insights-header h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--brand-ink);
+}
+
+.insights-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+.insight-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border-radius: 1rem;
+    padding: 1.75rem 1rem;
+    text-align: center;
+    border: 1px solid transparent;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.insight-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.1);
+}
+
+.insight-value {
+    font-size: 2.25rem;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.insight-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+/* My Insights tiles — generic SLDS blue (brand blue #0176D3 on its
+   lightest tint), one consistent accent across all 10 tiles instead of the
+   earlier per-metric rainbow, per explicit request to plainly follow the
+   Lightning Design System's own brand color here. */
+.insight-tile-violet,
+.insight-tile-green,
+.insight-tile-amber,
+.insight-tile-red,
+.insight-tile-indigo,
+.insight-tile-grey {
+    background: #EAF5FE;
+    border-color: rgba(1, 118, 211, 0.18);
+}
+
+.insight-tile-violet .insight-value,
+.insight-tile-green .insight-value,
+.insight-tile-amber .insight-value,
+.insight-tile-red .insight-value,
+.insight-tile-indigo .insight-value,
+.insight-tile-grey .insight-value {
+    color: #0176D3;
+}
+
+.kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.kpi-tile {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    background: #ffffff;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.9rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    padding: 1.1rem 1.25rem;
+}
+
+.kpi-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+    border-radius: 0.75rem;
+    font-weight: 800;
+    font-size: 0.95rem;
+}
+
+.kpi-icon-violet {
+    background: rgba(124, 58, 237, 0.14);
+    color: var(--brand-violet);
+}
+
+.kpi-icon-accent {
+    background: rgba(5, 150, 105, 0.14);
+    color: var(--brand-accent);
+}
+
+.kpi-icon-accent lightning-icon {
+    --sds-c-icon-color-foreground-default: var(--brand-accent);
+}
+
+.kpi-icon-blue {
+    background: rgba(37, 99, 235, 0.14);
+    color: var(--brand-blue);
+}
+
+.kpi-icon-amber {
+    background: rgba(245, 158, 11, 0.14);
+    color: var(--brand-amber);
+}
+
+.kpi-icon-amber lightning-icon {
+    --sds-c-icon-color-foreground-default: var(--brand-amber);
+}
+
+.kpi-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.kpi-label {
+    font-size: 0.8rem;
+    color: var(--brand-subtle);
+}
+
+.kpi-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--brand-ink);
+}
+
+.plans-card {
+    background: #ffffff;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.plans-toolbar {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.plans-search {
+    flex: 1;
+}
+
+.plans-export {
+    min-width: 140px;
+}
+
+.plans-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+}
+
+.plans-table th {
+    text-align: left;
+    color: var(--brand-subtle);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0.4rem 0.5rem;
+    border-bottom: 1px solid var(--brand-hairline);
+}
+
+.plans-table td {
+    padding: 0.55rem 0.5rem;
+    border-bottom: 1px solid var(--brand-hairline);
+    color: var(--brand-ink);
+}
+
+.plan-row {
+    cursor: pointer;
+}
+
+.plan-row:hover {
+    background: var(--brand-bg);
+}
+
+.plan-title {
+    font-weight: 600;
+}
+
+.muted {
+    color: var(--brand-subtle);
+}
+
+.pill {
+    display: inline-block;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+/* Plans-table Progress column — a CSS-only donut ring (conic-gradient arc
+   over a hairline track, with a white inset circle punched out via ::before
+   so only the ring itself shows), rather than the plain linear bar used
+   elsewhere on this page. --pct (0-100) is set inline per row. */
+.progress-ring {
+    --pct: 0;
+    position: relative;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    background: conic-gradient(var(--brand-primary) calc(var(--pct) * 1%), var(--brand-hairline) 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.progress-ring::before {
+    content: '';
+    position: absolute;
+    inset: 0.3rem;
+    border-radius: 50%;
+    background: #FFFFFF;
+}
+
+.progress-ring-label {
+    position: relative;
+    z-index: 1;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--brand-primary);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.chart-card {
+    background: #ffffff;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.08), 0 0 1px 0 rgba(0, 0, 0, 0.08);
+    padding: 1.25rem;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.chart-card:hover {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.1), 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+}
+
+.chart-card h4 {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--brand-ink);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+}
+
+.card-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 0.55rem;
+    flex-shrink: 0;
+}
+
+.card-violet .card-icon {
+    background: rgba(124, 58, 237, 0.14);
+}
+
+.card-violet .card-icon lightning-icon {
+    --sds-c-icon-color-foreground-default: var(--brand-violet);
+}
+
+.card-blue .card-icon {
+    background: rgba(37, 99, 235, 0.14);
+}
+
+.card-blue .card-icon lightning-icon {
+    --sds-c-icon-color-foreground-default: var(--brand-blue);
+}
+
+.card-amber .card-icon {
+    background: rgba(245, 158, 11, 0.14);
+}
+
+.card-amber .card-icon lightning-icon {
+    --sds-c-icon-color-foreground-default: var(--brand-amber);
+}
+
+.card-green .card-icon {
+    background: rgba(5, 150, 105, 0.14);
+}
+
+.card-green .card-icon lightning-icon {
+    --sds-c-icon-color-foreground-default: var(--brand-accent);
+}
+
+.bar-row {
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid var(--brand-hairline);
+}
+
+.bar-row:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.bar-label {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--brand-ink);
+    margin-bottom: 0.35rem;
+}
+
+.bar-sub {
+    color: var(--brand-subtle);
+    font-weight: 700;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.share-bar {
+    height: 0.625rem;
+    background: rgba(100, 116, 139, 0.14);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.share-bar-fill {
+    height: 100%;
+    background: var(--brand-accent);
+    border-radius: 0.5rem;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-violet .share-bar-fill {
+    background: linear-gradient(90deg, var(--brand-violet), #9F7AEA);
+}
+
+.card-blue .share-bar-fill {
+    background: linear-gradient(90deg, var(--brand-blue), #60A5FA);
+}
+
+.card-amber .share-bar-fill {
+    background: linear-gradient(90deg, var(--brand-amber), #FBBF24);
+}
+
+.card-green .share-bar-fill {
+    background: var(--brand-accent);
+}
+
+.empty-text {
+    font-size: 0.8rem;
+    color: var(--brand-subtle);
+    margin: 0;
+}

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ListView xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>All</fullName>
+    <columns>NAME</columns>
+    <columns>CREATEDBY_USER</columns>
+    <columns>HCP__c</columns>
+    <columns>Call_Status__c</columns>
+    <columns>Check_In_At__c</columns>
+    <columns>Check_In_Location__Latitude__s</columns>
+    <columns>Check_In_Location__Longitude__s</columns>
+    <columns>CREATED_DATE</columns>
+    <columns>HCO__c</columns>
+    <columns>Next_Visit_Date__c</columns>
+    <columns>Pre_Call_Notes__c</columns>
+    <columns>Record_Type_Label__c</columns>
+    <filterScope>Everything</filterScope>
+    <label>All</label>
+</ListView>

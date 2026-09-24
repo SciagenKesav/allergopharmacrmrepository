@@ -1,0 +1,25 @@
+<template>
+    <div class="map-mode">
+        <div class="map-header">
+            <span class="day-label">{dayLabel}</span>
+            <template if:true={hasStops}>
+                <lightning-button label="Get Directions" icon-name="utility:location" onclick={handleGetDirections}></lightning-button>
+            </template>
+        </div>
+        <template if:false={hasStops}>
+            <div class="empty-state">No mappable visits for this day.</div>
+        </template>
+        <template if:true={hasStops}>
+            <template if:true={hasUnmapped}>
+                <div class="unmapped-note">{unmappedCount} visit(s) on this day have no HCO location on file and aren't shown on the map.</div>
+            </template>
+            <div class="map-layout">
+                <lightning-map
+                    map-markers={mapMarkers}
+                    list-view="visible"
+                    zoom-level="11"
+                ></lightning-map>
+            </div>
+        </template>
+    </div>
+</template>

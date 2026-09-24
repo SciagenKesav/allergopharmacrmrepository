@@ -1,0 +1,79 @@
+<template>
+    <div class="week-controls">
+        <lightning-button label={hideSundayLabel} onclick={handleToggleHideSunday}></lightning-button>
+        <lightning-button label={fullDayLabel} onclick={handleToggleFullDay}></lightning-button>
+    </div>
+    <div class="week-body">
+        <template if:false={panelCollapsed}>
+            <div class="account-panel">
+                <div class="panel-header">
+                    <lightning-button-group>
+                        <template for:each={panelKindButtons} for:item="k">
+                            <lightning-button key={k.key} label={k.label} variant={k.variant} data-value={k.key} onclick={handlePanelKindChange}></lightning-button>
+                        </template>
+                    </lightning-button-group>
+                    <lightning-button-icon icon-name="utility:chevronleft" alternative-text="Collapse" onclick={handleTogglePanel}></lightning-button-icon>
+                </div>
+                <lightning-input type="search" label="Search accounts" variant="label-hidden" placeholder="Search accounts" onchange={handlePanelSearch}></lightning-input>
+                <lightning-combobox label="Territory" variant="label-hidden" options={territoryComboOptions} value={panelTerritory} onchange={handlePanelTerritoryChange}></lightning-combobox>
+                <p class="panel-hint">Drag an account onto the week grid to schedule a visit.</p>
+                <div class="panel-list">
+                    <template for:each={panelRows} for:item="row">
+                        <div key={row.id} class="panel-row" draggable="true" data-token={row.dragToken} ondragstart={handleDragStart}>
+                            <div class="panel-row-main">
+                                <span class="panel-row-name">{row.name}</span>
+                                <span class="panel-row-subtitle">{row.subtitle}</span>
+                            </div>
+                            <lightning-icon icon-name="utility:drag_and_drop" size="x-small"></lightning-icon>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </template>
+        <template if:true={panelCollapsed}>
+            <div class="panel-rail">
+                <lightning-button-icon icon-name="utility:chevronright" alternative-text="Expand" onclick={handleTogglePanel}></lightning-button-icon>
+            </div>
+        </template>
+
+        <div class="grid-scroll">
+            <div class="grid-header">
+                <div class="time-gutter-header"></div>
+                <template for:each={dayColumns} for:item="day">
+                    <div key={day.key} class="day-header-cell">{day.label}</div>
+                </template>
+            </div>
+            <div class="grid-body">
+                <div class="time-gutter" style={gridHeightStyle}>
+                    <template for:each={hourRows} for:item="hr">
+                        <div key={hr.key} class="hour-label">{hr.label}</div>
+                    </template>
+                </div>
+                <template for:each={dayColumns} for:item="day">
+                    <div
+                        key={day.key}
+                        class={day.columnClass}
+                        style={gridHeightStyle}
+                        data-day={day.key}
+                        ondragover={handleDragOver}
+                        ondragleave={handleDragLeave}
+                        ondrop={handleDrop}
+                    >
+                        <template for:each={hourRows} for:item="hr">
+                            <div key={hr.key} class="hour-line"></div>
+                        </template>
+                        <template for:each={day.blocks} for:item="block">
+                            <div key={block.key} class="call-block" style={block.blockStyle} data-id={block.id} onclick={handleBlockClick} title={block.displayName}>
+                                <div class="block-header">
+                                    <span class="block-time">{block.timeLabel}</span>
+                                    <span class="block-name">{block.displayName}</span>
+                                </div>
+                                <span class="pill" style={block.statusStyle}>{block.visitLabel}</span>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+</template>

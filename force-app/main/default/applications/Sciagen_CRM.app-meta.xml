@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomApplication xmlns="http://soap.sforce.com/2006/04/metadata">
+    <brand>
+        <headerColor>#0A0A5C</headerColor>
+        <logo>images2</logo>
+        <logoVersion>1</logoVersion>
+        <shouldOverrideOrgTheme>true</shouldOverrideOrgTheme>
+    </brand>
+    <formFactors>Small</formFactors>
+    <formFactors>Large</formFactors>
+    <isNavAutoTempTabsDisabled>false</isNavAutoTempTabsDisabled>
+    <isNavPersonalizationDisabled>false</isNavPersonalizationDisabled>
+    <isNavTabPersistenceDisabled>false</isNavTabPersistenceDisabled>
+    <isOmniPinnedViewEnabled>false</isOmniPinnedViewEnabled>
+    <label>Sciagen CRM</label>
+    <navType>Standard</navType>
+    <setupExperience>all</setupExperience>
+    <tabs>Account_Browser_Page</tabs>
+    <tabs>Global_Account_Search_Page</tabs>
+    <tabs>KAM_Dashboard_Page</tabs>
+    <tabs>My_Schedule_Page</tabs>
+    <tabs>RCPA_Browser_Page</tabs>
+    <tabs>DCR_Review_Page</tabs>
+    <tabs>CLM_Library_Page</tabs>
+    <tabs>standard-report</tabs>
+    <tabs>Plan_Goal__c</tabs>
+    <tabs>User_Territory__c</tabs>
+    <tabs>RCPA_Target__c</tabs>
+    <tabs>Product__c</tabs>
+    <uiType>Lightning</uiType>
+</CustomApplication>

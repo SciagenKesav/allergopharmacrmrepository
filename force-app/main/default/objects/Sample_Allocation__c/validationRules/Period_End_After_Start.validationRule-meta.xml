@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Period_End_After_Start</fullName>
+    <active>true</active>
+    <errorConditionFormula>AND(NOT(ISBLANK(Period_Start__c)), NOT(ISBLANK(Period_End__c)), Period_End__c &lt; Period_Start__c)</errorConditionFormula>
+    <errorDisplayField>Period_End__c</errorDisplayField>
+    <errorMessage>Period End can&apos;t be before Period Start.</errorMessage>
+</ValidationRule>

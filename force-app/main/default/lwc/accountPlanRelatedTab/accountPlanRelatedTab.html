@@ -1,0 +1,224 @@
+<template>
+    <div class="related">
+        <div class="swot-card">
+            <h4>SWOT</h4>
+            <div class="swot-grid">
+                <div class="swot-quadrant swot-strengths">
+                    <span class="swot-label">Strengths</span>
+                    <p>{workspace.strengths}</p>
+                </div>
+                <div class="swot-quadrant swot-weaknesses">
+                    <span class="swot-label">Weaknesses</span>
+                    <p>{workspace.weaknesses}</p>
+                </div>
+                <div class="swot-quadrant swot-opportunities">
+                    <span class="swot-label">Opportunities</span>
+                    <p>{workspace.opportunities}</p>
+                </div>
+                <div class="swot-quadrant swot-threats">
+                    <span class="swot-label">Threats</span>
+                    <p>{workspace.threats}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="split-row">
+            <div class="list-card">
+                <h4>Key Stakeholders</h4>
+                <template if:true={hasStakeholders}>
+                    <table class="mini-table">
+                        <thead>
+                            <tr><th>Name</th><th>Role</th><th>Influence</th><th>Strength</th></tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={workspace.stakeholders} for:item="s">
+                                <tr key={s.id}>
+                                    <td>{s.name}</td>
+                                    <td class="muted">{s.role}</td>
+                                    <td class="muted">{s.influence}</td>
+                                    <td class="muted">{s.strength}</td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </template>
+                <template if:false={hasStakeholders}>
+                    <p class="empty-text">No stakeholders added yet.</p>
+                </template>
+            </div>
+
+            <div class="list-card">
+                <div class="calls-header">
+                    <h4>Account Team</h4>
+                    <template if:false={showNewTeamMemberForm}>
+                        <lightning-button label="New" onclick={handleAddTeamMember}></lightning-button>
+                    </template>
+                </div>
+                <template if:true={showNewTeamMemberForm}>
+                    <lightning-record-edit-form
+                        object-api-name="Account_Team_Member__c"
+                        onsubmit={handleTeamMemberSubmit}
+                        onsuccess={handleTeamMemberSaveSuccess}
+                        onerror={handleTeamMemberSaveError}
+                    >
+                        <lightning-input-field class="slds-hide" field-name="Plan__c" value={recordId}></lightning-input-field>
+                        <div class="edit-grid">
+                            <lightning-input-field field-name="Member_Name__c"></lightning-input-field>
+                            <lightning-input-field field-name="Role__c"></lightning-input-field>
+                            <lightning-input-field field-name="Access__c"></lightning-input-field>
+                        </div>
+                        <div class="edit-actions">
+                            <lightning-button label="Cancel" onclick={handleCancelTeamMember} disabled={isSavingTeamMember}></lightning-button>
+                            <lightning-button variant="brand" type="submit" label="Save" disabled={isSavingTeamMember}></lightning-button>
+                        </div>
+                    </lightning-record-edit-form>
+                </template>
+                <template if:true={hasTeamMembers}>
+                    <table class="mini-table">
+                        <thead>
+                            <tr><th>Name</th><th>Role</th><th>Access</th></tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={workspace.teamMembers} for:item="m">
+                                <tr key={m.id}>
+                                    <td>{m.name}</td>
+                                    <td class="muted">{m.role}</td>
+                                    <td class="muted">{m.access}</td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </template>
+                <template if:false={hasTeamMembers}>
+                    <template if:false={showNewTeamMemberForm}>
+                        <p class="empty-text">No team members added yet.</p>
+                    </template>
+                </template>
+            </div>
+        </div>
+
+        <div class="list-card">
+            <div class="calls-header">
+                <h4>Goals</h4>
+                <template if:false={showNewGoalForm}>
+                    <lightning-button label="New" onclick={handleAddGoal}></lightning-button>
+                </template>
+            </div>
+            <template if:true={showNewGoalForm}>
+                <lightning-record-edit-form
+                    object-api-name="Plan_Goal__c"
+                    onsubmit={handleGoalSubmit}
+                    onsuccess={handleGoalSaveSuccess}
+                    onerror={handleGoalSaveError}
+                >
+                    <lightning-input-field class="slds-hide" field-name="Plan__c" value={recordId}></lightning-input-field>
+                    <div class="edit-grid">
+                        <lightning-input-field field-name="Title__c"></lightning-input-field>
+                        <lightning-input-field field-name="Metric__c"></lightning-input-field>
+                        <lightning-input-field field-name="Target__c"></lightning-input-field>
+                        <lightning-input-field field-name="Current__c"></lightning-input-field>
+                        <lightning-input-field field-name="Unit__c"></lightning-input-field>
+                        <lightning-input-field field-name="Due_Date__c"></lightning-input-field>
+                    </div>
+                    <div class="edit-actions">
+                        <lightning-button label="Cancel" onclick={handleCancelGoal} disabled={isSavingGoal}></lightning-button>
+                        <lightning-button variant="brand" type="submit" label="Save" disabled={isSavingGoal}></lightning-button>
+                    </div>
+                </lightning-record-edit-form>
+            </template>
+            <template if:true={hasGoals}>
+                <table class="mini-table">
+                    <thead>
+                        <tr><th>Title</th><th>Metric</th><th>Target</th><th>Current</th><th>Unit</th><th>Due Date</th></tr>
+                    </thead>
+                    <tbody>
+                        <template for:each={workspace.goals} for:item="g">
+                            <tr key={g.id}>
+                                <td>{g.title}</td>
+                                <td class="muted">{g.metric}</td>
+                                <td class="muted">{g.target}</td>
+                                <td class="muted">{g.current}</td>
+                                <td class="muted">{g.unit}</td>
+                                <td class="muted">{g.dueDate}</td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </template>
+            <template if:false={hasGoals}>
+                <template if:false={showNewGoalForm}>
+                    <p class="empty-text">No goals added yet.</p>
+                </template>
+            </template>
+        </div>
+
+        <div class="files-card">
+            <h4>Notes &amp; Attachments</h4>
+            <lightning-file-upload
+                label="Upload File"
+                record-id={recordId}
+                onuploadfinished={handleUploadFinished}
+            ></lightning-file-upload>
+            <p class="hint-text">Uploaded files appear on this Account Plan's standard Files related list.</p>
+        </div>
+
+        <div class="list-card">
+            <div class="calls-header">
+                <h4>Plan Calls</h4>
+                <lightning-button label="Associate Call" variant="brand" onclick={handleAssociateCall}></lightning-button>
+            </div>
+            <template if:true={isLoadingCalls}>
+                <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+            </template>
+            <template if:false={isLoadingCalls}>
+                <template if:true={hasCalls}>
+                    <table class="mini-table">
+                        <thead>
+                            <tr><th>Type</th><th>Account</th><th>Call Type</th><th>Date</th><th>Status</th><th></th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={callRows} for:item="c">
+                                <tr key={c.key}>
+                                    <td>{c.kind}</td>
+                                    <td>{c.accountName}</td>
+                                    <td class="muted">{c.callType}</td>
+                                    <td class="muted">{c.dateLabel}</td>
+                                    <td class="muted">{c.status}</td>
+                                    <td>
+                                        <button
+                                            class="link-button"
+                                            data-id={c.id}
+                                            data-kind={c.kind}
+                                            onclick={handleViewCall}
+                                        >View Call Report</button>
+                                    </td>
+                                    <td>
+                                        <button
+                                            class="unlink-button"
+                                            disabled={c.isUnlinking}
+                                            data-id={c.id}
+                                            data-kind={c.kind}
+                                            onclick={handleUnlinkCall}
+                                        >Unlink</button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </template>
+                <template if:false={hasCalls}>
+                    <p class="empty-text">No calls linked to this plan yet. Link a Planned Call or Call Visit Report here.</p>
+                </template>
+            </template>
+        </div>
+
+        <template if:true={showAssociateCallModal}>
+            <c-associate-call-modal
+                plan-id={recordId}
+                plan-name={planName}
+                onclose={handleCloseAssociateModal}
+                onlinked={handleCallLinked}
+            ></c-associate-call-modal>
+        </template>
+    </div>
+</template>

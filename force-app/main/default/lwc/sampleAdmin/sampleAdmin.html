@@ -1,0 +1,163 @@
+<template>
+    <div class="page">
+        <div class="page-head">
+            <div>
+                <h2>Sample Administration</h2>
+                <p class="sub">Every rep's sample stock, shipments and transactions in one place. Reps confirm what you send them on their iPad.</p>
+            </div>
+        </div>
+        <template if:true={error}>
+            <div class="slds-notify slds-notify_alert slds-alert_error" role="alert">{error}</div>
+        </template>
+        <template if:true={loading}><lightning-spinner alternative-text="Loading" size="small"></lightning-spinner></template>
+
+        <lightning-tabset variant="scoped">
+            <!-- INVENTORY -->
+            <lightning-tab label="Inventory Overview" value="inventory" onactive={loadInventory}>
+                <div class="filters">
+                    <lightning-combobox label="Product" value={fProduct} options={productOptions} onchange={handleFProduct}></lightning-combobox>
+                    <lightning-combobox label="Rep" value={fRep} options={repOptions} onchange={handleFRep}></lightning-combobox>
+                    <lightning-combobox label="Territory" value={fTerritory} options={territoryOptions} onchange={handleFTerritory}></lightning-combobox>
+                    <lightning-combobox label="Status" value={fStatus} options={statusOptions} onchange={handleFStatus}></lightning-combobox>
+                    <lightning-combobox label="Expiring within" value={fExpiring} options={expiringOptions} onchange={handleFExpiring}></lightning-combobox>
+                </div>
+                <div class="bulk">
+                    <span class="count">{lotCountText}</span>
+                    <lightning-button label="Recall" variant="destructive-text" onclick={recallSelected} disabled={bulkDisabled}></lightning-button>
+                    <lightning-button label="Quarantine" onclick={quarantineSelected} disabled={bulkDisabled}></lightning-button>
+                    <lightning-button label="Reactivate" onclick={reactivateSelected} disabled={bulkDisabled}></lightning-button>
+                    <lightning-combobox class="xfer" label="Transfer selected to" variant="label-hidden" placeholder="Transfer to rep" value={transferTo} options={repOptionsNoAll} onchange={handleTransferTo} disabled={bulkDisabled}></lightning-combobox>
+                    <lightning-button label="Transfer" onclick={transferSelected} disabled={transferDisabled}></lightning-button>
+                </div>
+                <div class="table-wrap">
+                    <lightning-datatable key-field="id" data={lots} columns={lotColumns} selected-rows={selectedLotIds} onrowselection={handleLotSelection}></lightning-datatable>
+                </div>
+                <template if:true={transferResults}>
+                    <div class="results">
+                        <template for:each={transferResults} for:item="r">
+                            <div key={r.key} class={r.className}>{r.message}</div>
+                        </template>
+                    </div>
+                </template>
+            </lightning-tab>
+
+            <!-- RECEIPTS -->
+            <lightning-tab label="Receipts and Shipments" value="receipts" onactive={loadReceipts}>
+                <lightning-card title="New shipment" icon-name="standard:shipment">
+                    <div class="slds-p-horizontal_medium">
+                        <p class="hint">Creates a lot for the rep with nothing on hand and a pending receipt. The rep's stock goes up when they confirm on the iPad.</p>
+                        <div class="grid">
+                            <lightning-combobox label="Rep" value={sRep} options={repOptionsNoAll} onchange={handleSRep} required></lightning-combobox>
+                            <lightning-combobox label="Product" value={sProduct} options={productOptionsNoAll} onchange={handleSProduct} required></lightning-combobox>
+                            <lightning-input label="Lot number" value={sLot} onchange={handleSLot} required></lightning-input>
+                            <lightning-input label="Batch lot ID (barcode)" value={sBatch} onchange={handleSBatch}></lightning-input>
+                            <lightning-input type="date" label="Expiry date" value={sExpiry} onchange={handleSExpiry} required></lightning-input>
+                            <lightning-input type="number" label="Quantity (packs)" value={sQty} min="1" onchange={handleSQty} required></lightning-input>
+                            <lightning-combobox label="From warehouse" value={sWarehouse} options={warehouseOptions} onchange={handleSWarehouse}></lightning-combobox>
+                            <lightning-input label="Shipment reference" value={sRef} onchange={handleSRef}></lightning-input>
+                        </div>
+                        <div class="slds-m-vertical_small">
+                            <lightning-button variant="brand" label="Create shipment" onclick={createOneShipment} disabled={shipmentDisabled}></lightning-button>
+                        </div>
+                    </div>
+                </lightning-card>
+                <lightning-card title="Bulk create from a CSV file" icon-name="standard:file">
+                    <div class="slds-p-horizontal_medium">
+                        <p class="hint">Columns: rep_username, sku_code, lot_number, expiry (yyyy-mm-dd), quantity, warehouse, shipment_ref, batch_lot_id. The first row must be the header.</p>
+                        <lightning-input type="file" label="CSV file" accept=".csv" onchange={handleCsvFile}></lightning-input>
+                        <template if:true={csvRows.length}>
+                            <p class="hint">{csvRows.length} rows read.</p>
+                            <lightning-button variant="brand" label="Create shipments" onclick={createCsvShipments} disabled={csvDisabled}></lightning-button>
+                        </template>
+                        <template if:true={csvResults}>
+                            <div class="results">
+                                <template for:each={csvResults} for:item="r">
+                                    <div key={r.key} class={r.className}>Row {r.row}: {r.message}</div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </lightning-card>
+                <lightning-card title="Waiting for the rep to confirm" icon-name="standard:pending_action">
+                    <div class="slds-p-horizontal_medium table-wrap">
+                        <lightning-datatable key-field="id" data={pending} columns={pendingColumns} hide-checkbox-column></lightning-datatable>
+                        <template if:false={hasPending}><p class="hint slds-m-vertical_small">Nothing is waiting.</p></template>
+                    </div>
+                </lightning-card>
+            </lightning-tab>
+
+            <!-- TRANSACTIONS -->
+            <lightning-tab label="Transaction Log" value="log" onactive={loadLog}>
+                <div class="filters">
+                    <lightning-combobox label="Type" value={tType} options={typeOptions} onchange={handleTType}></lightning-combobox>
+                    <lightning-combobox label="Status" value={tStatus} options={txnStatusOptions} onchange={handleTStatus}></lightning-combobox>
+                    <lightning-combobox label="Rep" value={tRep} options={repOptions} onchange={handleTRep}></lightning-combobox>
+                    <lightning-combobox label="Product" value={tProduct} options={productOptions} onchange={handleTProduct}></lightning-combobox>
+                    <lightning-input label="Doctor" value={tHcp} onchange={handleTHcp} placeholder="Name contains"></lightning-input>
+                    <lightning-input type="date" label="From" value={tFrom} onchange={handleTFrom}></lightning-input>
+                    <lightning-input type="date" label="To" value={tTo} onchange={handleTTo}></lightning-input>
+                </div>
+                <div class="bulk">
+                    <span class="count">{logCountText}</span>
+                    <lightning-button label="Search" variant="brand" onclick={loadLog}></lightning-button>
+                    <lightning-button label="Export CSV" icon-name="utility:download" onclick={exportLog} disabled={noLog}></lightning-button>
+                </div>
+                <div class="table-wrap">
+                    <lightning-datatable key-field="id" data={log} columns={logColumns} hide-checkbox-column></lightning-datatable>
+                </div>
+            </lightning-tab>
+
+            <!-- DISCREPANCIES -->
+            <lightning-tab label="Discrepancies" value="disc" onactive={loadDiscrepancies}>
+                <p class="hint">Inventory counts and adjustments that changed the books, and samples given when the lot did not have enough on record. Anything over 10% of a lot, or given without stock, is flagged.</p>
+                <div class="bulk">
+                    <lightning-input type="checkbox" label="Show flagged only" checked={flaggedOnly} onchange={handleFlagged}></lightning-input>
+                    <span class="count">{discCountText}</span>
+                </div>
+                <div class="table-wrap">
+                    <lightning-datatable key-field="id" data={discRows} columns={discColumns} hide-checkbox-column></lightning-datatable>
+                </div>
+            </lightning-tab>
+
+            <!-- APPROVALS -->
+            <lightning-tab label="Approvals" value="approvals" onactive={loadApprovals}>
+                <lightning-card title="Sample hand-outs held for approval" icon-name="standard:approval">
+                    <div class="slds-p-horizontal_medium">
+                        <p class="hint">Given over a company limit that needs a manager. Stock and the doctor's yearly total only move when you approve.</p>
+                        <template for:each={held} for:item="h">
+                            <div class="approval" key={h.id}>
+                                <div>
+                                    <div class="rname">{h.productName} x {h.quantity} packs, {h.hcpName}</div>
+                                    <div class="rdetail">{h.repName} on {h.performedAt}. Reason: {h.note}</div>
+                                </div>
+                                <div class="actions">
+                                    <lightning-button label="Approve" variant="brand" data-id={h.id} onclick={approveTxn} disabled={cannotManage}></lightning-button>
+                                    <lightning-button label="Reject" variant="destructive-text" data-id={h.id} onclick={rejectTxn} disabled={cannotManage}></lightning-button>
+                                </div>
+                            </div>
+                        </template>
+                        <template if:false={hasHeld}><p class="hint slds-m-vertical_small">Nothing is waiting for approval.</p></template>
+                    </div>
+                </lightning-card>
+                <lightning-card title="Limit override requests" icon-name="standard:process">
+                    <div class="slds-p-horizontal_medium">
+                        <p class="hint">A rep or manager asked for an exception to a company limit. UCPMP limits can never be overridden.</p>
+                        <template for:each={overrides} for:item="o">
+                            <div class="approval" key={o.id}>
+                                <div>
+                                    <div class="rname">{o.type} for {o.target} ({o.limitName})</div>
+                                    <div class="rdetail">{o.reason}</div>
+                                </div>
+                                <div class="actions">
+                                    <lightning-button label="Approve" variant="brand" data-id={o.id} onclick={approveOverride} disabled={cannotManage}></lightning-button>
+                                    <lightning-button label="Decline" variant="destructive-text" data-id={o.id} onclick={declineOverride} disabled={cannotManage}></lightning-button>
+                                </div>
+                            </div>
+                        </template>
+                        <template if:false={hasOverrides}><p class="hint slds-m-vertical_small">No requests waiting.</p></template>
+                    </div>
+                </lightning-card>
+            </lightning-tab>
+        </lightning-tabset>
+    </div>
+</template>

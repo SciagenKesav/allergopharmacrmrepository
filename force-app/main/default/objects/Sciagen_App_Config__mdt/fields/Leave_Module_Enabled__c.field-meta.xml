@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Leave_Module_Enabled__c</fullName>
+    <defaultValue>true</defaultValue>
+    <description>Per-org module licensing switch -- whether this customer&apos;s subscription includes the Leave module. When false, the Leave tab is hidden from every rep&apos;s sidebar. Defaults to true so orgs that predate this field keep the module they already had.</description>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <label>Leave Module Enabled</label>
+    <type>Checkbox</type>
+</CustomField>

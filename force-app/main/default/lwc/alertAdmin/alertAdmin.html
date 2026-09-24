@@ -1,0 +1,192 @@
+<template>
+    <div class="page">
+        <div class="page-header">
+            <c-sciagen-logo size="small"></c-sciagen-logo>
+            <div class="page-title">
+                <h2>My Alerts — Admin</h2>
+                <p class="page-subtitle">Author, target, prioritize, and retire alerts shown on the field team's Home screen</p>
+            </div>
+            <div class="spacer"></div>
+            <lightning-button variant="brand" label="New Alert" onclick={handleNewAlert}></lightning-button>
+        </div>
+
+        <template if:true={error}>
+            <div class="error">{error}</div>
+        </template>
+
+        <div class="browser">
+            <div class="list-pane">
+                <div class="filter-bar">
+                    <lightning-combobox
+                        label="Type"
+                        value={filterType}
+                        options={typeFilterOptions}
+                        onchange={handleFilterTypeChange}
+                    ></lightning-combobox>
+                    <lightning-combobox
+                        label="Priority"
+                        value={filterPriority}
+                        options={priorityFilterOptions}
+                        onchange={handleFilterPriorityChange}
+                    ></lightning-combobox>
+                    <lightning-combobox
+                        label="Status"
+                        value={filterStatus}
+                        options={statusFilterOptions}
+                        onchange={handleFilterStatusChange}
+                    ></lightning-combobox>
+                    <lightning-combobox
+                        label="Sort by"
+                        value={sortBy}
+                        options={sortOptions}
+                        onchange={handleSortChange}
+                    ></lightning-combobox>
+                </div>
+                <template if:true={isLoading}>
+                    <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+                </template>
+                <template if:false={isLoading}>
+                    <template if:true={hasAlerts}>
+                        <ul class="result-list">
+                            <template for:each={rows} for:item="row">
+                                <li key={row.id} class={row.rowClass} data-id={row.id} onclick={handleSelectRow}>
+                                    <div class="result-top">
+                                        <span class="pill" style={row.typeStyle}>{row.type}</span>
+                                        <span class="pill" style={row.priorityStyle}>{row.priority}</span>
+                                        <span class="pill" style={row.statusStyle}>{row.statusLabel}</span>
+                                    </div>
+                                    <div class="result-name">{row.title}</div>
+                                    <div class="result-meta">
+                                        {row.audienceLabel} &middot; {row.activationDate}
+                                    </div>
+                                </li>
+                            </template>
+                        </ul>
+                    </template>
+                    <template if:false={hasAlerts}>
+                        <div class="empty">{emptyMessage}</div>
+                    </template>
+                </template>
+            </div>
+
+            <div class="detail-pane">
+                <div class="form-card">
+                    <h3>{formHeading}</h3>
+                    <lightning-input
+                        label="Title"
+                        data-field="title"
+                        value={form.title}
+                        oninput={handleFieldChange}
+                        onchange={handleFieldChange}
+                        required
+                    ></lightning-input>
+                    <lightning-textarea
+                        label="Message"
+                        data-field="message"
+                        value={form.message}
+                        oninput={handleFieldChange}
+                        onchange={handleFieldChange}
+                    ></lightning-textarea>
+
+                    <div class="field-row">
+                        <lightning-combobox
+                            label="Type"
+                            data-field="type"
+                            value={form.type}
+                            options={typeOptions}
+                            onchange={handleFieldChange}
+                        ></lightning-combobox>
+                        <lightning-combobox
+                            label="Priority"
+                            data-field="priority"
+                            value={form.priority}
+                            options={priorityOptions}
+                            onchange={handleFieldChange}
+                        ></lightning-combobox>
+                    </div>
+
+                    <lightning-combobox
+                        label="Audience"
+                        value={form.audienceType}
+                        options={audienceOptions}
+                        onchange={handleAudienceChange}
+                    ></lightning-combobox>
+
+                    <template if:true={isProfileAudience}>
+                        <lightning-combobox
+                            label="Profile"
+                            data-field="targetProfileId"
+                            value={form.targetProfileId}
+                            options={profileOptions}
+                            placeholder="Select a profile..."
+                            onchange={handleFieldChange}
+                        ></lightning-combobox>
+                    </template>
+
+                    <template if:true={isUserAudience}>
+                        <lightning-input
+                            label="User"
+                            type="search"
+                            placeholder="Search by name..."
+                            value={userSearchTerm}
+                            onchange={handleUserSearchChange}
+                        ></lightning-input>
+                        <template if:true={form.targetUserLabel}>
+                            <div class="selected-user">Selected: {form.targetUserLabel}</div>
+                        </template>
+                        <template if:true={hasUserResults}>
+                            <ul class="user-results">
+                                <template for:each={userOptions} for:item="u">
+                                    <li key={u.id} data-id={u.id} onclick={handlePickUser}>{u.name}</li>
+                                </template>
+                            </ul>
+                        </template>
+                    </template>
+
+                    <template if:true={isMultipleUsersAudience}>
+                        <lightning-dual-listbox
+                            label="Target Users"
+                            source-label="Available Users"
+                            selected-label="Target Users"
+                            options={activeUserOptions}
+                            value={form.targetUserIds}
+                            onchange={handleTargetUsersChange}
+                            size="8"
+                        ></lightning-dual-listbox>
+                    </template>
+
+                    <div class="field-row">
+                        <lightning-input
+                            type="datetime"
+                            label="Activation Date"
+                            data-field="activationDate"
+                            value={form.activationDate}
+                            onchange={handleFieldChange}
+                            required
+                        ></lightning-input>
+                        <lightning-input
+                            type="datetime"
+                            label="Expiration Date"
+                            data-field="expirationDate"
+                            value={form.expirationDate}
+                            onchange={handleFieldChange}
+                            required
+                        ></lightning-input>
+                    </div>
+
+                    <div class="actions">
+                        <lightning-button variant="brand" label="Save" onclick={handleSave} disabled={isSaving}></lightning-button>
+                        <template if:true={isEditingExisting}>
+                            <lightning-button
+                                variant={toggleActiveVariant}
+                                label={toggleActiveLabel}
+                                onclick={handleToggleActive}
+                                disabled={isSaving}
+                            ></lightning-button>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>

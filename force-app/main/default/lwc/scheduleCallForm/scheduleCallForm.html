@@ -1,0 +1,66 @@
+<template>
+    <div class="call-form">
+        <div class="card-header">
+            <lightning-icon icon-name="utility:event" size="x-small"></lightning-icon>
+            <h3>{title}</h3>
+        </div>
+        <lightning-record-edit-form
+            object-api-name="Planned_Call__c"
+            record-id={recordId}
+            onsubmit={handleSubmit}
+            onsuccess={handleSuccess}
+            onerror={handleError}
+        >
+            <template if:false={isEditing}>
+                <div class="kind-row">
+                    <lightning-button-group>
+                        <template for:each={kindButtons} for:item="k">
+                            <lightning-button
+                                key={k.key}
+                                label={k.label}
+                                variant={k.variant}
+                                data-value={k.key}
+                                onclick={handleKindChange}
+                            ></lightning-button>
+                        </template>
+                    </lightning-button-group>
+                </div>
+            </template>
+            <div class="edit-grid">
+                <template if:true={isEditing}>
+                    <lightning-input-field field-name="HCP__c"></lightning-input-field>
+                    <lightning-input-field field-name="HCO__c"></lightning-input-field>
+                </template>
+                <template if:false={isEditing}>
+                    <template if:true={isHcpKind}>
+                        <lightning-input-field field-name="HCP__c" value={defaultHcpId}></lightning-input-field>
+                    </template>
+                    <template if:true={isHcoKind}>
+                        <lightning-input-field field-name="HCO__c" value={defaultHcoId}></lightning-input-field>
+                    </template>
+                </template>
+                <div class="field-datetime">
+                    <lightning-input-field field-name="Call_DateTime__c" value={defaultDateTime}></lightning-input-field>
+                </div>
+                <lightning-input-field field-name="Duration_Min__c"></lightning-input-field>
+                <lightning-input-field field-name="Call_Type__c"></lightning-input-field>
+                <lightning-input-field field-name="Status__c"></lightning-input-field>
+                <lightning-input-field field-name="Plan__c"></lightning-input-field>
+                <lightning-input-field class="slds-hide" field-name="Is_Event__c" value={isEvent}></lightning-input-field>
+                <div class="field-checkbox slds-form-element">
+                    <lightning-input type="checkbox" label="This is a medical/speaker event" checked={isEvent} onchange={handleEventToggle}></lightning-input>
+                </div>
+                <template if:true={isEvent}>
+                    <lightning-input-field field-name="Event_Title__c"></lightning-input-field>
+                    <lightning-input-field field-name="Venue__c"></lightning-input-field>
+                    <lightning-input-field field-name="Product__c"></lightning-input-field>
+                    <lightning-input-field field-name="Program_Type__c"></lightning-input-field>
+                </template>
+            </div>
+            <div class="edit-actions">
+                <lightning-button label="Cancel" onclick={handleCancel} disabled={isSaving}></lightning-button>
+                <lightning-button variant="brand" type="submit" label="Save" disabled={isSaving}></lightning-button>
+            </div>
+        </lightning-record-edit-form>
+    </div>
+</template>

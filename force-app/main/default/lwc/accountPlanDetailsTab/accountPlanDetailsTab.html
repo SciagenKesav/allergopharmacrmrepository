@@ -1,0 +1,75 @@
+<template>
+    <div class="details">
+        <div class="details-toolbar">
+            <lightning-button label={editButtonLabel} onclick={handleEditToggle}></lightning-button>
+        </div>
+
+        <template if:false={isEditing}>
+            <lightning-record-view-form record-id={recordId} object-api-name="Account_Plan__c">
+                <div class="section">
+                    <h4>Overview</h4>
+                    <div class="field-grid">
+                        <template for:each={headerFields} for:item="f">
+                            <lightning-output-field key={f} field-name={f}></lightning-output-field>
+                        </template>
+                    </div>
+                </div>
+                <div class="section">
+                    <h4>Plan Details</h4>
+                    <div class="field-grid">
+                        <template for:each={detailFields} for:item="f">
+                            <lightning-output-field key={f} field-name={f}></lightning-output-field>
+                        </template>
+                    </div>
+                </div>
+                <div class="section">
+                    <h4>Description</h4>
+                    <div class="field-grid field-grid-single">
+                        <template for:each={descriptionFields} for:item="f">
+                            <lightning-output-field key={f} field-name={f}></lightning-output-field>
+                        </template>
+                    </div>
+                </div>
+            </lightning-record-view-form>
+        </template>
+
+        <template if:true={isEditing}>
+            <lightning-record-edit-form
+                record-id={recordId}
+                object-api-name="Account_Plan__c"
+                onsubmit={handleSubmit}
+                onsuccess={handleSuccess}
+                onerror={handleError}
+            >
+                <div class="section">
+                    <h4>Overview</h4>
+                    <div class="field-grid">
+                        <template for:each={headerFields} for:item="f">
+                            <lightning-input-field key={f} field-name={f}></lightning-input-field>
+                        </template>
+                    </div>
+                </div>
+                <div class="section">
+                    <h4>Plan Details</h4>
+                    <div class="field-grid">
+                        <template for:each={detailFields} for:item="f">
+                            <lightning-input-field key={f} field-name={f}></lightning-input-field>
+                        </template>
+                    </div>
+                </div>
+                <div class="section">
+                    <h4>Description</h4>
+                    <div class="field-grid field-grid-single">
+                        <template for:each={descriptionFields} for:item="f">
+                            <lightning-input-field key={f} field-name={f}></lightning-input-field>
+                        </template>
+                    </div>
+                </div>
+                <div class="edit-actions">
+                    <lightning-button label="Cancel" onclick={handleEditToggle}></lightning-button>
+                    <lightning-button type="submit" label="Save" variant="brand" disabled={isSaving}></lightning-button>
+                </div>
+            </lightning-record-edit-form>
+        </template>
+    </div>
+</template>

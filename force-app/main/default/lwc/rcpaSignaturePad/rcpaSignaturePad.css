@@ -1,0 +1,38 @@
+:host {
+    --brand-hairline: #E2E8F0;
+    --brand-subtle: #64748B;
+    --brand-bg: #F3F4FB;
+    display: block;
+}
+
+.pad-wrap {
+    position: relative;
+    width: 100%;
+}
+
+.pad-canvas {
+    width: 100%;
+    height: 150px;
+    background: var(--brand-bg);
+    border: 1px dashed var(--brand-hairline);
+    border-radius: 0.5rem;
+    touch-action: none;
+    cursor: crosshair;
+}
+
+.pad-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--brand-subtle);
+    font-size: 0.85rem;
+    pointer-events: none;
+}
+
+.pad-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.4rem;
+}

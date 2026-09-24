@@ -1,0 +1,80 @@
+:host { display: block; height: 100%; }
+.wrap { position: relative; display: flex; flex-direction: column; height: 100%; min-height: 24rem; background: #fff; }
+.loading { position: absolute; inset: 0; z-index: 2; background: rgba(255,255,255,0.6); }
+.head { padding: 0.9rem 1.1rem 0.6rem; border-bottom: 1px solid #e6e9ef; }
+.head-top { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; flex-wrap: wrap; }
+.head-title h2 { margin: 0.1rem 0 0; font-size: 1.15rem; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
+.num { font-size: 0.75rem; letter-spacing: 0.04em; color: #5b6472; font-weight: 600; }
+.head-pills { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; }
+.meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: 0.55rem 1.1rem; margin: 0.75rem 0 0; }
+.meta div { min-width: 0; }
+.meta dt { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7482; }
+.meta dd { margin: 0.1rem 0 0; font-size: 0.85rem; overflow-wrap: anywhere; }
+.meta-wide { grid-column: 1 / -1; }
+.outcome { margin: 0.6rem 0 0; font-size: 0.85rem; font-weight: 600; color: #0b6b3a; }
+.head-actions { display: flex; gap: 0.5rem; margin-top: 0.6rem; }
+.head-actions:empty { display: none; }
+
+.pill { display: inline-block; padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; }
+.pill-new { background: #e8f0fe; color: #1a4fa3; }
+.pill-open { background: #e6f4ea; color: #0b6b3a; }
+.pill-wait { background: #fff1d6; color: #8a5300; }
+.pill-done { background: #ece9fb; color: #4a3b9c; }
+.pill-closed { background: #eceff3; color: #4b5563; }
+.turn { font-size: 0.75rem; font-weight: 600; color: #5b6472; }
+.turn-you { background: #fff1d6; color: #8a5300; padding: 0.15rem 0.6rem; border-radius: 999px; }
+.pri { font-size: 0.8rem; font-weight: 600; }
+.pri-urgent { color: #b42318; }
+.pri-high { color: #b25e09; }
+.pri-normal { color: #33404f; }
+.pri-low { color: #6b7482; }
+.sla { font-weight: 600; }
+.sla-late { color: #b42318; }
+
+.manage { display: flex; gap: 0.75rem 1rem; flex-wrap: wrap; align-items: flex-end; padding: 0.6rem 1.1rem; background: #f6f8fb; border-bottom: 1px solid #e6e9ef; }
+.mg-field { min-width: 11rem; }
+.mg-buttons { display: flex; gap: 0.4rem; align-items: center; }
+.panel { padding: 0.75rem 1.1rem; background: #fbfaf3; border-bottom: 1px solid #eee6c3; display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+.panel-text { margin: 0; font-size: 0.85rem; color: #4b4a3c; }
+
+.thread { flex: 1 1 auto; overflow-y: auto; padding: 1rem 1.1rem; background: #f4f6fa; display: flex; flex-direction: column; gap: 0.7rem; min-height: 12rem; }
+.msg { display: flex; }
+.msg-mine { justify-content: flex-end; }
+.msg-theirs { justify-content: flex-start; }
+.bubble { max-width: min(38rem, 88%); padding: 0.55rem 0.8rem 0.4rem; border-radius: 0.9rem; background: #fff; border: 1px solid #e2e6ee; box-shadow: 0 1px 1px rgba(20,30,50,0.04); }
+.bubble-me { background: #e7efff; border-color: #cddcfb; }
+.bubble-support { border-left: 3px solid #1a7f5a; }
+.bubble-manager { border-left: 3px solid #8a5300; }
+.who { display: flex; gap: 0.5rem; align-items: baseline; font-size: 0.78rem; }
+.role { color: #6b7482; font-size: 0.72rem; }
+.body { margin: 0.25rem 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.9rem; line-height: 1.45; }
+.stamp { margin-top: 0.3rem; font-size: 0.7rem; color: #7a8391; text-align: right; }
+.evt { text-align: center; font-size: 0.75rem; color: #6b7482; }
+.evt-text { padding: 0.1rem 0.6rem; background: #e9edf3; border-radius: 999px; }
+.evt-time { margin-left: 0.4rem; color: #98a1ae; }
+.atts { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+.thumb { display: block; max-width: 15rem; max-height: 10rem; border-radius: 0.5rem; border: 1px solid #d9dee7; object-fit: cover; }
+.file { display: inline-flex; gap: 0.35rem; align-items: center; padding: 0.3rem 0.6rem; border: 1px solid #d9dee7; border-radius: 0.5rem; background: #fafbfd; font-size: 0.8rem; text-decoration: none; }
+.size { color: #7a8391; font-size: 0.72rem; }
+
+.err { margin: 0.5rem 1.1rem; padding: 0.5rem 0.75rem; background: #fdeceb; color: #b42318; border-radius: 0.4rem; font-size: 0.85rem; }
+.closed-note { margin: 0.6rem 1.1rem 0.9rem; padding: 0.6rem 0.8rem; background: #eef1f6; color: #4b5563; border-radius: 0.4rem; font-size: 0.85rem; }
+.composer { padding: 0.7rem 1.1rem 0.9rem; border-top: 1px solid #e6e9ef; background: #fff; }
+.composer-drag { outline: 2px dashed #3b6fd4; outline-offset: -4px; background: #f3f7ff; }
+.composer-label { font-size: 0.78rem; font-weight: 600; color: #4b5563; }
+.area { width: 100%; box-sizing: border-box; margin: 0.25rem 0 0.4rem; padding: 0.55rem 0.7rem; border: 1px solid #c9d0dc; border-radius: 0.5rem; font: inherit; font-size: 0.9rem; resize: vertical; }
+.area:focus { outline: 2px solid #3b6fd4; outline-offset: 0; border-color: #3b6fd4; }
+.pending { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.4rem; }
+.chip { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.2rem 0.3rem 0.2rem 0.4rem; border: 1px solid #d9dee7; border-radius: 0.5rem; background: #f8fafc; font-size: 0.78rem; }
+.chip-img { width: 1.8rem; height: 1.8rem; object-fit: cover; border-radius: 0.25rem; }
+.chip-name { max-width: 10rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip-x { border: 0; background: transparent; cursor: pointer; font-size: 0.9rem; color: #6b7482; padding: 0 0.3rem; }
+.file-err { margin: 0 0 0.4rem; color: #b42318; font-size: 0.8rem; }
+.composer-bar { display: flex; gap: 0.75rem; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.composer-left { display: flex; gap: 0.6rem; align-items: center; }
+.hint { font-size: 0.72rem; color: #7a8391; }
+.hidden { display: none; }
+.modes { display: flex; gap: 0.9rem; flex-wrap: wrap; font-size: 0.8rem; }
+.mode { display: inline-flex; gap: 0.3rem; align-items: center; cursor: pointer; }
+.res { min-width: 10rem; }
+@media (max-width: 640px) { .bubble { max-width: 96%; } .thumb { max-width: 100%; } }

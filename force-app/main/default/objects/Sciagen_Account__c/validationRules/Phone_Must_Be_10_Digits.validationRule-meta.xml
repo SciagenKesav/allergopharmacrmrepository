@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Phone_Must_Be_10_Digits</fullName>
+    <active>true</active>
+    <description>Phone__c must be exactly 10 digits, numbers only, with an optional leading country code (e.g. +91) — spaces are ignored so existing &quot;+91 99100 22045&quot;-style values still work.</description>
+    <errorConditionFormula>AND(
+    NOT(ISBLANK(Phone__c)),
+    NOT(REGEX(SUBSTITUTE(Phone__c, &quot; &quot;, &quot;&quot;), &quot;(\\+?91)?[0-9]{10}&quot;))
+)</errorConditionFormula>
+    <errorDisplayField>Phone__c</errorDisplayField>
+    <errorMessage>Phone must be exactly 10 digits (numbers only). A leading country code such as +91 is allowed, but no other letters or symbols.</errorMessage>
+</ValidationRule>

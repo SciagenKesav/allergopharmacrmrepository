@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Marked_Not_For_Sale__c</fullName>
+    <defaultValue>true</defaultValue>
+    <description>Every sample pack carries the legend &apos;free medical sample not for sale&apos; (UCPMP 5.1(ii)(c)).</description>
+    <label>Marked Not For Sale</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

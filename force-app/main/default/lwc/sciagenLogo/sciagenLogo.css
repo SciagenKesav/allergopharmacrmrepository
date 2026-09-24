@@ -1,0 +1,16 @@
+.logo {
+    display: block;
+    height: auto;
+}
+
+.logo-small {
+    width: 28px;
+}
+
+.logo-medium {
+    width: 44px;
+}
+
+.logo-large {
+    width: 96px;
+}

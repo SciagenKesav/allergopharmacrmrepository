@@ -1,0 +1,56 @@
+<template>
+    <div class="browser">
+        <template if:false={showDetail}>
+            <div class="browser-header">
+                <div class="header-left">
+                    <h2>Call Reports</h2>
+                    <span class="range-label">{rangeLabel}</span>
+                </div>
+                <div class="header-right">
+                    <lightning-button-group>
+                        <lightning-button label="‹" onclick={handlePrev}></lightning-button>
+                        <lightning-button label="Today" onclick={handleToday}></lightning-button>
+                        <lightning-button label="›" onclick={handleNext}></lightning-button>
+                    </lightning-button-group>
+                    <lightning-button variant="brand" label="New Call Report" icon-name="utility:add" onclick={handleNewReport}></lightning-button>
+                </div>
+            </div>
+
+            <div class="filter-bar">
+                <lightning-input type="search" label="Search" variant="label-hidden" placeholder="Search by HCP or HCO name" onchange={handleSearchChange}></lightning-input>
+                <lightning-combobox label="Status" variant="label-hidden" options={statusOptions} value={status} onchange={handleStatusChange}></lightning-combobox>
+            </div>
+
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+            </template>
+
+            <template if:false={isLoading}>
+                <template if:false={hasResults}>
+                    <div class="empty-state">No call reports in this range. Click New Call Report to add one.</div>
+                </template>
+                <ul class="report-list">
+                    <template for:each={filteredReports} for:item="r">
+                        <li key={r.id} class="report-row" data-id={r.id} onclick={handleRowClick}>
+                            <div class="report-main">
+                                <span class="report-name" data-account-id={r.hcpId} onclick={navigateToAccount}>{r.displayName}</span>
+                                <span class="report-subtitle">{r.visitDate} · {r.callType}<template if:true={r.territoryName}> · {r.territoryName}</template></span>
+                            </div>
+                            <span class="pill" style={r.statusStyle}>{r.recordStatus}</span>
+                        </li>
+                    </template>
+                </ul>
+            </template>
+        </template>
+
+        <template if:true={showDetail}>
+            <c-call-visit-report-detail
+                record-id={editingId}
+                default-hcp-id={formDefaultHcpId}
+                default-hco-id={formDefaultHcoId}
+                onrecordcreated={handleRecordCreated}
+                onclose={handleCloseDetail}
+            ></c-call-visit-report-detail>
+        </template>
+    </div>
+</template>

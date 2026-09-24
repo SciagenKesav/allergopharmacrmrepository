@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Needs_Signature__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>Copied from the product when the line is added: the doctor must sign for it.</description>
+    <label>Needs Signature</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

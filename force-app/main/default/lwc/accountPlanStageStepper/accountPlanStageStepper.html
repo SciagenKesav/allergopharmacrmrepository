@@ -1,0 +1,25 @@
+<template>
+    <div class="stepper">
+        <div class="steps">
+            <template for:each={steps} for:item="step">
+                <div class="step" key={step.key}>
+                    <div class="step-track">
+                        <span class={step.dotClass}></span>
+                    </div>
+                    <span class={step.labelClass}>{step.label}</span>
+                </div>
+            </template>
+        </div>
+        <template if:true={hasNextStage}>
+            <lightning-button
+                label="Mark Stage as Complete"
+                variant="brand"
+                disabled={isAdvancing}
+                onclick={handleMarkComplete}
+            ></lightning-button>
+        </template>
+        <template if:true={isFinalStage}>
+            <span class="final-badge">Final Stage</span>
+        </template>
+    </div>
+</template>

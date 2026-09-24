@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Office Hours Setting</label>
+    <pluralLabel>Office Hours Settings</pluralLabel>
+    <visibility>Public</visibility>
+    <description>Defines the daily time window (e.g. 8:00 AM - 8:00 PM) within which a Planned_Call__c may be scheduled. Enforced for every user (Admin and Standard Platform User alike) by PlannedCallOfficeHoursValidator, regardless of whether the call is created from the web app or the iPad app.</description>
+</CustomObject>

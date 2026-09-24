@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Manager__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>The rep&apos;s direct manager at the time the request was created, populated by DeviceResetRequestTrigger (after insert) via the Owner&apos;s User.ManagerId. Used by the approval process to route to the correct approver dynamically — without this field, the approval process can only route to a hardcoded user.</description>
+    <label>Manager</label>
+    <referenceTo>User</referenceTo>
+    <relationshipName>Device_Reset_Requests_Managed</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

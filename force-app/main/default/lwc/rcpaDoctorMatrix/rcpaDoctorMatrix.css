@@ -1,0 +1,339 @@
+:host {
+    --brand-primary: #4F46E5;
+    --brand-violet: #7C3AED;
+    --brand-accent: #059669;
+    --brand-ink: #0F172A;
+    --brand-subtle: #64748B;
+    --brand-hairline: #E2E8F0;
+    --brand-red: #DC2626;
+    --brand-bg: #F3F4FB;
+    display: block;
+    max-width: 100%;
+}
+
+.card {
+    background: #ffffff;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    padding: 1.1rem;
+    margin-bottom: 0.9rem;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.picker-row {
+    margin-bottom: 0.9rem;
+    max-width: 26rem;
+}
+
+.doctor-picker {
+    background: rgba(124, 58, 237, 0.1);
+    border-radius: 0.75rem;
+}
+
+.header-title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--brand-ink);
+}
+
+.header-subtitle {
+    margin: 0.15rem 0 0.75rem;
+    font-size: 0.8rem;
+    color: var(--brand-subtle);
+}
+
+.meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--brand-hairline);
+}
+
+.meta-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.meta-label {
+    font-size: 0.7rem;
+    color: var(--brand-subtle);
+}
+
+.meta-value {
+    font-size: 0.9rem;
+    color: var(--brand-ink);
+    font-weight: 600;
+}
+
+.molecule-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.6rem;
+}
+
+.molecule-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--brand-ink);
+}
+
+.chip {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.1rem 0.55rem;
+    border-radius: 0.75rem;
+    background: rgba(79, 70, 229, 0.13);
+    color: var(--brand-primary);
+}
+
+.grid-scroll {
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+.grid-row {
+    display: flex;
+}
+
+.grid-cell {
+    flex: 0 0 6rem;
+    padding: 0.5rem 0.4rem;
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--brand-ink);
+    font-variant-numeric: tabular-nums;
+    border: 1px solid var(--brand-hairline);
+    box-sizing: border-box;
+}
+
+.grid-cell-header {
+    font-weight: 700;
+    background: var(--brand-bg);
+    font-size: 0.75rem;
+}
+
+.grid-cell-own {
+    background: rgba(5, 150, 105, 0.06);
+    color: var(--brand-accent);
+    font-weight: 700;
+}
+
+.grid-cell-own-value {
+    font-weight: 700;
+}
+
+.grid-cell-total {
+    flex: 0 0 5.2rem;
+}
+
+.grid-cell-total-value {
+    font-weight: 700;
+    background: rgba(79, 70, 229, 0.08);
+}
+
+.trail-title {
+    margin: 0 0 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--brand-ink);
+}
+
+.trail-card {
+    background: var(--brand-bg);
+    border-radius: 0.75rem;
+    padding: 0.9rem;
+    margin-bottom: 0.6rem;
+}
+
+.trail-card:last-child {
+    margin-bottom: 0;
+}
+
+.trail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.6rem;
+    gap: 0.5rem;
+}
+
+.trail-brand {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--brand-accent);
+}
+
+.trail-molecule {
+    font-size: 0.75rem;
+    color: var(--brand-subtle);
+    margin-left: 0.4rem;
+}
+
+.trail-delta {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.15rem 0.55rem;
+    border-radius: 0.75rem;
+    white-space: nowrap;
+}
+
+.trail-delta-up {
+    background: rgba(5, 150, 105, 0.1);
+    color: var(--brand-accent);
+}
+
+.trail-delta-down {
+    background: rgba(220, 38, 38, 0.1);
+    color: var(--brand-red);
+}
+
+.trail-timeline {
+    display: flex;
+    flex-direction: column;
+}
+
+.trail-point {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding-bottom: 0.6rem;
+}
+
+.trail-point:last-child {
+    padding-bottom: 0;
+}
+
+.trail-node-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 0.6rem;
+    flex-shrink: 0;
+    padding-top: 0.2rem;
+}
+
+.trail-node {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background: var(--brand-hairline);
+    flex-shrink: 0;
+}
+
+.trail-node-active {
+    background: var(--brand-accent);
+}
+
+.trail-line {
+    width: 2px;
+    flex: 1;
+    background: var(--brand-hairline);
+    margin-top: 0.2rem;
+    min-height: 1.4rem;
+}
+
+.trail-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.trail-date-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+}
+
+.trail-date {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--brand-ink);
+}
+
+.trail-chemist {
+    font-size: 0.68rem;
+    color: var(--brand-subtle);
+}
+
+.pill {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.1rem 0.5rem;
+    border-radius: 0.75rem;
+    width: fit-content;
+}
+
+.trail-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.05rem;
+    flex-shrink: 0;
+}
+
+.trail-units {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--brand-accent);
+    font-variant-numeric: tabular-nums;
+}
+
+.trail-share {
+    font-size: 0.68rem;
+    color: var(--brand-subtle);
+}
+
+.grand-total-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(124, 58, 237, 0.08);
+}
+
+.grand-total-label {
+    font-size: 0.85rem;
+    color: var(--brand-violet);
+    font-weight: 600;
+}
+
+.grand-total-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--brand-violet);
+    font-variant-numeric: tabular-nums;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--brand-subtle);
+}
+
+.empty-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--brand-ink);
+    margin: 0 0 0.3rem;
+}
+
+.empty-subtitle {
+    font-size: 0.82rem;
+    margin: 0;
+}
+
+.error {
+    color: var(--brand-red);
+    background: #fdecea;
+    border-radius: 0.35rem;
+    padding: 0.5rem;
+    margin: 0.5rem 0;
+    font-size: 0.8rem;
+}

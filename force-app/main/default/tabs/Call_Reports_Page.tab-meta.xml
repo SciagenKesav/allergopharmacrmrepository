@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomTab xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Call Reports — create and manage the rep&apos;s own Call_Visit_Report__c records (Key Messages, Promo Drops, Attendees, Internal Attendees) with a Draft/Saved/Submitted lifecycle. The plain Call_Visit_Report__c tab remains available for admin list views and reports.</description>
+    <flexiPage>Call_Reports_Page</flexiPage>
+    <label>Call Reports</label>
+    <motif>Custom8: Diamond</motif>
+</CustomTab>

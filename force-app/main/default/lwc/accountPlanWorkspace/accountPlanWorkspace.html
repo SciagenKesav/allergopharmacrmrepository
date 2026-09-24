@@ -1,0 +1,58 @@
+<template>
+    <div class="workspace">
+        <template if:true={isLoading}>
+            <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+        </template>
+
+        <template if:true={error}>
+            <div class="error">{error}</div>
+        </template>
+
+        <template if:true={workspace}>
+            <c-account-plan-stage-stepper
+                record-id={recordId}
+                stage={workspace.stage}
+                next-stage={workspace.nextStage}
+                onstageadvanced={handleStageAdvanced}
+            ></c-account-plan-stage-stepper>
+
+            <div class="tab-bar">
+                <template for:each={tabs} for:item="t">
+                    <button key={t.key} class={t.tabClass} data-key={t.key} onclick={handleTabSelect}>
+                        {t.label}
+                    </button>
+                </template>
+            </div>
+
+            <div class="tab-content">
+                <template if:true={isDashboardTab}>
+                    <c-account-plan-dashboard-tab workspace={workspace}></c-account-plan-dashboard-tab>
+                </template>
+                <template if:true={isDetailsTab}>
+                    <c-account-plan-details-tab record-id={recordId} onplansaved={handleRefresh}></c-account-plan-details-tab>
+                </template>
+                <template if:true={isStrategiesTab}>
+                    <c-account-plan-strategies-tab
+                        workspace={workspace}
+                        record-id={recordId}
+                        plan-name={planName}
+                        onactionitemcreated={handleRefresh}
+                        onstrategycreated={handleRefresh}
+                    ></c-account-plan-strategies-tab>
+                </template>
+                <template if:true={isRelatedTab}>
+                    <c-account-plan-related-tab
+                        workspace={workspace}
+                        record-id={recordId}
+                        plan-name={planName}
+                        onteammembercreated={handleRefresh}
+                        ongoalcreated={handleRefresh}
+                    ></c-account-plan-related-tab>
+                </template>
+                <template if:true={isExportTab}>
+                    <c-account-plan-export-tab record-id={recordId}></c-account-plan-export-tab>
+                </template>
+            </div>
+        </template>
+    </div>
+</template>

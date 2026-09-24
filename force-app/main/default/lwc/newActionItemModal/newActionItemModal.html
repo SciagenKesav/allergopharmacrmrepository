@@ -1,0 +1,112 @@
+<template>
+    <section class="modal-backdrop" onclick={handleClose}>
+        <div class="modal-panel" onclick={stopPropagation}>
+            <div class="modal-header">
+                <h3>New Action Item</h3>
+                <p class="modal-subtitle">Under {planLabel}</p>
+                <button class="close-button" title="Close" onclick={handleClose}>&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <lightning-input
+                    label="Action Item Name"
+                    required
+                    value={title}
+                    onchange={handleTitleChange}
+                    class="field"
+                ></lightning-input>
+
+                <lightning-combobox
+                    label="Status"
+                    value={status}
+                    options={statusOptions}
+                    onchange={handleStatusChange}
+                    class="field"
+                ></lightning-combobox>
+
+                <lightning-textarea
+                    label="Description"
+                    value={description}
+                    onchange={handleDescriptionChange}
+                    class="field"
+                ></lightning-textarea>
+
+                <div class="field-row">
+                    <lightning-input
+                        type="date"
+                        label="Start Date"
+                        value={startDate}
+                        onchange={handleStartDateChange}
+                        class="field"
+                    ></lightning-input>
+                    <lightning-input
+                        type="date"
+                        label="Due Date"
+                        value={dueDate}
+                        onchange={handleDueDateChange}
+                        class="field"
+                    ></lightning-input>
+                </div>
+
+                <lightning-dual-listbox
+                    label="Share With"
+                    source-label="Available"
+                    selected-label="Shared With"
+                    options={shareWithOptions}
+                    value={shareWith}
+                    onchange={handleShareWithChange}
+                    class="field"
+                ></lightning-dual-listbox>
+
+                <lightning-record-picker
+                    label="Account"
+                    object-api-name="Sciagen_Account__c"
+                    onchange={handleAccountChange}
+                    class="field"
+                ></lightning-record-picker>
+
+                <div class="field activity-search">
+                    <label class="activity-label">Account Tactic (Activity)</label>
+                    <template if:false={hasSelectedActivity}>
+                        <lightning-input
+                            type="search"
+                            variant="label-hidden"
+                            placeholder="Search Account Tactics..."
+                            value={activitySearchTerm}
+                            onchange={handleActivitySearch}
+                        ></lightning-input>
+                        <template if:true={isSearchingActivities}>
+                            <lightning-spinner alternative-text="Searching" size="x-small"></lightning-spinner>
+                        </template>
+                        <template if:true={hasActivityOptions}>
+                            <ul class="activity-results">
+                                <template for:each={activityOptions} for:item="option">
+                                    <li key={option.id} data-id={option.id} onclick={handleSelectActivity}>
+                                        <span class="activity-name">{option.label}</span>
+                                        <span class="activity-strategy">{option.strategyName}</span>
+                                    </li>
+                                </template>
+                            </ul>
+                        </template>
+                    </template>
+                    <template if:true={hasSelectedActivity}>
+                        <div class="selected-activity">
+                            <span>{selectedActivity.label}</span>
+                            <button class="clear-button" onclick={handleClearActivity}>Change</button>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <lightning-button label="Cancel" onclick={handleClose}></lightning-button>
+                <lightning-button
+                    label="Save"
+                    variant="brand"
+                    disabled={isSaveDisabled}
+                    onclick={handleSave}
+                ></lightning-button>
+            </div>
+        </div>
+    </section>
+</template>

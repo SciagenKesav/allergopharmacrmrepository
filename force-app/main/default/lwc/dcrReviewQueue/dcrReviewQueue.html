@@ -1,0 +1,93 @@
+<template>
+    <div class="page">
+        <div class="page-header">
+            <c-sciagen-logo size="small"></c-sciagen-logo>
+            <div class="page-title">
+                <h2>Data Change Requests</h2>
+                <p class="page-subtitle">Review and action New/Edit HCP &amp; HCO requests submitted from the field</p>
+            </div>
+        </div>
+
+        <div class="summary-row">
+            <template for:each={summaryPills} for:item="pill">
+                <div key={pill.status} class="summary-pill" style={pill.style}>
+                    <span class="summary-count">{pill.count}</span>
+                    <span class="summary-label">{pill.status}</span>
+                </div>
+            </template>
+        </div>
+
+        <div class="browser">
+            <div class="list-pane">
+                <lightning-input
+                    type="search"
+                    label="Search by name"
+                    variant="label-hidden"
+                    placeholder="Search by subject name..."
+                    value={searchTerm}
+                    onchange={handleSearchChange}
+                ></lightning-input>
+
+                <div class="filter-row">
+                    <lightning-combobox
+                        label="Status"
+                        variant="label-hidden"
+                        value={statusFilter}
+                        options={statusOptions}
+                        onchange={handleStatusFilterChange}
+                    ></lightning-combobox>
+                    <lightning-combobox
+                        label="Type"
+                        variant="label-hidden"
+                        value={typeFilter}
+                        options={typeOptions}
+                        onchange={handleTypeFilterChange}
+                    ></lightning-combobox>
+                </div>
+
+                <template if:true={error}>
+                    <div class="error">{error}</div>
+                </template>
+
+                <template if:true={isLoading}>
+                    <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+                </template>
+
+                <template if:false={isLoading}>
+                    <template if:true={hasResults}>
+                        <ul class="result-list">
+                            <template for:each={rows} for:item="row">
+                                <li key={row.id} class={row.rowClass} data-id={row.id} onclick={handleSelect}>
+                                    <div class="result-top">
+                                        <span class="pill" style={row.statusStyle}>{row.status}</span>
+                                        <div class="result-name">{row.subjectName}</div>
+                                    </div>
+                                    <div class="result-meta">
+                                        {row.type}
+                                        <template if:true={row.submittedBy}> &middot; {row.submittedBy}</template>
+                                        <template if:true={row.submittedAt}> &middot; {row.submittedAt}</template>
+                                    </div>
+                                    <template if:true={row.fullAddress}>
+                                        <div class="result-address">{row.fullAddress}</div>
+                                    </template>
+                                </li>
+                            </template>
+                        </ul>
+                    </template>
+                    <template if:false={hasResults}>
+                        <div class="empty">No data change requests found.</div>
+                    </template>
+                </template>
+            </div>
+
+            <div class="detail-pane">
+                <template if:true={hasSelection}>
+                    <c-dcr-review-detail record-id={selectedId} ondcrdecided={handleDecided}></c-dcr-review-detail>
+                </template>
+                <template if:false={hasSelection}>
+                    <div class="empty-detail">Select a request to view details.</div>
+                </template>
+            </div>
+        </div>
+    </div>
+</template>

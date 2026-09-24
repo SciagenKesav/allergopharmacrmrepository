@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Type__c</fullName>
+    <label>Type</label>
+    <required>true</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Casual Leave</fullName>
+                <default>false</default>
+                <label>Casual Leave</label>
+            </value>
+            <value>
+                <fullName>Sick Leave</fullName>
+                <default>false</default>
+                <label>Sick Leave</label>
+            </value>
+            <value>
+                <fullName>Earned / Privilege</fullName>
+                <default>false</default>
+                <label>Earned / Privilege</label>
+            </value>
+            <value>
+                <fullName>Compensatory Off</fullName>
+                <default>false</default>
+                <label>Compensatory Off</label>
+            </value>
+            <value>
+                <fullName>Loss of Pay</fullName>
+                <default>false</default>
+                <label>Loss of Pay</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

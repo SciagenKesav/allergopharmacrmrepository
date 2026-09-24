@@ -1,0 +1,30 @@
+<template>
+    <div class="month-grid">
+        <div class="month-weekday-row">
+            <template for:each={weekdayLabels} for:item="w">
+                <div class="month-weekday" key={w.key}>{w.label}</div>
+            </template>
+        </div>
+        <template for:each={weeks} for:item="week">
+            <div class="month-week-row" key={week.key}>
+                <template for:each={week.days} for:item="day">
+                    <div class={day.cellClass} key={day.key}>
+                        <span class={day.dayNumberClass}>{day.dayNumber}</span>
+                        <div class="month-day-calls">
+                            <template for:each={day.calls} for:item="call">
+                                <div class="month-call-chip" key={call.key} data-id={call.id} onclick={handleCallClick} title={call.displayName}>
+                                    <span class="month-call-dot" style={call.dotStyle}></span>
+                                    <span class="month-call-time">{call.timeLabel}</span>
+                                    <span class="month-call-name">{call.displayName}</span>
+                                </div>
+                            </template>
+                            <template if:true={day.hasOverflow}>
+                                <div class="month-call-overflow">+{day.overflowCount} more</div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </template>
+    </div>
+</template>

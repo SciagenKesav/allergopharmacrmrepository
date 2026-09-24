@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Limit_Must_Be_Positive_Or_Zero</fullName>
+    <active>true</active>
+    <errorConditionFormula>Limit_Quantity__c &lt; 0</errorConditionFormula>
+    <errorDisplayField>Limit_Quantity__c</errorDisplayField>
+    <errorMessage>The limit can&apos;t be negative.</errorMessage>
+</ValidationRule>

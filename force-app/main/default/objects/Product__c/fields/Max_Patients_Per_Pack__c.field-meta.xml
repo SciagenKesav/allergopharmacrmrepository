@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Max_Patients_Per_Pack__c</fullName>
+    <defaultValue>3</defaultValue>
+    <description>A sample pack covers the prescribed course for at most three patients.</description>
+    <externalId>false</externalId>
+    <label>Max Patients Per Pack</label>
+    <precision>2</precision>
+    <required>false</required>
+    <scale>0</scale>
+    <trackTrending>false</trackTrending>
+    <type>Number</type>
+    <unique>false</unique>
+</CustomField>

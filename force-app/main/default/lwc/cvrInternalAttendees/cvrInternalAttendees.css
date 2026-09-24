@@ -1,0 +1,67 @@
+:host {
+    --brand-primary: #4F46E5;
+    --brand-ink: #0F172A;
+    --brand-subtle: #64748B;
+    --brand-hairline: #E2E8F0;
+    --brand-bg: #F3F4FB;
+}
+
+.card {
+    background: #ffffff;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.9rem;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--brand-subtle);
+}
+
+.edit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.edit-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+}
+
+.detail-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.detail-list li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--brand-hairline);
+    font-size: 0.85rem;
+}
+
+.detail-list li:last-child {
+    border-bottom: none;
+}
+
+.empty-tab {
+    color: var(--brand-subtle);
+    font-size: 0.85rem;
+    padding: 0.5rem 0;
+}

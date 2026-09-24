@@ -1,0 +1,19 @@
+<template>
+    <div class="pad-wrap">
+        <canvas
+            class="pad-canvas"
+            width="460"
+            height="150"
+            onpointerdown={handlePointerDown}
+            onpointermove={handlePointerMove}
+            onpointerup={handlePointerUp}
+            onpointerleave={handlePointerUp}
+        ></canvas>
+        <template if:false={hasSignature}>
+            <div class="pad-placeholder">Sign here</div>
+        </template>
+    </div>
+    <div class="pad-actions">
+        <lightning-button label="Clear" onclick={handleClear} disabled={isEmpty}></lightning-button>
+    </div>
+</template>

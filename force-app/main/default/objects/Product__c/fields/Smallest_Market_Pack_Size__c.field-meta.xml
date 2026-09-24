@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Smallest_Market_Pack_Size__c</fullName>
+    <description>Units in the smallest pack sold in the market. A sample pack may not be larger (UCPMP 5.1(ii)(d)).</description>
+    <externalId>false</externalId>
+    <label>Smallest Market Pack (units)</label>
+    <precision>8</precision>
+    <required>false</required>
+    <scale>0</scale>
+    <trackTrending>false</trackTrending>
+    <type>Number</type>
+    <unique>false</unique>
+</CustomField>

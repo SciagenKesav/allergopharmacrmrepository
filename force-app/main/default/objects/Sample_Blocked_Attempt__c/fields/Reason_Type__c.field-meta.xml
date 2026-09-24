@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Reason_Type__c</fullName>
+    <label>Reason Type</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Restricted_Product</fullName>
+                <default>false</default>
+                <label>Restricted Product</label>
+            </value>
+            <value>
+                <fullName>Limit</fullName>
+                <default>false</default>
+                <label>Limit</label>
+            </value>
+            <value>
+                <fullName>Licence</fullName>
+                <default>false</default>
+                <label>Licence</label>
+            </value>
+            <value>
+                <fullName>Lot_Or_Stock</fullName>
+                <default>false</default>
+                <label>Lot Or Stock</label>
+            </value>
+            <value>
+                <fullName>Cold_Chain</fullName>
+                <default>false</default>
+                <label>Cold Chain</label>
+            </value>
+            <value>
+                <fullName>Signature</fullName>
+                <default>false</default>
+                <label>Signature</label>
+            </value>
+            <value>
+                <fullName>Other</fullName>
+                <default>false</default>
+                <label>Other</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

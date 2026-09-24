@@ -1,0 +1,71 @@
+<template>
+    <div class="card">
+        <div class="card-header">
+            <h3>Sample Drops</h3>
+            <template if:false={locked}>
+                <template if:false={showAdd}>
+                    <lightning-button label="Add" onclick={handleAdd}></lightning-button>
+                </template>
+            </template>
+        </div>
+
+        <template if:true={showAdd}>
+            <lightning-record-edit-form
+                object-api-name="Sample_Drop__c"
+                onsubmit={handleSubmit}
+                onsuccess={handleSuccess}
+                onerror={handleError}
+            >
+                <lightning-input-field class="slds-hide" field-name="CVR__c" value={cvrId}></lightning-input-field>
+                <div class="edit-grid">
+                    <lightning-input-field field-name="Product__c"></lightning-input-field>
+                    <lightning-input-field field-name="Qty__c"></lightning-input-field>
+                </div>
+                <div class="edit-actions">
+                    <lightning-button label="Cancel" onclick={handleCancelAdd} disabled={isSaving}></lightning-button>
+                    <lightning-button variant="brand" type="submit" label="Save" disabled={isSaving}></lightning-button>
+                </div>
+            </lightning-record-edit-form>
+        </template>
+
+        <template if:true={hasRows}>
+            <ul class="detail-list">
+                <template for:each={displayRows} for:item="row">
+                    <li key={row.id}>
+                        <template if:false={row.isEditing}>
+                            <strong>{row.productName}</strong>
+                            <span class="muted"> &times; {row.qty}</span>
+                            <template if:false={locked}>
+                                <lightning-button-icon icon-name="utility:edit" variant="bare" data-id={row.id} onclick={handleEdit}></lightning-button-icon>
+                                <lightning-button-icon icon-name="utility:delete" variant="bare" data-id={row.id} onclick={handleDelete}></lightning-button-icon>
+                            </template>
+                        </template>
+                        <template if:true={row.isEditing}>
+                            <lightning-record-edit-form
+                                record-id={row.id}
+                                object-api-name="Sample_Drop__c"
+                                onsubmit={handleSubmit}
+                                onsuccess={handleSuccess}
+                                onerror={handleError}
+                            >
+                                <div class="edit-grid">
+                                    <lightning-input-field field-name="Product__c"></lightning-input-field>
+                                    <lightning-input-field field-name="Qty__c"></lightning-input-field>
+                                </div>
+                                <div class="edit-actions">
+                                    <lightning-button label="Cancel" onclick={handleCancelEdit} disabled={isSaving}></lightning-button>
+                                    <lightning-button variant="brand" type="submit" label="Save" disabled={isSaving}></lightning-button>
+                                </div>
+                            </lightning-record-edit-form>
+                        </template>
+                    </li>
+                </template>
+            </ul>
+        </template>
+        <template if:false={hasRows}>
+            <template if:false={showAdd}>
+                <div class="empty-tab">No sample drops yet.</div>
+            </template>
+        </template>
+    </div>
+</template>

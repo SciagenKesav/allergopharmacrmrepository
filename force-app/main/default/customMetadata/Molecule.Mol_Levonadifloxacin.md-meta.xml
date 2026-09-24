@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <label>Levonadifloxacin</label>
+    <protected>false</protected>
+    <values>
+        <field>Own_Brand__c</field>
+        <value xsi:type="xsd:string">Emrok</value>
+    </values>
+    <values>
+        <field>Therapy_Area__c</field>
+        <value xsi:type="xsd:string">General</value>
+    </values>
+    <values>
+        <field>Unit_Value_Per_Strip__c</field>
+        <value xsi:type="xsd:double">42.0</value>
+    </values>
+</CustomMetadata>

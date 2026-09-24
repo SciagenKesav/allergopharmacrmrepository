@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Full_Address__c</fullName>
+    <description>Composed from City/State/Pincode — kept as a plain Text field (not Long Text Area) so it can be added to list view columns, unlike City__c/State__c/Pincode__c which a reviewer would otherwise have to check individually.</description>
+    <externalId>false</externalId>
+    <label>Full Address</label>
+    <length>255</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

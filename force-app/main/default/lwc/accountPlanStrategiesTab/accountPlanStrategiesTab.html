@@ -1,0 +1,120 @@
+<template>
+    <div class="strategies">
+        <div class="toolbar">
+            <h3>Strategies &amp; Account Tactics</h3>
+            <div class="toolbar-actions">
+                <lightning-button label="Add Strategy" onclick={handleAddStrategy}></lightning-button>
+                <lightning-button label="Add Action Item" variant="brand" onclick={handleAddActionItem}></lightning-button>
+            </div>
+        </div>
+
+        <template if:true={showNewStrategyForm}>
+            <div class="strategy-card">
+                <lightning-record-edit-form
+                    object-api-name="Plan_Strategy__c"
+                    onsubmit={handleStrategySubmit}
+                    onsuccess={handleStrategySaveSuccess}
+                    onerror={handleStrategySaveError}
+                >
+                    <lightning-input-field class="slds-hide" field-name="Plan__c" value={recordId}></lightning-input-field>
+                    <div class="edit-grid">
+                        <lightning-input-field field-name="Strategy_Name__c"></lightning-input-field>
+                        <lightning-input-field field-name="Share_With__c"></lightning-input-field>
+                    </div>
+                    <div class="edit-grid-wide">
+                        <lightning-input-field field-name="Detail__c"></lightning-input-field>
+                    </div>
+                    <div class="edit-actions">
+                        <lightning-button label="Cancel" onclick={handleCancelStrategy} disabled={isSavingStrategy}></lightning-button>
+                        <lightning-button variant="brand" type="submit" label="Save" disabled={isSavingStrategy}></lightning-button>
+                    </div>
+                </lightning-record-edit-form>
+            </div>
+        </template>
+
+        <template if:true={hasStrategies}>
+            <template for:each={strategies} for:item="s">
+                <div class="strategy-card" key={s.id}>
+                    <div class="strategy-header">
+                        <div>
+                            <h4>{s.name}</h4>
+                            <p class="strategy-share">Share With: {s.shareWithDisplay}</p>
+                        </div>
+                        <div class="strategy-progress">
+                            <span>{s.completedActivities}/{s.totalActivities} Account Tactics</span>
+                            <div class="share-bar"><div class="share-bar-fill" style={s.barStyle}></div></div>
+                        </div>
+                    </div>
+                    <template if:true={s.detail}>
+                        <p class="strategy-detail">{s.detail}</p>
+                    </template>
+
+                    <table class="activity-table">
+                        <thead>
+                            <tr>
+                                <th>Account Tactic</th>
+                                <th>Progress</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={s.activities} for:item="a">
+                                <tr key={a.id}>
+                                    <td><span class={a.completeClass}>{a.name}</span></td>
+                                    <td>
+                                        <div class="activity-progress">
+                                            <span>{a.completedActionItems}/{a.totalActionItems}</span>
+                                            <div class="share-bar share-bar-thin"><div class="share-bar-fill" style={a.barStyle}></div></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </template>
+        </template>
+        <template if:false={hasStrategies}>
+            <div class="empty-card">No strategies added to this Account Plan yet.</div>
+        </template>
+
+        <div class="action-items-card">
+            <h4>All Action Items</h4>
+            <template if:true={hasActionItems}>
+                <table class="action-item-table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Account Tactic</th>
+                            <th>Status</th>
+                            <th>Due Date</th>
+                            <th>Share With</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template for:each={allActionItems} for:item="ai">
+                            <tr key={ai.id}>
+                                <td>{ai.title}</td>
+                                <td class="muted">{ai.activityName}</td>
+                                <td><span class="pill" style={ai.statusPillStyle}>{ai.status}</span></td>
+                                <td class="muted">{ai.dueDate}</td>
+                                <td class="muted">{ai.shareWithDisplay}</td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </template>
+            <template if:false={hasActionItems}>
+                <div class="empty-card">No Action Items yet.</div>
+            </template>
+        </div>
+
+        <template if:true={showNewActionItemModal}>
+            <c-new-action-item-modal
+                plan-id={recordId}
+                plan-name={planName}
+                onclose={handleCloseModal}
+                oncreated={handleActionItemCreated}
+            ></c-new-action-item-modal>
+        </template>
+    </div>
+</template>

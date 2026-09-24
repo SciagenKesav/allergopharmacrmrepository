@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Transaction__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>The disbursement transaction created when the call was submitted.</description>
+    <label>Transaction</label>
+    <referenceTo>Sample_Transaction__c</referenceTo>
+    <relationshipLabel>Sample Drops</relationshipLabel>
+    <relationshipName>Drops</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

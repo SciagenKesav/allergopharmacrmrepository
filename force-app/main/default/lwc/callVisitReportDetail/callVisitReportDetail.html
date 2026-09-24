@@ -1,0 +1,75 @@
+<template>
+    <div class="detail">
+        <div class="detail-toolbar">
+            <lightning-button label="Done" icon-name="utility:back" onclick={handleBack}></lightning-button>
+            <template if:true={hasRecord}>
+                <span class="pill" style={statusStyle}>{headerRecordStatus}</span>
+                <template if:true={canSubmit}>
+                    <lightning-button
+                        variant="brand"
+                        label="Submit"
+                        icon-name="utility:check"
+                        disabled={isSubmitting}
+                        onclick={handleSubmit}
+                    ></lightning-button>
+                </template>
+            </template>
+        </div>
+
+        <template if:true={isLoading}>
+            <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+        </template>
+
+        <c-cvr-header-form
+            record-id={_recordId}
+            default-hcp-id={defaultHcpId}
+            default-hco-id={defaultHcoId}
+            default-hco-address={defaultHcoAddress}
+            record-status={headerRecordStatus}
+            past-edit-window={isPastEditWindow}
+            onsave={handleHeaderSave}
+            oncancel={handleHeaderCancel}
+        ></c-cvr-header-form>
+
+        <template if:true={detail}>
+            <div class="child-grid">
+                <c-cvr-key-messages
+                    cvr-id={_recordId}
+                    locked={isLocked}
+                    rows={keyMessageRows}
+                    onrefresh={handleChildRefresh}
+                ></c-cvr-key-messages>
+                <c-cvr-promo-drops
+                    cvr-id={_recordId}
+                    locked={isLocked}
+                    rows={promoDropRows}
+                    onrefresh={handleChildRefresh}
+                ></c-cvr-promo-drops>
+                <c-cvr-sample-drops
+                    cvr-id={_recordId}
+                    locked={isLocked}
+                    rows={sampleDropRows}
+                    onrefresh={handleChildRefresh}
+                ></c-cvr-sample-drops>
+                <c-cvr-attendees
+                    cvr-id={_recordId}
+                    locked={isLocked}
+                    rows={attendeeRows}
+                    onrefresh={handleChildRefresh}
+                ></c-cvr-attendees>
+                <c-cvr-internal-attendees
+                    cvr-id={_recordId}
+                    locked={isLocked}
+                    rows={internalAttendeeRows}
+                    onrefresh={handleChildRefresh}
+                ></c-cvr-internal-attendees>
+                <c-cvr-presentation-sessions
+                    cvr-id={_recordId}
+                    locked={isLocked}
+                    rows={presentationSessionRows}
+                    onrefresh={handleChildRefresh}
+                ></c-cvr-presentation-sessions>
+            </div>
+        </template>
+    </div>
+</template>

@@ -1,0 +1,151 @@
+<template>
+    <section class="modal-backdrop" onclick={handleCancel}>
+        <div class="modal-panel" onclick={stopPropagation}>
+            <div class="modal-header">
+                <h3>New Account Plan</h3>
+                <button class="close-button" title="Close" onclick={handleCancel}>&times;</button>
+            </div>
+            <template if:true={error}>
+                <div class="error modal-error">{error}</div>
+            </template>
+            <template for:each={formInstances} for:item="fi">
+                <lightning-record-edit-form
+                    key={fi.key}
+                    object-api-name="Account_Plan__c"
+                    onsubmit={handleSubmit}
+                    onsuccess={handleSuccess}
+                    onerror={handleError}
+                >
+                    <div class="modal-body">
+                        <h4 class="form-section-title">Plan</h4>
+                        <div class="edit-grid">
+                            <lightning-input-field field-name="Plan_Title__c"></lightning-input-field>
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label custom-field-label">Account Plan Name</label>
+                                <lightning-input-field field-name="Name" variant="label-hidden"></lightning-input-field>
+                            </div>
+                            <lightning-input-field field-name="Status__c"></lightning-input-field>
+                            <lightning-input-field field-name="Division__c"></lightning-input-field>
+                            <lightning-input-field field-name="Start_Date__c"></lightning-input-field>
+                            <lightning-input-field field-name="End_Date__c"></lightning-input-field>
+                        </div>
+
+                        <h4 class="form-section-title">Account</h4>
+                        <div class="edit-grid">
+                            <lightning-input-field field-name="HCO__c" onchange={handleHcoChange}></lightning-input-field>
+                            <div class="slds-form-element product-search-field">
+                                <label class="slds-form-element__label custom-field-label">HCP</label>
+                                <div class="product-search-input-wrap">
+                                    <lightning-input
+                                        type="search"
+                                        variant="label-hidden"
+                                        label="HCP"
+                                        placeholder={hcpSearchPlaceholder}
+                                        value={hcpSearchTerm}
+                                        disabled={hcpSearchDisabled}
+                                        onchange={handleHcpSearchChange}
+                                    ></lightning-input>
+                                    <template if:true={hasHcpResults}>
+                                        <ul class="product-results">
+                                            <template for:each={hcpResults} for:item="h">
+                                                <li key={h.id}>
+                                                    <button
+                                                        type="button"
+                                                        class="product-result-button"
+                                                        data-id={h.id}
+                                                        data-name={h.name}
+                                                        onclick={handleHcpSelect}
+                                                    >
+                                                        <span class="product-result-name">{h.name}</span>
+                                                    </button>
+                                                </li>
+                                            </template>
+                                        </ul>
+                                    </template>
+                                </div>
+                                <template if:true={selectedHcp}>
+                                    <div class="product-chips">
+                                        <span class="product-chip">
+                                            {selectedHcp.name}
+                                            <button type="button" class="product-chip-remove" onclick={handleHcpClear} title="Change">&times;</button>
+                                        </span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <h4 class="form-section-title">Details</h4>
+                        <div class="edit-grid">
+                            <div class="slds-form-element product-search-field">
+                                <label class="slds-form-element__label custom-field-label">Applied Products</label>
+                                <div class="product-search-input-wrap">
+                                    <lightning-input
+                                        type="search"
+                                        variant="label-hidden"
+                                        label="Applied Products"
+                                        placeholder="Search products…"
+                                        value={productSearchTerm}
+                                        onchange={handleProductSearchChange}
+                                    ></lightning-input>
+                                    <template if:true={hasProductResults}>
+                                        <ul class="product-results">
+                                            <template for:each={productResults} for:item="p">
+                                                <li key={p.id}>
+                                                    <button
+                                                        type="button"
+                                                        class="product-result-button"
+                                                        data-id={p.id}
+                                                        data-name={p.name}
+                                                        onclick={handleProductSelect}
+                                                    >
+                                                        <span class="product-result-name">{p.name}</span>
+                                                        <template if:true={p.brand}>
+                                                            <span class="product-result-brand">{p.brand}</span>
+                                                        </template>
+                                                    </button>
+                                                </li>
+                                            </template>
+                                        </ul>
+                                    </template>
+                                </div>
+                                <template if:true={hasSelectedProducts}>
+                                    <div class="product-chips">
+                                        <template for:each={selectedProducts} for:item="sp">
+                                            <span key={sp.id} class="product-chip">
+                                                {sp.name}
+                                                <button type="button" class="product-chip-remove" data-id={sp.id} onclick={handleProductRemove} title="Remove">&times;</button>
+                                            </span>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+                            <lightning-input-field field-name="Active__c"></lightning-input-field>
+                            <lightning-input-field class="field-span-wide" field-name="Medical_Engagement_Plan__c"></lightning-input-field>
+                        </div>
+
+                        <h4 class="form-section-title">Objective</h4>
+                        <div class="edit-grid-wide">
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label custom-field-label">Objective</label>
+                                <lightning-input-field field-name="Objective__c" variant="label-hidden"></lightning-input-field>
+                            </div>
+                        </div>
+
+                        <h4 class="form-section-title">SWOT Analysis</h4>
+                        <div class="swot-grid">
+                            <lightning-input-field field-name="Strengths__c"></lightning-input-field>
+                            <lightning-input-field field-name="Weaknesses__c"></lightning-input-field>
+                            <lightning-input-field field-name="Opportunities__c"></lightning-input-field>
+                            <lightning-input-field field-name="Threats__c"></lightning-input-field>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <lightning-button label="Cancel" onclick={handleCancel} disabled={isSaving}></lightning-button>
+                        <lightning-button label="Save & New" type="submit" onclick={handleSaveAndNewClick} disabled={isSaving}></lightning-button>
+                        <lightning-button variant="brand" label="Submit" type="submit" onclick={handleSubmitClick} disabled={isSaving}></lightning-button>
+                    </div>
+                </lightning-record-edit-form>
+            </template>
+        </div>
+    </section>
+</template>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Sample_Unit_Value_INR__c</fullName>
+    <description>Value of ONE unit (tablet, capsule, vial, gram, ml) for UCPMP expenditure: price to stockist for own manufacture, purchase price for bought-in product (UCPMP 5.1(ii)(g)).</description>
+    <label>Sample Unit Value (INR)</label>
+    <precision>14</precision>
+    <required>false</required>
+    <scale>4</scale>
+    <trackTrending>false</trackTrending>
+    <type>Currency</type>
+</CustomField>

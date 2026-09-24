@@ -1,0 +1,48 @@
+<template>
+    <div class="card">
+        <div class="card-header">
+            <h3>Attendees</h3>
+            <template if:false={locked}>
+                <template if:false={showAdd}>
+                    <lightning-button label="Add" onclick={handleAdd}></lightning-button>
+                </template>
+            </template>
+        </div>
+
+        <template if:true={showAdd}>
+            <lightning-record-edit-form
+                object-api-name="CVR_Attendee__c"
+                onsubmit={handleSubmit}
+                onsuccess={handleSuccess}
+                onerror={handleError}
+            >
+                <lightning-input-field class="slds-hide" field-name="CVR__c" value={cvrId}></lightning-input-field>
+                <div class="edit-grid">
+                    <lightning-input-field field-name="HCP__c"></lightning-input-field>
+                </div>
+                <div class="edit-actions">
+                    <lightning-button label="Cancel" onclick={handleCancelAdd} disabled={isSaving}></lightning-button>
+                    <lightning-button variant="brand" type="submit" label="Save" disabled={isSaving}></lightning-button>
+                </div>
+            </lightning-record-edit-form>
+        </template>
+
+        <template if:true={hasRows}>
+            <ul class="detail-list">
+                <template for:each={rows} for:item="row">
+                    <li key={row.id}>
+                        {row.hcpName}
+                        <template if:false={locked}>
+                            <lightning-button-icon icon-name="utility:delete" variant="bare" data-id={row.id} onclick={handleDelete}></lightning-button-icon>
+                        </template>
+                    </li>
+                </template>
+            </ul>
+        </template>
+        <template if:false={hasRows}>
+            <template if:false={showAdd}>
+                <div class="empty-tab">No additional attendees yet.</div>
+            </template>
+        </template>
+    </div>
+</template>

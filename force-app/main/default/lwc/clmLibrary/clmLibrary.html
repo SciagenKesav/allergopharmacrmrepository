@@ -1,0 +1,40 @@
+<template>
+    <div class="library">
+        <template if:false={isViewingPresentation}>
+            <div class="library-header">
+                <h2>CLM Library</h2>
+            </div>
+
+            <div class="filter-bar">
+                <lightning-input type="search" label="Search" variant="label-hidden" placeholder="Search presentations" onchange={handleSearchChange}></lightning-input>
+                <lightning-combobox label="Brand" variant="label-hidden" options={brandComboOptions} value={brand} onchange={handleBrandChange}></lightning-combobox>
+                <lightning-combobox label="Product" variant="label-hidden" options={productComboOptions} value={productId} onchange={handleProductChange}></lightning-combobox>
+            </div>
+
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+            </template>
+
+            <template if:false={isLoading}>
+                <template if:false={hasResults}>
+                    <div class="empty-state">No approved presentations match these filters.</div>
+                </template>
+                <div class="deck-grid">
+                    <template for:each={decoratedItems} for:item="item">
+                        <div key={item.id} class="deck-card" data-id={item.id} onclick={handleOpenPresentation}>
+                            <span class="pill" style={item.brandStyle}>{item.brand}</span>
+                            <div class="deck-name">{item.name}</div>
+                            <div class="deck-subtitle">
+                                <template if:true={item.productName}>{item.productName} · </template>{item.slideCountLabel}
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </template>
+        </template>
+
+        <template if:true={isViewingPresentation}>
+            <c-clm-presentation-viewer presentation-id={viewingPresentationId} onclose={handleCloseViewer}></c-clm-presentation-viewer>
+        </template>
+    </div>
+</template>

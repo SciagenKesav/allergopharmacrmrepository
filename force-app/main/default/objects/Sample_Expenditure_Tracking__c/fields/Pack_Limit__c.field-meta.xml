@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Pack_Limit__c</fullName>
+    <description>Yearly pack limit per doctor for this product (UCPMP 2024 Clause 5.1(ii)(b)).</description>
+    <externalId>false</externalId>
+    <formula>Product__r.Max_Packs_Per_HCP_Per_Year__c</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    <label>Pack Limit</label>
+    <precision>18</precision>
+    <required>false</required>
+    <scale>0</scale>
+    <trackTrending>false</trackTrending>
+    <type>Number</type>
+    <unique>false</unique>
+</CustomField>

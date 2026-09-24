@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Share_With__c</fullName>
+    <label>Share With</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>MultiselectPicklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>NOAD</fullName>
+                <default>false</default>
+                <label>NOAD</label>
+            </value>
+            <value>
+                <fullName>PSS</fullName>
+                <default>false</default>
+                <label>PSS</label>
+            </value>
+            <value>
+                <fullName>MSL</fullName>
+                <default>false</default>
+                <label>MSL</label>
+            </value>
+            <value>
+                <fullName>ODM</fullName>
+                <default>false</default>
+                <label>ODM</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+    <visibleLines>4</visibleLines>
+</CustomField>

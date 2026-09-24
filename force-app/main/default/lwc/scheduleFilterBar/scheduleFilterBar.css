@@ -1,0 +1,39 @@
+:host {
+    --brand-primary: #4F46E5;
+    --brand-hairline: #E2E8F0;
+    --brand-bg: #F3F4FB;
+}
+
+.filter-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    background: #ffffff;
+    border-bottom: 1px solid var(--brand-hairline);
+}
+
+.filter-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.filter-controls {
+    background: var(--brand-bg);
+    border-radius: 0.5rem;
+    padding: 0.6rem;
+}
+
+.spacer {
+    flex: 1;
+}
+
+.saved-view-combo {
+    min-width: 220px;
+}
+
+lightning-combobox {
+    min-width: 160px;
+}

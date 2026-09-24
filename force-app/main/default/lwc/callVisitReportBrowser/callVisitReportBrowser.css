@@ -1,0 +1,119 @@
+:host {
+    --brand-primary: #4F46E5;
+    --brand-ink: #0F172A;
+    --brand-subtle: #64748B;
+    --brand-hairline: #E2E8F0;
+    --brand-bg: #F3F4FB;
+    display: block;
+}
+
+.browser {
+    display: flex;
+    flex-direction: column;
+    background: var(--brand-bg);
+    min-height: 100vh;
+    padding: 1rem 1.25rem;
+    gap: 1rem;
+    box-sizing: border-box;
+}
+
+.browser-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    background: #ffffff;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.75rem;
+    padding: 1rem 1.25rem;
+}
+
+.header-left {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+}
+
+.header-left h2 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--brand-ink);
+}
+
+.range-label {
+    color: var(--brand-subtle);
+    font-size: 0.85rem;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.filter-bar {
+    display: flex;
+    gap: 0.75rem;
+    max-width: 32rem;
+}
+
+.filter-bar > * {
+    flex: 1;
+}
+
+.empty-state {
+    color: var(--brand-subtle);
+    font-size: 0.9rem;
+    padding: 2rem 0;
+    text-align: center;
+}
+
+.report-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.report-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    background: #ffffff;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.5rem;
+    padding: 0.6rem 0.85rem;
+    cursor: pointer;
+}
+
+.report-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.report-name {
+    font-weight: 600;
+    color: var(--brand-ink);
+    font-size: 0.9rem;
+}
+
+.report-subtitle {
+    color: var(--brand-subtle);
+    font-size: 0.78rem;
+}
+
+.pill {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.15rem 0.55rem;
+    border-radius: 0.75rem;
+    flex-shrink: 0;
+}

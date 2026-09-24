@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Destination_Lot__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>For a confirmed transfer: the recipient&apos;s lot the stock went into.</description>
+    <label>Destination Lot</label>
+    <referenceTo>Sample_Lot__c</referenceTo>
+    <relationshipLabel>Incoming Transactions</relationshipLabel>
+    <relationshipName>IncomingTransactions</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

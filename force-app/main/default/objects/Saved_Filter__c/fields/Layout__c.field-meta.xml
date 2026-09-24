@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Layout__c</fullName>
+    <label>Layout</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>List</fullName>
+                <default>true</default>
+                <label>List</label>
+            </value>
+            <value>
+                <fullName>Table</fullName>
+                <default>false</default>
+                <label>Table</label>
+            </value>
+            <value>
+                <fullName>Grid</fullName>
+                <default>false</default>
+                <label>Grid</label>
+            </value>
+            <value>
+                <fullName>Map</fullName>
+                <default>false</default>
+                <label>Map</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

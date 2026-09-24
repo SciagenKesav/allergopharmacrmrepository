@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Is_Primary__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>True for the one HCO affiliation (of up to 3) that the app treats as this HCP&apos;s primary practice location — used to auto-populate the Address field on a Call Visit Report. Set automatically to true only for an HCP&apos;s first-ever affiliation; later affiliations default to false.</description>
+    <label>Is Primary</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

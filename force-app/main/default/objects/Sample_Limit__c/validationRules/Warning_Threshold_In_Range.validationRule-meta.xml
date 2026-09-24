@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Warning_Threshold_In_Range</fullName>
+    <active>true</active>
+    <errorConditionFormula>OR(Warning_Threshold_Pct__c &lt; 1, Warning_Threshold_Pct__c &gt; 100)</errorConditionFormula>
+    <errorDisplayField>Warning_Threshold_Pct__c</errorDisplayField>
+    <errorMessage>The warning threshold must be between 1 and 100.</errorMessage>
+</ValidationRule>

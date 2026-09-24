@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Source_Lot__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>The lot this one was split from by a transfer.</description>
+    <label>Source Lot</label>
+    <referenceTo>Sample_Lot__c</referenceTo>
+    <relationshipLabel>Transferred Lots</relationshipLabel>
+    <relationshipName>TransferredLots</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

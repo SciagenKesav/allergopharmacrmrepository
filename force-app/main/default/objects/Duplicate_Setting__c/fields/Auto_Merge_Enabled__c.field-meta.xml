@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Auto_Merge_Enabled__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>When on, the nightly scan merges High-confidence pairs at or above the auto-merge score with no human review. Leave off until the scores have been reviewed on real data.</description>
+    <label>Auto-Merge Enabled</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

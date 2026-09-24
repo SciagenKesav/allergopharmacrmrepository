@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Increase_Needs_A_Value</fullName>
+    <active>true</active>
+    <errorConditionFormula>AND(ISPICKVAL(Override_Type__c,&apos;Increase&apos;), OR(ISBLANK(Override_Value__c), Override_Value__c &lt;= 0))</errorConditionFormula>
+    <errorDisplayField>Override_Value__c</errorDisplayField>
+    <errorMessage>An Increase override needs the new limit.</errorMessage>
+</ValidationRule>

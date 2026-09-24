@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Verified_Via__c</fullName>
+    <label>Verified Via</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Email OTP</fullName>
+                <default>false</default>
+                <label>Email OTP</label>
+            </value>
+            <value>
+                <fullName>WhatsApp OTP</fullName>
+                <default>false</default>
+                <label>WhatsApp OTP</label>
+            </value>
+            <value>
+                <fullName>HCP Signature</fullName>
+                <default>false</default>
+                <label>HCP Signature</label>
+            </value>
+            <value>
+                <fullName>None</fullName>
+                <default>true</default>
+                <label>None</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

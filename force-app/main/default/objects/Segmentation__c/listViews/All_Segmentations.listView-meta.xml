@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ListView xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>All_Segmentations</fullName>
+    <columns>NAME</columns>
+    <columns>HCP__c</columns>
+    <columns>Owner_Rep__c</columns>
+    <columns>Potential__c</columns>
+    <columns>Priority__c</columns>
+    <columns>Tags__c</columns>
+    <columns>Tier__c</columns>
+    <columns>Is_KOL__c</columns>
+    <columns>Classification__c</columns>
+    <columns>CREATED_DATE</columns>
+    <filterScope>Mine</filterScope>
+    <label>All  Segmentations</label>
+</ListView>

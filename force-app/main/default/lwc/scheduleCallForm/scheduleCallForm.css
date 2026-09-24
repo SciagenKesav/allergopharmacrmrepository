@@ -1,0 +1,69 @@
+:host {
+    --brand-primary: #4F46E5;
+    --brand-ink: #0F172A;
+    --brand-hairline: #E2E8F0;
+    --brand-bg: #F3F4FB;
+}
+
+.call-form {
+    background: #ffffff;
+    border: 1px solid var(--brand-hairline);
+    border-radius: 0.75rem;
+    padding: 1rem 1.25rem;
+    margin: 0.75rem 1rem;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--brand-ink);
+}
+
+.kind-row {
+    margin-bottom: 0.75rem;
+}
+
+.edit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+    align-items: end;
+}
+
+/* Call_DateTime__c renders as one composite control (a Date sub-input plus
+   a Time sub-input side by side) but was sharing the same minmax(220px, 1fr)
+   track as the plain single-value fields below it (Duration/Call Type/
+   Status) — too narrow for two sub-inputs, so it squeezed and fell out of
+   alignment with the row underneath. Spanning two tracks gives it the same
+   per-sub-input width as its neighbors. */
+.field-datetime {
+    grid-column: span 2;
+    min-width: 320px;
+}
+
+/* The checkbox is a much shorter control than the text/picklist fields
+   around it (no separate SLDS field label sitting above it), so left in a
+   same-height grid cell with align-items: end it sat visually low and
+   cramped. Spanning the full row and centering it vertically makes it read
+   as its own standalone SLDS checkbox row instead of a squeezed column. */
+.field-checkbox {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    min-height: 2.5rem;
+}
+
+.edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}

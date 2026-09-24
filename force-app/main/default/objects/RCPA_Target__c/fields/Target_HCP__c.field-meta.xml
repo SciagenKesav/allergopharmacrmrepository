@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Target_HCP__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>Scopes a Target Qty to one doctor. Null means a rep-wide target across all doctors (the original behavior, preserved for existing rows).</description>
+    <label>HCP</label>
+    <referenceTo>Sciagen_Account__c</referenceTo>
+    <relationshipName>RCPA_Targets</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

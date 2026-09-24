@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Enforce_Sample_Rules__c</fullName>
+    <defaultValue>true</defaultValue>
+    <description>On: a sample line that breaks a hard rule is refused. Off: it is recorded with a warning (for rollout).</description>
+    <label>Enforce Sample Rules</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

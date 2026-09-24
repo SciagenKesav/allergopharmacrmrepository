@@ -1,0 +1,227 @@
+<template>
+    <template if:true={isLoading}>
+        <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+    </template>
+
+    <template if:true={error}>
+        <div class="error">{error}</div>
+    </template>
+
+    <template if:true={record}>
+        <div class="detail">
+            <template if:true={isEditing}>
+                <div class="card">
+                    <div class="detail-header edit-header">
+                        <div class="header-text">
+                            <h2>{record.chemistName}</h2>
+                        </div>
+                    </div>
+                    <lightning-record-edit-form
+                        record-id={record.id}
+                        object-api-name="RCPA_Audit__c"
+                        onsuccess={handleSaveSuccess}
+                        onerror={handleSaveError}
+                    >
+                        <div class="edit-grid">
+                            <template for:each={editFields} for:item="fieldName">
+                                <lightning-input-field key={fieldName} field-name={fieldName}></lightning-input-field>
+                            </template>
+                        </div>
+
+                        <!-- RCPA_Line__c/RCPA_Competitor__c rows — not part of
+                             this record-edit-form's own object, so their
+                             values are read by our own handlers into
+                             `editLines` and saved explicitly in
+                             handleSaveSuccess, right after the form above
+                             saves the audit's own fields. -->
+                        <h3 class="observations-title">Molecule Lines</h3>
+                        <template if:false={hasEditLines}>
+                            <div class="empty-state">No molecule lines on this audit.</div>
+                        </template>
+                        <template for:each={editLines} for:item="line">
+                            <div key={line.id} class="card molecule-card">
+                                <div class="molecule-top">
+                                    <div>
+                                        <div class="molecule-name">{line.molecule}</div>
+                                        <div class="molecule-focus">Focus: {line.ownBrand}</div>
+                                    </div>
+                                    <lightning-button-icon icon-name="utility:delete" variant="bare"
+                                        data-line-id={line.id} onclick={handleRemoveLine} title="Remove molecule">
+                                    </lightning-button-icon>
+                                </div>
+                                <div class="qty-row">
+                                    <div class="qty-cell own-cell">
+                                        <span class="qty-label">Ours / wk</span>
+                                        <lightning-input type="number" variant="label-hidden" label="Ours"
+                                            value={line.ownUnitsPerWeek} data-line-id={line.id}
+                                            oninput={handleLineOwnQtyChange} onchange={handleLineOwnQtyChange} min="0">
+                                        </lightning-input>
+                                    </div>
+                                    <template for:each={line.competitors} for:item="comp">
+                                        <div key={comp.id} class="qty-cell">
+                                            <span class="qty-label">{comp.brand}</span>
+                                            <div class="comp-qty-row">
+                                                <lightning-input type="number" variant="label-hidden" label={comp.brand}
+                                                    value={comp.unitsPerWeek} data-line-id={line.id} data-comp-id={comp.id}
+                                                    oninput={handleCompetitorQtyChange} onchange={handleCompetitorQtyChange} min="0">
+                                                </lightning-input>
+                                                <lightning-button-icon icon-name="utility:close" variant="bare" size="x-small"
+                                                    data-line-id={line.id} data-comp-id={comp.id} onclick={handleRemoveCompetitor}
+                                                    title="Remove competitor">
+                                                </lightning-button-icon>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                                <div class="field-row">
+                                    <lightning-record-picker
+                                        label="Prescriber (HCP)"
+                                        placeholder="Search HCPs..."
+                                        object-api-name="Sciagen_Account__c"
+                                        filter={prescriberFilter}
+                                        value={line.prescriberId}
+                                        data-line-id={line.id}
+                                        onchange={handleLinePrescriberChange}
+                                        class="field"
+                                    ></lightning-record-picker>
+                                    <lightning-combobox label="Rx Trend" value={line.trend} options={trendOptions}
+                                        data-line-id={line.id} onchange={handleLineTrendChange} class="field">
+                                    </lightning-combobox>
+                                </div>
+                                <lightning-input label="Remarks" value={line.remarks} data-line-id={line.id}
+                                    onchange={handleLineRemarksChange} class="field-wide">
+                                </lightning-input>
+                            </div>
+                        </template>
+
+                        <div class="edit-actions">
+                            <lightning-button label="Cancel" onclick={handleCancelEdit}></lightning-button>
+                            <lightning-button variant="brand" type="submit" label="Save" disabled={isSavingLines}></lightning-button>
+                        </div>
+                    </lightning-record-edit-form>
+                </div>
+            </template>
+
+            <template if:false={isEditing}>
+                <!-- Header card: chemist identity, hero share stat, share bar, legend —
+                     mirrors RCPADetailView.header (RCPAViews.swift:250-286). -->
+                <div class="card header-card">
+                    <div class="detail-header">
+                        <div class="header-text">
+                            <h2>{record.chemistName}</h2>
+                            <template if:true={hasChemistMeta}>
+                                <p class="subtitle">{chemistMeta}</p>
+                            </template>
+                            <p class="subtitle">
+                                {record.auditDate}
+                                <template if:true={record.rep}> &middot; {record.rep}</template>
+                            </p>
+                        </div>
+                        <div class="header-actions">
+                            <template if:true={isDraft}>
+                                <span class="chip chip-amber">Draft</span>
+                            </template>
+                            <lightning-button label="Edit" onclick={handleEdit}></lightning-button>
+                        </div>
+                    </div>
+
+                    <div class="hero-row">
+                        <div class="hero-stat">
+                            <span class="hero-label">Overall Rx share</span>
+                            <span class="hero-value">{ownSharePct}%</span>
+                        </div>
+                        <div class="hero-stat hero-stat-right">
+                            <span class="hero-label">Units / week (own : competitor)</span>
+                            <span class="hero-value hero-value-small">{ownUnits} : {competitorUnits}</span>
+                        </div>
+                    </div>
+                    <div class="share-bar">
+                        <div class="share-bar-fill" style={shareBarStyle}></div>
+                    </div>
+                    <div class="legend">
+                        <span class="legend-item"><span class="legend-dot legend-dot-own"></span>Our brands</span>
+                        <span class="legend-item"><span class="legend-dot legend-dot-comp"></span>Competitors</span>
+                    </div>
+
+                    <span class="pill" style={statusPillStyle}>{record.status}</span>
+                    <template if:true={record.territory}>
+                        <span class="badge badge-territory">{record.territory}</span>
+                    </template>
+                </div>
+
+                <!-- One card per RCPA_Line__c — mirrors moleculeCard/brandRow
+                     (RCPAViews.swift:292-341). -->
+                <template for:each={lineRows} for:item="line">
+                    <div key={line.id} class="card molecule-card">
+                        <div class="molecule-top">
+                            <div>
+                                <div class="molecule-name">{line.molecule}</div>
+                                <div class="molecule-focus">Focus: {line.ownBrand}</div>
+                            </div>
+                            <span class="pill" style={line.trendStyle}>{line.trend}</span>
+                        </div>
+                        <div class="molecule-meta">
+                            <span class="share-pct">{line.sharePct}% share</span>
+                            <span class="stock-ratio">Stock ratio {line.stockRatio}</span>
+                        </div>
+                        <div class="share-bar share-bar-thin">
+                            <div class="share-bar-fill" style={line.shareBarStyle}></div>
+                        </div>
+                        <div class="brand-rows">
+                            <template for:each={line.brandRows} for:item="brand">
+                                <div key={brand.key} class="brand-row">
+                                    <span class={brand.dotClass}></span>
+                                    <span class="brand-name">{brand.name}</span>
+                                    <span class="brand-units">{brand.units}/wk</span>
+                                    <span class="brand-pct">{brand.pct}%</span>
+                                </div>
+                            </template>
+                        </div>
+                        <template if:true={line.hasPrescriber}>
+                            <div class="prescriber-line">Prescriber: {line.prescriberName}</div>
+                        </template>
+                        <template if:true={line.hasRemarks}>
+                            <div class="line-remarks">{line.remarks}</div>
+                        </template>
+                    </div>
+                </template>
+
+                <template if:false={hasLines}>
+                    <div class="empty-state">This audit has no prescriber lines yet.</div>
+                </template>
+
+                <!-- Field Observations card — mirrors observationsCard
+                     (RCPAViews.swift:343-354). -->
+                <template if:true={hasObservations}>
+                    <div class="card observations-card">
+                        <h3 class="observations-title">Field Observations</h3>
+                        <template if:true={hasPobUnits}>
+                            <div class="obs-row">
+                                <span class="obs-label">Personal order booked</span>
+                                <span class="obs-value">{record.pobUnits} units</span>
+                            </div>
+                        </template>
+                        <template if:true={record.competitorActivity}>
+                            <div class="obs-row">
+                                <span class="obs-label">Competitor activity</span>
+                                <span class="obs-value">{record.competitorActivity}</span>
+                            </div>
+                        </template>
+                        <template if:true={record.stockIssues}>
+                            <div class="obs-row">
+                                <span class="obs-label">Stock issues</span>
+                                <span class="obs-value">{record.stockIssues}</span>
+                            </div>
+                        </template>
+                        <template if:true={record.generalRemarks}>
+                            <div class="obs-row">
+                                <span class="obs-label">Remarks</span>
+                                <span class="obs-value">{record.generalRemarks}</span>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+            </template>
+        </div>
+    </template>
+</template>

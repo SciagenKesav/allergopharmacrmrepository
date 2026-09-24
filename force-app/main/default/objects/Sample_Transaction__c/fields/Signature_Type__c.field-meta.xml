@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Signature_Type__c</fullName>
+    <label>Signature Type</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>In_Person</fullName>
+                <default>false</default>
+                <label>In Person</label>
+            </value>
+            <value>
+                <fullName>Remote_Link</fullName>
+                <default>false</default>
+                <label>Remote Link</label>
+            </value>
+            <value>
+                <fullName>Remote_QR</fullName>
+                <default>false</default>
+                <label>Remote QR</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

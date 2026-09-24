@@ -1,0 +1,65 @@
+.page { padding: 1rem 1.25rem; }
+.page-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+.page-head h2 { font-size: 1.35rem; font-weight: 700; margin: 0; }
+.sub { color: #5c5c5c; margin: 0.25rem 0 0; max-width: 46rem; }
+.head-actions { display: flex; gap: 0.5rem; }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: 0.75rem; margin: 0.75rem 0; }
+.tile { background: #fff; border: 1px solid #e5e5e5; border-radius: 0.5rem; padding: 0.75rem 0.9rem; }
+.tile-num { font-size: 1.75rem; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.tile-label { color: #5c5c5c; font-size: 0.78rem; margin-top: 0.15rem; }
+.tile-high .tile-num { color: #b42318; }
+.tile-med .tile-num { color: #b25e09; }
+.tile-low .tile-num { color: #5c5c5c; }
+.scan-line { color: #5c5c5c; font-size: 0.8125rem; margin: 0 0 0.75rem; }
+
+.filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 0.75rem; margin-bottom: 0.75rem; align-items: end; }
+.empty { padding: 2rem 1rem; text-align: center; color: #5c5c5c; }
+.table-wrap { overflow-x: auto; }
+.c-score { width: 5.5rem; }
+.rname { font-weight: 600; }
+.rdetail { color: #5c5c5c; font-size: 0.78rem; }
+.why { min-width: 16rem; max-width: 26rem; font-size: 0.8125rem; white-space: normal; overflow-wrap: anywhere; }
+.slds-table td, .slds-table th { vertical-align: top; }
+.slds-table td:last-child { white-space: nowrap; }
+.conf { font-size: 0.7rem; color: #5c5c5c; margin-top: 0.15rem; }
+
+.score-badge { display: inline-block; min-width: 2.4rem; text-align: center; padding: 0.15rem 0.5rem; border-radius: 0.75rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.b-high { background: #fde8e6; color: #b42318; }
+.b-med { background: #fdf0d9; color: #94520a; }
+.b-low { background: #ececec; color: #444; }
+.st-merged { color: #05713c; font-weight: 600; }
+.st-reverted { color: #94520a; font-weight: 600; }
+
+.settings { max-width: 34rem; padding: 0.5rem 0; }
+.hint { color: #5c5c5c; font-size: 0.8125rem; margin: 0.25rem 0 0.5rem; }
+.sect { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.25rem; }
+.score-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.5rem; max-width: 28rem; }
+
+.modal-sub { margin: 0.4rem 0 0; color: #5c5c5c; }
+.reasons ul { margin: 0.25rem 0 0.75rem 1.1rem; list-style: disc; }
+.reasons li { font-size: 0.8125rem; padding: 0.1rem 0; }
+.winner-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.5rem; }
+.winner-card { border: 2px solid #dcdcdc; border-radius: 0.5rem; padding: 0.75rem 0.9rem; cursor: pointer; background: #fff; }
+.winner-card:hover { border-color: #9bb; }
+.winner-card.is-winner { border-color: #0b5cab; background: #f1f7fd; }
+.wc-top { display: flex; justify-content: space-between; align-items: center; }
+.wc-tag { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: #5c5c5c; }
+.wc-sug { font-size: 0.7rem; background: #e6f4ea; color: #05713c; padding: 0.05rem 0.4rem; border-radius: 0.6rem; font-weight: 600; }
+.wc-name { font-weight: 700; font-size: 1rem; margin-top: 0.15rem; }
+.wc-detail { color: #5c5c5c; font-size: 0.8rem; }
+.wc-counts { font-size: 0.78rem; margin-top: 0.4rem; }
+.wc-keep { font-size: 0.75rem; margin-top: 0.4rem; font-weight: 600; color: #0b5cab; }
+.winner-card:not(.is-winner) .wc-keep { color: #8a8a8a; font-weight: 400; }
+
+.cmp { margin-top: 0.4rem; }
+.cmp .c-label { width: 11rem; font-weight: 600; vertical-align: top; }
+.pick { cursor: pointer; padding: 0.5rem 0.75rem; border-radius: 0.25rem; vertical-align: top; word-break: break-word; }
+.pick-on { background: #e4f0fb; box-shadow: inset 0 0 0 2px #0b5cab; }
+.pick-off { color: #7a7a7a; }
+.pick-off:hover { background: #f4f4f4; }
+.auto-cell { color: #5c5c5c; font-size: 0.8125rem; }
+
+.confirm { padding: 0.5rem 0; }
+.confirm-list { margin: 0.5rem 0 0 1.1rem; list-style: disc; }
+.confirm-list li { padding: 0.2rem 0; }

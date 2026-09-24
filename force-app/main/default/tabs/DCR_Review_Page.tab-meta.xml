@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomTab xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>DCR (Data Change Request) review queue — browse, filter, and approve/reject New/Edit HCP &amp; HCO requests submitted from the field.</description>
+    <flexiPage>DCR_Review_Page</flexiPage>
+    <label>DCR Review</label>
+    <motif>Custom25: Alarm clock</motif>
+</CustomTab>

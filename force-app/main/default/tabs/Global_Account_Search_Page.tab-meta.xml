@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomTab xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Global Account Search — search every HCP/HCO in the org regardless of territory, then add a found account into your own territory. Online only.</description>
+    <flexiPage>Global_Account_Search_Page</flexiPage>
+    <label>Global Account Search</label>
+    <motif>Custom63: Chip</motif>
+</CustomTab>

@@ -1,0 +1,66 @@
+<apex:page controller="UCPMPDisclosureController" renderAs="pdf" applyHtmlTag="false" applyBodyTag="false" showHeader="false" sidebar="false" standardStylesheets="false">
+<html>
+<head>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 10.5pt; color: #111; }
+  h1 { font-size: 13pt; text-align: center; margin: 0 0 2pt 0; }
+  .sub { text-align: center; font-size: 9.5pt; margin-bottom: 4pt; }
+  .note { text-align: right; font-size: 9pt; margin-bottom: 6pt; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 10pt; }
+  td, th { border: 1px solid #444; padding: 5pt 6pt; vertical-align: top; }
+  th { background: #eee; text-align: left; }
+  .k { width: 46%; }
+  .small { font-size: 8.5pt; color: #333; }
+  .decl li { margin-bottom: 4pt; }
+  .sign td { height: 26pt; }
+</style>
+</head>
+<body>
+  <h1>Annexure</h1>
+  <div class="sub">{See clause 5.1(g) and 14.4}</div>
+  <div class="sub"><b>Form for disclosure of marketing expenditure under and compliance with declaration of the Uniform Code for Pharmaceutical Marketing Practices (UCPMP) 2024</b></div>
+  <div class="note">All fields are mandatory</div>
+
+  <b>Company/entity information</b>
+  <table>
+    <tr><td class="k">1. (a) Corporate Identity Number (CIN) / Foreign Company Registration Number (FCRN):</td><td>{!cin}</td></tr>
+    <tr><td>(b) Name of the company/entity:</td><td>{!companyName}</td></tr>
+    <tr><td>(c) Address of the registered office of the company/entity:</td><td>{!address}</td></tr>
+    <tr><td>(d) Email address of the company/entity:</td><td>{!email}</td></tr>
+    <tr><td>(e) Permanent Account Number (PAN) of the company/entity:</td><td>{!pan}</td></tr>
+    <tr><td>2. Return for the financial year:</td><td>{!fy}</td></tr>
+    <tr><td>3. Domestic sales revenues (in crore Rs.):</td><td>{!salesCrore}</td></tr>
+  </table>
+
+  <b>4. Particulars to be filled by the company/entity:</b>
+  <table>
+    <tr><th>Particulars</th><th>Expenditure incurred (in crore Rs.) (See Note below)</th><th>Number of recipient healthcare professionals</th></tr>
+    <tr><td>Free samples distributed (monetary value of sample packs):</td><td>{!samplesCrore}</td><td>{!hcpCount}</td></tr>
+  </table>
+  <table>
+    <tr><th>Particulars</th><th>Expenditure incurred (in crore Rs.) (See Note below)</th><th>Number of events</th></tr>
+    <tr><td>Education programmes* organised directly by the company/entity:</td><td class="small">To be completed by the company</td><td></td></tr>
+    <tr><td>Education programmes* organised through third parties, including associations, bodies etc.:</td><td class="small">To be completed by the company</td><td></td></tr>
+    <tr><td>Remarks/comments/notes detailing the methodology adopted for calculating the expenditure figures disclosed above:</td><td colspan="2" class="small">{!methodology}</td></tr>
+  </table>
+  <div class="small">*Education programmes include continuous medical education / continuing professional development, conferences, workshops, training, seminars etc.<br/>
+  Note: Expenditure includes all expenses incurred for the event, including sponsorship, travel, lodging, hospitality, advertisements, stalls (including payment directly made to third-party vendors), souvenirs, etc. For expenditure valuation, in case of in-house production, the price to stockist to be used and in case of third-party manufacturing, the purchase price is to be used.</div>
+
+  <p><b>Declaration (to be digitally signed by affixing the digital signature certificate):</b></p>
+  <ol class="decl">
+    <li>I declare that I have read the UCPMP Code 2024 and that the information furnished in this form is in compliance with the said Code.</li>
+    <li>I further declare that the company/entity has complied with and shall continue to abide with the provisions of the Code and shall extend all the required assistance to the authorities for implementation of the Code.</li>
+    <li>I further declare that the information given in this form is true to the best of my knowledge and belief.</li>
+  </ol>
+  <table class="sign">
+    <tr><td class="k">Digital Signature Certificate:</td><td></td></tr>
+    <tr><td>Designation:</td><td>{!designation}</td></tr>
+    <tr><td>Director identification number (DIN) or PAN of the executive head of the company/entity:</td><td>{!dinOrPan}</td></tr>
+    <tr><td>Mobile:</td><td>{!mobile}</td></tr>
+    <tr><td>Email address:</td><td>{!signEmail}</td></tr>
+  </table>
+  <div class="small">For office use only: eForm Service request number (SRN) ____________ &nbsp; eForm filling date (DD/MM/YYYY) ____________<br/>Prepared from Sciagen Sample Management on {!generatedOn}. Review before filing.</div>
+</body>
+</html>
+</apex:page>

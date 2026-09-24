@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Go_Online_URL__c</fullName>
+    <description>Where the app&apos;s &quot;Go Online&quot; screen (embedded browser) navigates to. A relative Salesforce path (e.g. &quot;/lightning/o/Report/home&quot;) opens signed in automatically via frontdoor.jsp using the rep&apos;s own session -- no separate login. A full external https:// URL opens as a plain, unauthenticated page. Blank defaults to the org&apos;s Lightning home page.</description>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <label>Go Online Destination URL</label>
+    <length>255</length>
+    <required>false</required>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

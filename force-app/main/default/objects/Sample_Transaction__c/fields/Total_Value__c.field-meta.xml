@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Total_Value__c</fullName>
+    <description>Packs x units per pack x per-unit value (UCPMP 5.1(ii)(g)).</description>
+    <formula>Quantity__c * BLANKVALUE(Pack_Size_At_Transaction__c, 1) * BLANKVALUE(Unit_Value_At_Transaction__c, 0)</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    <label>Total Value (INR)</label>
+    <precision>18</precision>
+    <required>false</required>
+    <scale>2</scale>
+    <trackTrending>false</trackTrending>
+    <type>Currency</type>
+</CustomField>
