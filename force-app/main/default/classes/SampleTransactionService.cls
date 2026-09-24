@@ -40,7 +40,7 @@ public without sharing class SampleTransactionService {
             if (r.To_Warehouse__c != null) warehouseIds.add(r.To_Warehouse__c);
         }
         Map<Id, Sample_Lot__c> lots = new Map<Id, Sample_Lot__c>([
-            SELECT Id, Product__c, Status__c, Available_Quantity__c, Initial_Quantity__c, Lot_Number__c, Expiry_Date__c,
+            SELECT Id, Product__c, Status__c, Available_Quantity__c, Lot_Number__c, Expiry_Date__c,
                    Cold_Chain_Tag_Number__c, Cold_Chain_Status__c, Owner_User__c
             FROM Sample_Lot__c WHERE Id IN :lotIds
         ]);
@@ -266,7 +266,7 @@ public without sharing class SampleTransactionService {
         for (Sample_Transaction__c r : reversed) if (r.Sample_Lot__c != null) lotIds.add(r.Sample_Lot__c);
         Map<Id, Sample_Lot__c> lots = new Map<Id, Sample_Lot__c>([
             SELECT Id, Product__c, Lot_Number__c, Batch_Lot_Id__c, Manufactured_Date__c, Expiry_Date__c, Available_Quantity__c,
-                   Initial_Quantity__c, Storage_Conditions__c, Cold_Chain_Tag_Number__c, Cold_Chain_Status__c, Owner_User__c, OwnerId, Status__c
+                   Storage_Conditions__c, Cold_Chain_Tag_Number__c, Cold_Chain_Status__c, Owner_User__c, OwnerId, Status__c
             FROM Sample_Lot__c WHERE Id IN :lotIds FOR UPDATE
         ]);
 
@@ -411,14 +411,44 @@ public without sharing class SampleTransactionService {
         }
     }
 
+    /** Inventory_Effect__c summed across every applied Receipt and Transfer_In
+     *  transaction, per lot — a lot's real cumulative quantity received to date. Public
+     *  (and its own method) so it's directly testable without depending on
+     *  SampleNotifier's fire-and-forget push notification, which nothing in this codebase
+     *  asserts on. */
+    public static Map<Id, Decimal> quantityReceivedToDate(Set<Id> lotIds) {
+        Map<Id, Decimal> receivedToDate = new Map<Id, Decimal>();
+        if (lotIds == null || lotIds.isEmpty()) return receivedToDate;
+        for (AggregateResult ar : [
+            SELECT Sample_Lot__c lot, SUM(Inventory_Effect__c) total FROM Sample_Transaction__c
+            WHERE Sample_Lot__c IN :lotIds AND Inventory_Applied__c = true AND Transaction_Type__c IN (:T_RECEIPT, :T_TRANSFER_IN)
+            GROUP BY Sample_Lot__c
+        ]) {
+            Decimal total = (Decimal) ar.get('total');
+            receivedToDate.put((Id) ar.get('lot'), total == null ? 0 : total);
+        }
+        return receivedToDate;
+    }
+
+    /** D11 (Phase 0 hotfix): "large" used to mean "more than 10% of
+     *  Sample_Lot__c.Initial_Quantity__c" — a one-time snapshot of the lot's size when it
+     *  was first created, now deprecated (read-only, off the layout). A lot topped up by
+     *  later Receipts would keep being judged against its original, stale creation size.
+     *  Re-based on the lot's actual cumulative quantity received to date. */
     private static void notifyLargeAdjustments(List<Sample_Transaction__c> adjustments, Map<Id, Sample_Lot__c> lots) {
+        if (adjustments.isEmpty()) return;
+        Set<Id> lotIds = new Set<Id>();
+        for (Sample_Transaction__c a : adjustments) if (a.Sample_Lot__c != null) lotIds.add(a.Sample_Lot__c);
+        Map<Id, Decimal> receivedToDate = quantityReceivedToDate(lotIds);
         for (Sample_Transaction__c a : adjustments) {
             Sample_Lot__c l = lots.get(a.Sample_Lot__c);
-            if (l == null || l.Initial_Quantity__c == null || l.Initial_Quantity__c == 0) continue;
-            if (Math.abs(a.Quantity__c) > l.Initial_Quantity__c * LARGE_ADJUSTMENT_SHARE) {
+            Decimal received = receivedToDate.get(a.Sample_Lot__c);
+            if (l == null || received == null || received == 0) continue;
+            if (Math.abs(a.Quantity__c) > received * LARGE_ADJUSTMENT_SHARE) {
                 Set<Id> managers = SampleNotifier.managersOf(new Set<Id>{ a.Performed_By__c != null ? a.Performed_By__c : UserInfo.getUserId() });
                 SampleNotifier.notify(managers, 'Large sample adjustment for review',
-                    'Adjustment of ' + a.Quantity__c.intValue() + ' packs (' + a.Adjustment_Reason__c + ') on lot ' + l.Lot_Number__c + ' is more than 10% of the lot.', a.Id);
+                    'Adjustment of ' + a.Quantity__c.intValue() + ' packs (' + a.Adjustment_Reason__c + ') on lot ' + l.Lot_Number__c
+                    + ' is more than 10% of the ' + received.intValue() + ' packs received to date.', a.Id);
             }
         }
     }

@@ -5,6 +5,7 @@
     <label>Rep</label>
     <length>18</length>
     <required>false</required>
+    <trackHistory>true</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Text</type>
     <unique>false</unique>

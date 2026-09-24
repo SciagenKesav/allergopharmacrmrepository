@@ -4,6 +4,7 @@
     <defaultValue>false</defaultValue>
     <description>Set once this transaction has moved stock. Prevents it being applied twice.</description>
     <label>Inventory Applied</label>
+    <trackHistory>true</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Checkbox</type>
 </CustomField>

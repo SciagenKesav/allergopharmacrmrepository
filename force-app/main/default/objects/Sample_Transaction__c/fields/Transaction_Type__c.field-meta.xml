@@ -3,6 +3,7 @@
     <fullName>Transaction_Type__c</fullName>
     <label>Transaction Type</label>
     <required>true</required>
+    <trackHistory>true</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Picklist</type>
     <valueSet>

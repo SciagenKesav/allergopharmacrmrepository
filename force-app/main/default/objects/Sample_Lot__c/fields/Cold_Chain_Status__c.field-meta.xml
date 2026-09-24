@@ -3,6 +3,7 @@
     <fullName>Cold_Chain_Status__c</fullName>
     <label>Cold Chain Status</label>
     <required>false</required>
+    <trackHistory>true</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Picklist</type>
     <valueSet>

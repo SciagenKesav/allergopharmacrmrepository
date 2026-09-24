@@ -567,6 +567,14 @@
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
+        <!-- D11 (Phase 0 hotfix): deprecated; stock enters only through Receipt or
+             Transfer-In (SampleTransactionService), never a direct edit; kept readable
+             for historical/reporting purposes. -->
+        <editable>false</editable>
+        <field>Sample_Lot__c.Initial_Quantity__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
         <editable>true</editable>
         <field>Sample_Lot__c.Lot_Key__c</field>
         <readable>true</readable>

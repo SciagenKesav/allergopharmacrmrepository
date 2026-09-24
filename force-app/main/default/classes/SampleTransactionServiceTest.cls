@@ -331,4 +331,40 @@ private class SampleTransactionServiceTest {
         Sample_Transaction__c out = [SELECT Paired_Transaction__c FROM Sample_Transaction__c WHERE Transaction_Type__c = 'Transfer_Out'];
         System.assertNotEquals(null, out.Paired_Transaction__c, 'the two sides are linked even though the lot is now empty');
     }
+
+    /** D11 (Phase 0 hotfix): notifyLargeAdjustments() used to compare an adjustment
+     *  against 10% of Sample_Lot__c.Initial_Quantity__c — a snapshot frozen at lot
+     *  creation. A lot topped up by a second Receipt later should be judged against its
+     *  real cumulative total, not that stale number. SampleNotifier's push notification
+     *  itself is fire-and-forget and untested anywhere in this codebase (nothing to query
+     *  against), so this asserts the underlying quantityReceivedToDate() computation the
+     *  notification decision is now based on. */
+    @isTest
+    static void quantityReceivedToDateSumsEveryConfirmedReceiptAndTransferInForTheLot() {
+        Product__c p = product('Received SKU', false, false);
+        Sample_Lot__c l = new Sample_Lot__c(Product__c = p.Id, Lot_Number__c = 'RTD-1', Expiry_Date__c = Date.today().addDays(90),
+            Initial_Quantity__c = 20, Available_Quantity__c = 0, Owner_User__c = UserInfo.getUserId());
+        insert l;
+
+        Sample_Transaction__c first = new Sample_Transaction__c(Transaction_Type__c = 'Receipt', Status__c = 'Pending', Product__c = p.Id,
+            Sample_Lot__c = l.Id, Quantity__c = 20, To_User__c = UserInfo.getUserId());
+        insert first;
+        first.Status__c = 'Confirmed';
+        update first;
+
+        // Topped up later by a second Receipt — the lot's real total received (50) is now
+        // well past its original 20-pack creation size.
+        Sample_Transaction__c second = new Sample_Transaction__c(Transaction_Type__c = 'Receipt', Status__c = 'Pending', Product__c = p.Id,
+            Sample_Lot__c = l.Id, Quantity__c = 30, To_User__c = UserInfo.getUserId());
+        insert second;
+        second.Status__c = 'Confirmed';
+        update second;
+
+        // A Pending (not yet confirmed) Receipt must not count yet.
+        insert new Sample_Transaction__c(Transaction_Type__c = 'Receipt', Status__c = 'Pending', Product__c = p.Id,
+            Sample_Lot__c = l.Id, Quantity__c = 999, To_User__c = UserInfo.getUserId());
+
+        Map<Id, Decimal> receivedToDate = SampleTransactionService.quantityReceivedToDate(new Set<Id>{ l.Id });
+        System.assertEquals(50, receivedToDate.get(l.Id), 'both confirmed receipts, not just the lot\'s original creation size (20) and not the still-pending third one');
+    }
 }

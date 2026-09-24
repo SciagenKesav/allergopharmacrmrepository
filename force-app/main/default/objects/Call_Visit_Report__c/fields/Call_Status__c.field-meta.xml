@@ -3,6 +3,7 @@
     <fullName>Call_Status__c</fullName>
     <label>Call Status</label>
     <required>false</required>
+    <trackHistory>true</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Picklist</type>
     <valueSet>

@@ -15,6 +15,7 @@
     <referenceTo>Sciagen_Account__c</referenceTo>
     <relationshipName>CallVisitReports</relationshipName>
     <required>true</required>
+    <trackHistory>true</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Lookup</type>
 </CustomField>

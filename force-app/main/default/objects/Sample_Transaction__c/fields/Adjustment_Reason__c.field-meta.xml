@@ -3,6 +3,7 @@
     <fullName>Adjustment_Reason__c</fullName>
     <label>Adjustment Reason</label>
     <required>false</required>
+    <trackHistory>true</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Picklist</type>
     <valueSet>

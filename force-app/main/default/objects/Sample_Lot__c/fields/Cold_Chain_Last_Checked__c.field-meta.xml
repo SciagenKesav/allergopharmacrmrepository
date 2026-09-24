@@ -3,6 +3,7 @@
     <fullName>Cold_Chain_Last_Checked__c</fullName>
     <label>Cold Chain Last Checked</label>
     <required>false</required>
+    <trackHistory>true</trackHistory>
     <trackTrending>false</trackTrending>
     <type>DateTime</type>
 </CustomField>
