@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Sample_Tag_Alert_Regex__c</fullName>
+    <description>SM-CFG-05: format validation for a Sample cold-chain tag alert number (Sample_Drop__c/Sample_Transaction__c.Cold_Chain_Tag_Number__c), enforced in SampleDropService. Blank falls back to the default ^[0-9]{10}$ in Apex. Phase 0 hotfix home for a single setting -- Phase 1 introduces the full Sample_Setting__mdt (SM-CFG-01..25) and this field moves there.</description>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <label>Sample Tag Alert Regex</label>
+    <length>255</length>
+    <required>false</required>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

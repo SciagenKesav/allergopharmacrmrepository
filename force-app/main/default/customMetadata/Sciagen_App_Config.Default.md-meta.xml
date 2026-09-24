@@ -23,6 +23,10 @@
         <value xsi:type="xsd:string">Mobile_Reports</value>
     </values>
     <values>
+        <field>Sample_Tag_Alert_Regex__c</field>
+        <value xsi:type="xsd:string">^[0-9]{10}$</value>
+    </values>
+    <values>
         <field>Sync_Log_Retention_Days__c</field>
         <value xsi:type="xsd:double">30.0</value>
     </values>

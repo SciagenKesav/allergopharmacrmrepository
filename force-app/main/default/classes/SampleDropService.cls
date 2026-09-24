@@ -9,6 +9,20 @@ public without sharing class SampleDropService {
 
     private static Boolean creating = false;
 
+    // SM-CFG-05/SM-CC-04: format check for a cold-chain tag alert number.
+    // Phase 0 hotfix home is Sciagen_App_Config__mdt.Sample_Tag_Alert_Regex__c
+    // (a single field on the general shared config type) -- Phase 1 introduces
+    // the full Sample_Setting__mdt (SM-CFG-01..25) and this setting moves there.
+    private static final String DEFAULT_TAG_ALERT_REGEX = '^[0-9]{10}$';
+    private static String tagAlertRegex;
+    private static String tagAlertRegex() {
+        if (tagAlertRegex == null) {
+            Sciagen_App_Config__mdt cfg = Sciagen_App_Config__mdt.getInstance('Default');
+            tagAlertRegex = (cfg != null && String.isNotBlank(cfg.Sample_Tag_Alert_Regex__c)) ? cfg.Sample_Tag_Alert_Regex__c : DEFAULT_TAG_ALERT_REGEX;
+        }
+        return tagAlertRegex;
+    }
+
     public static void beforeInsert(List<Sample_Drop__c> drops) {
         SampleConfig cfg = SampleConfig.load();
         Set<Id> callIds = new Set<Id>();
@@ -53,6 +67,8 @@ public without sharing class SampleDropService {
             String problem = null;
             if (p.Requires_Cold_Chain__c == true && (String.isBlank(d.Cold_Chain_Tag_Number__c) || String.isBlank(d.Cold_Chain_Status__c))) {
                 problem = 'Cold chain product: enter the tag number and status.';
+            } else if (p.Requires_Cold_Chain__c == true && !Pattern.matches(tagAlertRegex(), d.Cold_Chain_Tag_Number__c)) {
+                problem = 'Cold chain tag alert number is not a valid format.';
             } else if (p.Requires_Cold_Chain__c == true && d.Cold_Chain_Status__c == 'Breach') {
                 problem = 'Cold chain breach detected. Cannot distribute. Return to warehouse for quality assessment.';
             } else if (res.blocked) {

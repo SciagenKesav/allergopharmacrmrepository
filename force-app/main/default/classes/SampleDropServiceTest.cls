@@ -193,14 +193,55 @@ private class SampleDropServiceTest {
         SampleTestData.lot(p, 'CD-1', 20, 200);
         Call_Visit_Report__c call = SampleTestData.call(d, 'Draft');
         System.assert(!Database.insert(drop(call, p, 1), false).isSuccess());
+
+        // SM-CC-04: the tag alert number must match Sample_Tag_Alert_Regex
+        // (Sciagen_App_Config__mdt.Default, ^[0-9]{10}$ out of the box) --
+        // a free-text value like 'T-1' is refused even with a valid status.
+        Sample_Drop__c badFormat = drop(call, p, 1);
+        badFormat.Cold_Chain_Tag_Number__c = 'T-1';
+        badFormat.Cold_Chain_Status__c = 'Normal';
+        System.assert(Database.insert(badFormat, false).getErrors()[0].getMessage().contains('valid format'));
+
         Sample_Drop__c breach = drop(call, p, 1);
-        breach.Cold_Chain_Tag_Number__c = 'T-1';
+        breach.Cold_Chain_Tag_Number__c = '1234567890';
         breach.Cold_Chain_Status__c = 'Breach';
         System.assert(Database.insert(breach, false).getErrors()[0].getMessage().contains('breach'));
+
         Sample_Drop__c ok = drop(call, p, 1);
-        ok.Cold_Chain_Tag_Number__c = 'T-1';
+        ok.Cold_Chain_Tag_Number__c = '1234567890';
         ok.Cold_Chain_Status__c = 'Normal';
         insert ok;
+    }
+
+    /** SM-CC-02: the cvrSampleDrops LWC now captures these fields (Phase 0
+     *  hotfix — beforeInsert used to hard-block any cold-chain product because
+     *  the LWC never rendered them at all), so a cold-chain product must be
+     *  able to go all the way through submission to a posted Disbursement,
+     *  carrying the tag/status onto the transaction. */
+    @isTest
+    static void coldChainProductCanBeSubmittedAndCarriesTagStatusOntoTheTransaction() {
+        Product__c p = SampleTestData.product('Cold Submit SKU');
+        p.Requires_Cold_Chain__c = true;
+        p.Requires_Signature__c = false;
+        update p;
+        Sciagen_Account__c d = SampleTestData.doctor('Dr Cold Submit');
+        Sample_Lot__c lot = SampleTestData.lot(p, 'CS-1', 20, 200);
+        Call_Visit_Report__c call = SampleTestData.call(d, 'Draft');
+        Sample_Drop__c line = drop(call, p, 2);
+        line.Cold_Chain_Tag_Number__c = '9876543210';
+        line.Cold_Chain_Status__c = 'Normal';
+        insert line;
+
+        call.Record_Status__c = 'Submitted';
+        update call;
+
+        System.assertEquals(18, avail(lot.Id));
+        Sample_Transaction__c t = [SELECT Transaction_Type__c, Status__c, Cold_Chain_Tag_Number__c, Cold_Chain_Status__c
+                                    FROM Sample_Transaction__c WHERE Call_Report__c = :call.Id];
+        System.assertEquals('Disbursement', t.Transaction_Type__c);
+        System.assertEquals('Completed', t.Status__c);
+        System.assertEquals('9876543210', t.Cold_Chain_Tag_Number__c);
+        System.assertEquals('Normal', t.Cold_Chain_Status__c);
     }
 
     @isTest
