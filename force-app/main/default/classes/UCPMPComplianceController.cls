@@ -42,11 +42,21 @@ public with sharing class UCPMPComplianceController {
         return d;
     }
 
+    /** AuraHandledException.getMessage() returns a generic "Script-thrown exception"
+     *  unless setMessage() is called explicitly — the constructor argument alone is
+     *  NOT what getMessage() later returns to a caller (LWC or, here, a test). Same
+     *  fix as SampleAdminController.userError() (Phase 0 Step 1). */
+    private static AuraHandledException userError(String message) {
+        AuraHandledException e = new AuraHandledException(message);
+        e.setMessage(message);
+        return e;
+    }
+
     @AuraEnabled
     public static ConfigDTO saveConfig(String financialYear, Decimal domesticSalesCrore, String companyName, String cin, String address, String email, String pan,
                                        String designation, String dinOrPan, String mobile, String signEmail) {
-        if (!FeatureManagement.checkPermission('Manage_Sample_Inventory')) throw new AuraHandledException('Only a sample manager can change the UCPMP settings.');
-        if (domesticSalesCrore != null && domesticSalesCrore < 0) throw new AuraHandledException('Domestic sales can not be negative.');
+        if (!FeatureManagement.checkPermission('Manage_Sample_Inventory')) throw userError('Only a sample manager can change the UCPMP settings.');
+        if (domesticSalesCrore != null && domesticSalesCrore < 0) throw userError('Domestic sales can not be negative.');
         UCPMP_Tenant_Config__c r = UCPMP_Tenant_Config__c.getOrgDefaults();
         if (r.Id == null) {
             r.SetupOwnerId = UserInfo.getOrganizationId();
