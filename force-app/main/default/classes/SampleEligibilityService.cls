@@ -9,6 +9,8 @@
 public without sharing class SampleEligibilityService {
 
     public class Request {
+        // Correlation key for checkBulk() only — check() ignores it.
+        public String key;
         public Id repUserId;
         public Id hcpAccountId;
         public Id productId;
@@ -37,6 +39,55 @@ public without sharing class SampleEligibilityService {
     }
 
     public static Result check(Request req) {
+        Result r = evaluateProductHcpOptInLot(req);
+        Integer qty = req.quantity == null ? 0 : req.quantity;
+        SampleLimitChecker.LimitCheckResult lc = null;
+        if (req.hcpAccountId != null && req.productId != null && qty > 0) {
+            lc = SampleLimitChecker.checkLimits(req.repUserId, req.hcpAccountId, req.productId, qty, req.callId, req.onCallSameProduct, req.onCallAll);
+        }
+        return finalize(r, lc);
+    }
+
+    /**
+     * Bulk form of check() for a batch of requests sharing one trigger context (e.g. every
+     * Sample_Drop__c line on one call insert). Steps 1-4 (product, doctor, opt-in, lot)
+     * still run one query set per request — bounded regardless of how many Sample_Limit__c
+     * rows exist, so left as-is. Step 5 (limits) is the one whose query count multiplies by
+     * BOTH the number of requests and the number of active limits, so it's the one that's
+     * batched — via SampleLimitChecker.checkLimitsBulk(), one round of grouped aggregate
+     * queries for every request in the list (SM-... Phase 0 hotfix, the audit's
+     * governor-limit risk). Each request must carry a distinct `key`; the result map is
+     * keyed the same way.
+     */
+    public static Map<String, Result> checkBulk(List<Request> requests) {
+        Map<String, Result> partials = new Map<String, Result>();
+        List<SampleLimitChecker.LimitCheckRequest> limitReqs = new List<SampleLimitChecker.LimitCheckRequest>();
+        for (Request req : requests) {
+            partials.put(req.key, evaluateProductHcpOptInLot(req));
+            Integer qty = req.quantity == null ? 0 : req.quantity;
+            if (req.hcpAccountId != null && req.productId != null && qty > 0) {
+                SampleLimitChecker.LimitCheckRequest lr = new SampleLimitChecker.LimitCheckRequest();
+                lr.key = req.key;
+                lr.repUserId = req.repUserId;
+                lr.hcpAccountId = req.hcpAccountId;
+                lr.productId = req.productId;
+                lr.requestedQuantity = qty;
+                lr.callId = req.callId;
+                lr.onCallSameProduct = req.onCallSameProduct;
+                lr.onCallAll = req.onCallAll;
+                limitReqs.add(lr);
+            }
+        }
+        Map<String, SampleLimitChecker.LimitCheckResult> limitResults = SampleLimitChecker.checkLimitsBulk(limitReqs);
+        Map<String, Result> out = new Map<String, Result>();
+        for (Request req : requests) out.put(req.key, finalize(partials.get(req.key), limitResults.get(req.key)));
+        return out;
+    }
+
+    /** Steps 1-4 of check() — everything except the limits step, which check()/checkBulk()
+     *  attach afterwards via finalize() so the limits computation can be swapped for a
+     *  single-request or a batched one without duplicating this logic. */
+    private static Result evaluateProductHcpOptInLot(Request req) {
         Result r = new Result();
         Date today = Date.today();
         Integer qty = req.quantity == null ? 0 : req.quantity;
@@ -76,10 +127,14 @@ public without sharing class SampleEligibilityService {
         // 4. the lot
         if (p.Requires_Lot_Number__c != false && p.Is_Sample_Product__c == true) lot(r, req, p, qty, today);
 
-        // 5. limits
-        if (req.hcpAccountId != null && p.Id != null && qty > 0) {
-            SampleLimitChecker.LimitCheckResult lc = SampleLimitChecker.checkLimits(req.repUserId, req.hcpAccountId, p.Id, qty, req.callId,
-                req.onCallSameProduct, req.onCallAll);
+        return r;
+    }
+
+    /** Merges the limits step (5) into a partial Result from evaluateProductHcpOptInLot()
+     *  and computes the final blocked/status/message — lc is null when the limits step
+     *  didn't run at all (mirrors the old check()'s own gating condition). */
+    private static Result finalize(Result r, SampleLimitChecker.LimitCheckResult lc) {
+        if (lc != null) {
             r.limits = lc;
             r.blockers.addAll(lc.blockers);
             r.warnings.addAll(lc.warnings);
@@ -87,7 +142,6 @@ public without sharing class SampleEligibilityService {
             r.requiresManager = lc.requiresManager;
             r.overrideId = lc.overrideId;
         }
-
         r.blocked = !r.blockers.isEmpty();
         r.status = r.blocked ? 'Blocked' : (r.warnings.isEmpty() ? 'Eligible' : 'Warning');
         List<String> lines = r.blocked ? r.blockers : r.warnings;

@@ -121,6 +121,54 @@ private class SampleLimitCheckerTest {
         System.assertEquals(0, SampleLimitSeeder.seedDefaults());
     }
 
+    /** SM-... Phase 0 hotfix: checkLimits() ran one usage() query per active limit PER
+     *  LINE — a call with 15 lines and 4 active limits could run well over the 100-query
+     *  governor limit. checkLimitsBulk() must do the same work for the whole batch in far
+     *  fewer queries, and still be accurate. */
+    @isTest
+    static void bulkCheckForFifteenLinesAndFourActiveLimitsStaysWellUnderTheQueryLimitAndIsStillAccurate() {
+        Integer activeLimitCount = SampleLimitSeeder.seedDefaults();
+        System.assertEquals(4, activeLimitCount, 'this test is written against exactly the 4 seeded defaults');
+        Sciagen_Account__c hcp = SampleTestData.doctor('Dr Bulk');
+        List<Product__c> products = new List<Product__c>();
+        List<Sample_Lot__c> lots = new List<Sample_Lot__c>();
+        for (Integer i = 0; i < 5; i++) {
+            Product__c p = SampleTestData.product('Bulk SKU ' + i);
+            Sample_Lot__c l = SampleTestData.lot(p, 'BULK-' + i, 100, 200);
+            products.add(p);
+            lots.add(l);
+        }
+        // product[0] is already at its 12-pack UCPMP cap for this doctor — every line
+        // asking for more of it should come back blocked; the other 4 products have
+        // plenty of headroom and should not.
+        SampleTestData.given(products[0], lots[0], hcp, 12);
+
+        List<SampleLimitChecker.LimitCheckRequest> requests = new List<SampleLimitChecker.LimitCheckRequest>();
+        for (Integer i = 0; i < 15; i++) {
+            SampleLimitChecker.LimitCheckRequest r = new SampleLimitChecker.LimitCheckRequest();
+            r.key = String.valueOf(i);
+            r.repUserId = UserInfo.getUserId();
+            r.hcpAccountId = hcp.Id;
+            r.productId = products[Math.mod(i, 5)].Id;
+            r.requestedQuantity = 1;
+            requests.add(r);
+        }
+
+        Test.startTest();
+        Map<String, SampleLimitChecker.LimitCheckResult> results = SampleLimitChecker.checkLimitsBulk(requests);
+        Integer queriesUsed = Limits.getQueries();
+        Test.stopTest();
+
+        System.assert(queriesUsed < 30, 'expected fewer than 30 SOQL queries for 15 lines / 4 active limits, used ' + queriesUsed);
+        System.assertEquals(15, results.size());
+        for (Integer i = 0; i < 15; i++) {
+            Boolean isProductAtCap = Math.mod(i, 5) == 0;
+            SampleLimitChecker.LimitCheckResult r = results.get(String.valueOf(i));
+            System.assertNotEquals(null, r, 'line ' + i + ' missing from the bulk result');
+            System.assertEquals(!isProductAtCap, r.allowed, 'line ' + i + ' (product index ' + Math.mod(i, 5) + ')');
+        }
+    }
+
     @isTest
     static void repMonthlyAndProductGlobalScopesCountTheRightTransactions() {
         Product__c p = SampleTestData.product('Scope SKU');

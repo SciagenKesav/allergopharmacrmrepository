@@ -23,6 +23,24 @@ public without sharing class SampleDropService {
         return tagAlertRegex;
     }
 
+    /**
+     * SM-... Phase 0 hotfix (the audit's governor-limit risk): this used to call
+     * SampleEligibilityService.check() once per line, which itself ran one usage() query
+     * per active Sample_Limit__c per line — a call with 15 lines and 4 active limits could
+     * run well over 100 SOQL queries and hit the governor limit outright. The eligibility
+     * check (steps 1-4: product/doctor/opt-in/lot) still runs per line below — bounded
+     * regardless of how many limits exist — but the limits step now runs once, in bulk,
+     * across every line in this trigger batch via SampleEligibilityService.checkBulk().
+     *
+     * That bulk call needs each line's onCallSameProduct/onCallAll (packs of the same
+     * product / of anything already added earlier in this same batch) computed up front,
+     * before any line's actual pass/fail outcome is known — so, unlike the old strictly
+     * sequential loop, a line that turns out to be refused (for ANY reason, cold-chain or
+     * limit) still counts toward later same-batch lines' running total here. That can only
+     * make a later line in the same batch MORE likely to warn or block, never less, so it
+     * can never let an over-limit disbursement through silently — it only changes behaviour
+     * at all when a call has two or more lines for the very same product.
+     */
     public static void beforeInsert(List<Sample_Drop__c> drops) {
         SampleConfig cfg = SampleConfig.load();
         Set<Id> callIds = new Set<Id>();
@@ -38,7 +56,10 @@ public without sharing class SampleDropService {
         Map<String, Decimal> batchSameProduct = new Map<String, Decimal>();
         Map<Id, Decimal> batchAll = new Map<Id, Decimal>();
 
-        for (Sample_Drop__c d : drops) {
+        List<SampleEligibilityService.Request> requests = new List<SampleEligibilityService.Request>();
+        Map<Integer, SampleEligibilityService.Request> reqByIndex = new Map<Integer, SampleEligibilityService.Request>();
+        for (Integer i = 0; i < drops.size(); i++) {
+            Sample_Drop__c d = drops[i];
             Call_Visit_Report__c call = calls.get(d.CVR__c);
             Product__c p = products.get(d.Product__c);
             if (call == null || p == null || call.HCP__c == null) continue;
@@ -48,6 +69,7 @@ public without sharing class SampleDropService {
 
             String key = d.CVR__c + '|' + d.Product__c;
             SampleEligibilityService.Request req = new SampleEligibilityService.Request();
+            req.key = String.valueOf(i);
             req.repUserId = call.OwnerId;
             req.hcpAccountId = call.HCP__c;
             req.productId = d.Product__c;
@@ -56,7 +78,22 @@ public without sharing class SampleDropService {
             req.lotId = d.Sample_Lot__c;
             req.onCallSameProduct = batchSameProduct.containsKey(key) ? batchSameProduct.get(key) : 0;
             req.onCallAll = batchAll.containsKey(call.Id) ? batchAll.get(call.Id) : 0;
-            SampleEligibilityService.Result res = SampleEligibilityService.check(req);
+            requests.add(req);
+            reqByIndex.put(i, req);
+
+            batchSameProduct.put(key, req.onCallSameProduct + req.quantity);
+            batchAll.put(call.Id, req.onCallAll + req.quantity);
+        }
+
+        Map<String, SampleEligibilityService.Result> results = SampleEligibilityService.checkBulk(requests);
+
+        for (Integer i = 0; i < drops.size(); i++) {
+            Sample_Drop__c d = drops[i];
+            Call_Visit_Report__c call = calls.get(d.CVR__c);
+            Product__c p = products.get(d.Product__c);
+            SampleEligibilityService.Request req = reqByIndex.get(i);
+            if (call == null || p == null || call.HCP__c == null || req == null) continue;
+            SampleEligibilityService.Result res = results.get(req.key);
 
             if (d.Sample_Lot__c == null && res.lotId != null) d.Sample_Lot__c = res.lotId;
             d.Eligibility_Status__c = res.status;
@@ -84,10 +121,7 @@ public without sharing class SampleDropService {
                     d.addError(problem.left(255));
                 }
                 else { d.Eligibility_Status__c = 'Warning'; d.Eligibility_Message__c = ('Not enforced: ' + problem).left(255); }
-                continue;
             }
-            batchSameProduct.put(key, (batchSameProduct.containsKey(key) ? batchSameProduct.get(key) : 0) + req.quantity);
-            batchAll.put(call.Id, (batchAll.containsKey(call.Id) ? batchAll.get(call.Id) : 0) + req.quantity);
         }
     }
 

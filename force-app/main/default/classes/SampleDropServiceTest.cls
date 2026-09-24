@@ -153,6 +153,59 @@ private class SampleDropServiceTest {
         System.assert(r.getErrors()[0].getMessage().contains('Cannot distribute more'), r.getErrors()[0].getMessage());
     }
 
+    /** SM-... Phase 0 hotfix (SampleLimitChecker/SampleEligibilityService.checkBulk):
+     *  beforeInsert() now checks limits for the whole trigger batch in one bulk pass rather
+     *  than strictly line-by-line, which changes ONE thing on purpose — a line that will
+     *  itself turn out to be refused still counts toward a later same-product line's running
+     *  total within the same batch (see beforeInsert()'s doc comment). This can only make a
+     *  later line MORE likely to be blocked, never less, so two lines that are each fine
+     *  alone but breach the cap combined must still both be caught correctly. */
+    @isTest
+    static void twoLinesForTheSameProductInOneBatchAreCheckedAgainstTheirCombinedTotal() {
+        // A dedicated 12-pack HCP_Product hard limit, not SampleLimitSeeder.seedDefaults()
+        // — its Company Per_Call limit is only 6 packs for the whole call, which would
+        // trip on a single 7-pack line and mask what this test is actually checking.
+        Product__c p = SampleTestData.product('Batch Combine SKU');
+        insert new Sample_Limit__c(Name = 'Combine test cap', Limit_Scope__c = 'HCP_Product', Product__c = p.Id, Limit_Quantity__c = 12,
+            Limit_Period__c = 'Financial_Year', Hard_Block__c = true, Is_Regulatory__c = true, Regulatory_Reference__c = SampleLimitChecker.UCPMP_REF);
+        Sciagen_Account__c d = SampleTestData.doctor('Dr Batch Combine');
+        SampleTestData.lot(p, 'BC-1', 100, 200);
+        Call_Visit_Report__c call = SampleTestData.call(d, 'Draft');
+        // Neither 7-pack line alone breaks the 12-pack cap; together (14) they do.
+        Database.SaveResult[] results = Database.insert(new List<Sample_Drop__c>{ drop(call, p, 7), drop(call, p, 7) }, false);
+        System.assertEquals(true, results[0].isSuccess(), 'first line alone is well inside the cap');
+        System.assertEquals(false, results[1].isSuccess(), 'second line pushes the combined total over the cap');
+        System.assert(results[1].getErrors()[0].getMessage().contains('Cannot distribute more'), results[1].getErrors()[0].getMessage());
+    }
+
+    /** End-to-end version of SampleLimitCheckerTest's own bulk query-count test — this one
+     *  goes through the real trigger (SampleCallTrigger -> SampleDropService.beforeInsert),
+     *  which still runs steps 1-4 (product/doctor/opt-in/lot) per line, so its budget is
+     *  looser than the checker's own <30 (that's the part Step 4 didn't have to touch). The
+     *  real number that matters here is just "well under the 100-query governor limit",
+     *  which is the actual failure this hotfix prevents. No Sample_Limit__c rows are seeded
+     *  here on purpose — each SampleTestData product's own Max_Packs_Per_HCP_Per_Year__c
+     *  (12) still synthesizes a regulatory limit per product (addProductLimit), so the
+     *  limits path is fully exercised without the company Per_Call cap (only 6 packs for
+     *  the whole call in SampleLimitSeeder's defaults) tripping on a 15-line call. */
+    @isTest
+    static void fifteenLinesAcrossFiveProductsInsertSuccessfullyThroughTheBulkPath() {
+        Sciagen_Account__c d = SampleTestData.doctor('Dr Fifteen');
+        Call_Visit_Report__c call = SampleTestData.call(d, 'Draft');
+        List<Sample_Drop__c> drops = new List<Sample_Drop__c>();
+        for (Integer i = 0; i < 5; i++) {
+            Product__c p = SampleTestData.product('Fifteen SKU ' + i);
+            SampleTestData.lot(p, 'FT-' + i, 100, 200);
+            for (Integer j = 0; j < 3; j++) drops.add(drop(call, p, 1));
+        }
+        Test.startTest();
+        insert drops;
+        Integer queriesUsed = Limits.getQueries();
+        Test.stopTest();
+        System.assertEquals(15, [SELECT COUNT() FROM Sample_Drop__c WHERE CVR__c = :call.Id]);
+        System.assert(queriesUsed < 100, 'a real 15-line insert must stay under the governor limit, used ' + queriesUsed);
+    }
+
     @isTest
     static void softLimitNeedsAReasonAndAManagerHoldsTheTransaction() {
         SampleLimitSeeder.seedDefaults();
