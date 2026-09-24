@@ -419,4 +419,54 @@ public with sharing class SampleAdminController {
         o.Status__c = approve == true ? 'Active' : 'Revoked';
         update o;
     }
+
+    /**
+     * D14/SM-UNL-01: a direct unlock for Sample Admins — no Support_Request__c ticket
+     * needed. Goes through the exact same reversal logic as the Support-ticket path
+     * (SampleDropService.afterCallUnlock, fired from SampleCallTrigger for any call
+     * leaving 'Submitted', regardless of which of the two paths did it), since the
+     * reversal lives in the trigger layer rather than either unlock service.
+     */
+    /** AuraHandledException.getMessage() returns a generic "Script-thrown exception"
+     *  unless setMessage() is called explicitly — the constructor argument alone is
+     *  NOT what getMessage() later returns to a caller (LWC or, here, a test). */
+    private static AuraHandledException userError(String message) {
+        AuraHandledException e = new AuraHandledException(message);
+        e.setMessage(message);
+        return e;
+    }
+
+    @AuraEnabled
+    public static void unlockCall(Id callId, String reason) {
+        if (!FeatureManagement.checkPermission('Sample_Unlock_Calls')) {
+            throw userError('You do not have permission to unlock calls directly.');
+        }
+        if (String.isBlank(reason)) throw userError('Give a reason for unlocking this call.');
+        List<Call_Visit_Report__c> calls = [
+            SELECT Id, Record_Status__c, Unlock_Count__c FROM Call_Visit_Report__c WHERE Id = :callId LIMIT 1 FOR UPDATE
+        ];
+        if (calls.isEmpty()) throw userError('That call was not found.');
+        Call_Visit_Report__c call = calls[0];
+        if (call.Record_Status__c != 'Submitted') throw userError('This call is already open for editing.');
+
+        List<Key_Message__c> keyMessages = [SELECT Id FROM Key_Message__c WHERE CVR__c = :call.Id AND Locked__c = true];
+        for (Key_Message__c k : keyMessages) k.Locked__c = false;
+
+        call.Record_Status__c = 'Saved';
+        call.Unlocked_At__c = Datetime.now();
+        call.Unlocked_By__c = UserInfo.getUserId();
+        call.Unlock_Count__c = (call.Unlock_Count__c == null ? 0 : call.Unlock_Count__c) + 1;
+        try {
+            update call;
+            if (!keyMessages.isEmpty()) update keyMessages;
+        } catch (DmlException e) {
+            // e.g. calls that handed out controlled substances need Manage_Sample_Inventory too
+            // (SampleDropService.beforeCallUpdate) — surface that message as-is.
+            throw userError(e.getDmlMessage(0));
+        }
+        Set<Id> admins = SampleNotifier.sampleAdmins();
+        admins.add(UserInfo.getUserId());
+        SampleNotifier.notify(admins, 'Call unlocked directly',
+            'Call ' + call.Id + ' was unlocked by a Sample Admin without a support ticket. Reason: ' + reason.trim(), call.Id);
+    }
 }

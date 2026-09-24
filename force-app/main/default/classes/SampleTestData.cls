@@ -2,8 +2,8 @@
 public class SampleTestData {
 
     public static Product__c product(String name) {
-        Product__c p = new Product__c(Name = name, Level__c = 'SKU', Is_Sample_Product__c = true, Sample_Unit_Value_INR__c = 10, Pack_Size__c = 4,
-            Smallest_Market_Pack_Size__c = 10, Max_Packs_Per_HCP_Per_Year__c = 12);
+        Product__c p = new Product__c(Name = name, Product_Code__c = 'SMP-' + Math.abs(name.hashCode()), Level__c = 'SKU', Is_Sample_Product__c = true,
+            Sample_Unit_Value_INR__c = 10, Pack_Size__c = 4, Smallest_Market_Pack_Size__c = 10, Max_Packs_Per_HCP_Per_Year__c = 12);
         insert p;
         return p;
     }

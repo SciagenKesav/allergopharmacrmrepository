@@ -14,9 +14,9 @@ private class SampleTransactionServiceTest {
     static User rep2() { return [SELECT Id FROM User WHERE Username = 'second.rep.sample@sciagen-new-dev.invalid']; }
 
     static Product__c product(String name, Boolean cold, Boolean controlled) {
-        Product__c p = new Product__c(Name = name, Level__c = 'SKU', Is_Sample_Product__c = true, Sample_Unit_Value_INR__c = 10, Pack_Size__c = 4,
-            Smallest_Market_Pack_Size__c = 10, Requires_Cold_Chain__c = cold, Is_Controlled_Substance__c = controlled,
-            Controlled_Substance_Schedule__c = controlled ? 'H1' : null);
+        Product__c p = new Product__c(Name = name, Product_Code__c = 'SMP-' + Math.abs(name.hashCode()), Level__c = 'SKU', Is_Sample_Product__c = true,
+            Sample_Unit_Value_INR__c = 10, Pack_Size__c = 4, Smallest_Market_Pack_Size__c = 10, Requires_Cold_Chain__c = cold,
+            Is_Controlled_Substance__c = controlled, Controlled_Substance_Schedule__c = controlled ? 'H1' : null);
         insert p;
         return p;
     }
@@ -116,7 +116,7 @@ private class SampleTransactionServiceTest {
         Sample_Transaction__c noDoctor = disb(p, l, d, 1);
         noDoctor.HCP_Account__c = null;
         assertRefused(noDoctor, 'doctor');
-        Product__c notSample = new Product__c(Name = 'Detail only', Level__c = 'SKU');
+        Product__c notSample = new Product__c(Name = 'Detail only', Product_Code__c = 'SMP-DETAIL-ONLY', Level__c = 'SKU');
         insert notSample;
         assertRefused(new Sample_Transaction__c(Transaction_Type__c = 'Disbursement', Status__c = 'Completed', Product__c = notSample.Id, HCP_Account__c = d.Id, Quantity__c = 1), 'not set up as a sample');
         Sample_Lot__c old = lot(p, 'RU-OLD', 10, UserInfo.getUserId());
@@ -133,7 +133,7 @@ private class SampleTransactionServiceTest {
 
     @isTest
     static void restrictedProductCannotBeSampled() {
-        Product__c r = new Product__c(Name = 'Restricted SKU', Level__c = 'SKU', Is_Sample_Product__c = true, Sample_Unit_Value_INR__c = 5,
+        Product__c r = new Product__c(Name = 'Restricted SKU', Product_Code__c = 'SMP-RESTRICTED', Level__c = 'SKU', Is_Sample_Product__c = true, Sample_Unit_Value_INR__c = 5,
             Is_Restricted__c = true, Restriction_Reason__c = 'Hypnotic_Sedative_Tranquillizer', Max_Packs_Per_HCP_Per_Year__c = 0);
         insert r;
         Sample_Lot__c l = lot(r, 'RS-1', 10, UserInfo.getUserId());

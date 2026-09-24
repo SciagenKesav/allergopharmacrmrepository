@@ -76,6 +76,10 @@
         <enabled>true</enabled>
         <name>Manage_Sample_Inventory</name>
     </customPermissions>
+    <customPermissions>
+        <enabled>true</enabled>
+        <name>Sample_Unlock_Calls</name>
+    </customPermissions>
     <description>Lets a sample administrator manage sample products, lots, warehouses, transactions, limits, allocations and UCPMP reports. Assign only to sample administrators.</description>
     <fieldPermissions>
         <editable>false</editable>

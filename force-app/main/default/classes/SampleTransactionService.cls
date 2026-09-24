@@ -18,6 +18,10 @@ public without sharing class SampleTransactionService {
     public static final String T_TRANSFER_IN = 'Transfer_In';
     public static final String T_RETURN = 'Return';
     public static final String T_ADJUSTMENT = 'Adjustment';
+    /** System-created only (see SampleDropService.reverseDisbursements) — reverses a
+     *  posted Disbursement's stock effect via a new, Paired_Transaction__c-linked row.
+     *  The original Disbursement is never edited in place (SM-UNL-03). */
+    public static final String T_REVERSAL = 'Reversal';
     public static final Decimal LARGE_ADJUSTMENT_SHARE = 0.10;
 
     private static Boolean followUpRunning = false;
@@ -172,6 +176,9 @@ public without sharing class SampleTransactionService {
             if (r.To_User__c == null && r.To_Warehouse__c == null) { r.addError('Say who or where the samples are received by.'); return; }
         } else if (type == T_ADJUSTMENT) {
             if (lot == null) { r.addError('Choose the lot to adjust.'); return; }
+        } else if (type == T_REVERSAL) {
+            if (lot == null) { r.addError('A reversal needs the lot it is restoring stock to.'); return; }
+            if (r.Paired_Transaction__c == null) { r.addError('A reversal must be linked to the transaction it reverses.'); return; }
         }
 
         // What will this transaction do to the lot, and has that happened yet?
@@ -209,6 +216,9 @@ public without sharing class SampleTransactionService {
             if (available + qty < 0) { r.addError('That adjustment would leave lot ' + lot.Lot_Number__c + ' below zero.'); return; }
             applies = true;
             effect = qty;
+        } else if (type == T_REVERSAL && status == 'Completed' && !wasApplied) {
+            applies = true;
+            effect = qty;   // positive: restores the stock the original Disbursement took
         } else if (type == T_DISBURSEMENT && wasApplied && (status == 'Cancelled' || status == 'Rejected') && becameActive) {
             applies = true;                   // reversal by a sample manager
             effect = -(old.Inventory_Effect__c == null ? 0 : old.Inventory_Effect__c);
@@ -266,6 +276,7 @@ public without sharing class SampleTransactionService {
         List<Sample_Transaction__c> transferIns = new List<Sample_Transaction__c>();
         List<Sample_Transaction__c> returns = new List<Sample_Transaction__c>();
         List<Sample_Transaction__c> adjustments = new List<Sample_Transaction__c>();
+        List<Sample_Transaction__c> newReversals = new List<Sample_Transaction__c>();
 
         for (Sample_Transaction__c r : moved) {
             String type = r.Transaction_Type__c;
@@ -284,6 +295,7 @@ public without sharing class SampleTransactionService {
             else if (type == T_TRANSFER_OUT) transferOuts.add(r);
             else if (type == T_RETURN) returns.add(r);
             else if (type == T_ADJUSTMENT) adjustments.add(r);
+            else if (type == T_REVERSAL) newReversals.add(r);
         }
         for (Sample_Transaction__c r : reversed) {
             if (r.Sample_Lot__c != null) addDelta(delta, r.Sample_Lot__c, r.Inventory_Effect__c == null ? 0 : r.Inventory_Effect__c);
@@ -305,8 +317,10 @@ public without sharing class SampleTransactionService {
             if (!linkUpdates.isEmpty()) update linkUpdates;
             SampleExpenditureService.applyDisbursements(disbursements, 1);
             SampleExpenditureService.applyDisbursements(reversed, -1);
+            SampleExpenditureService.applyDisbursements(newReversals, -1);
             SampleAllocationService.applyDisbursements(disbursements, 1);
             SampleAllocationService.applyDisbursements(reversed, -1);
+            SampleAllocationService.applyDisbursements(newReversals, -1);
             notifyReturns(returns, lots);
             notifyLargeAdjustments(adjustments, lots);
             notifyShortfalls(disbursements);

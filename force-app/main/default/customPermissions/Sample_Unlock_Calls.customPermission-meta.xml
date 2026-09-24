@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomPermission xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Can unlock a submitted call directly, without a Support_Request__c ticket. Reverses its posted Disbursements the same way the Support-ticket unlock path does.</description>
+    <isLicensed>false</isLicensed>
+    <label>Sample Unlock Calls</label>
+</CustomPermission>

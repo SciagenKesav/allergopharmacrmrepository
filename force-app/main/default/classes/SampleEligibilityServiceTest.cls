@@ -63,13 +63,13 @@ private class SampleEligibilityServiceTest {
     @isTest
     static void restrictedAndNonSampleProductsAreBlocked() {
         Sciagen_Account__c d = SampleTestData.doctor('Dr Restrict');
-        Product__c restricted = new Product__c(Name = 'Sleep SKU', Level__c = 'SKU', Is_Sample_Product__c = true, Sample_Unit_Value_INR__c = 5,
+        Product__c restricted = new Product__c(Name = 'Sleep SKU', Product_Code__c = 'SMP-SLEEP', Level__c = 'SKU', Is_Sample_Product__c = true, Sample_Unit_Value_INR__c = 5,
             Is_Restricted__c = true, Restriction_Reason__c = 'Hypnotic_Sedative_Tranquillizer', Max_Packs_Per_HCP_Per_Year__c = 0);
         insert restricted;
         SampleEligibilityService.Result r = SampleEligibilityService.check(request(d, restricted, 1));
         System.assertEquals('Blocked', r.status);
         System.assert(r.message.contains('Clause 5.1(ii)(f)'), r.message);
-        Product__c detailOnly = new Product__c(Name = 'Detail SKU', Level__c = 'SKU');
+        Product__c detailOnly = new Product__c(Name = 'Detail SKU', Product_Code__c = 'SMP-DETAIL', Level__c = 'SKU');
         insert detailOnly;
         System.assert(SampleEligibilityService.check(request(d, detailOnly, 1)).message.contains('not set up as a sample product'));
     }

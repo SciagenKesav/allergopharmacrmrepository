@@ -95,7 +95,7 @@ public without sharing class SampleDropService {
                 SELECT Id, CVR__c, Product__c, Qty__c, Sample_Lot__c, Cold_Chain_Tag_Number__c, Cold_Chain_Status__c, Custom_Text__c, Unit_Value__c, Pack_Size__c,
                        Requires_Approval__c, Override_Reason__c, Eligibility_Message__c,
                        CVR__r.HCP__c, CVR__r.OwnerId, CVR__r.Signature_Captured__c, CVR__r.Signature_Image__c, CVR__r.Signature_Captured_At__c,
-                       CVR__r.Signature_GPS__Latitude__s, CVR__r.Signature_GPS__Longitude__s, CVR__r.Signee_Name__c, CVR__r.Start_Time__c
+                       CVR__r.Signature_GPS__Latitude__s, CVR__r.Signature_GPS__Longitude__s, CVR__r.Signee_Name__c, CVR__r.Start_Time__c, CVR__r.Unlock_Count__c
                 FROM Sample_Drop__c WHERE Id IN :dropIds AND Transaction__c = null
             ];
             if (drops.isEmpty()) return;
@@ -113,7 +113,16 @@ public without sharing class SampleDropService {
                     Cold_Chain_Tag_Number__c = d.Cold_Chain_Tag_Number__c, Cold_Chain_Status__c = d.Cold_Chain_Status__c, Custom_Text__c = d.Custom_Text__c,
                     Unit_Value_At_Transaction__c = d.Unit_Value__c, Pack_Size_At_Transaction__c = d.Pack_Size__c, Override_Reason__c = d.Override_Reason__c,
                     Eligibility_Message__c = d.Eligibility_Message__c, Performed_By__c = c.OwnerId, Performed_At__c = c.Start_Time__c == null ? System.now() : c.Start_Time__c,
-                    Device_Type__c = 'iPad', Client_Id__c = 'DROP-' + d.Id);
+                    Device_Type__c = 'iPad',
+                    // Client_Id__c is a retry-idempotency key: a genuine retried push of THIS
+                    // submission attempt must collide (same key) so a duplicate insert is
+                    // rejected, but a fresh disbursement created after an unlock (SM-UNL-03,
+                    // SampleDropService.reverseDisbursements clears Transaction__c so this
+                    // same Sample_Drop__c row is re-processed) is a different event and must
+                    // NOT collide with the drop's earlier disbursement — otherwise the
+                    // resubmit silently fails as a "duplicate" and never re-posts. Call_Visit_Report__c.
+                    // Unlock_Count__c already exists precisely to distinguish these generations.
+                    Client_Id__c = 'DROP-' + d.Id + '-U' + (c.Unlock_Count__c == null ? 0 : c.Unlock_Count__c.intValue()));
                 txns.add(t);
             }
             List<Database.SaveResult> results = Database.insert(txns, false);
@@ -183,5 +192,69 @@ public without sharing class SampleDropService {
         if (submitted.isEmpty()) return;
         Map<Id, Sample_Drop__c> drops = new Map<Id, Sample_Drop__c>([SELECT Id FROM Sample_Drop__c WHERE CVR__c IN :submitted AND Transaction__c = null]);
         if (!drops.isEmpty()) createTransactions(drops.keySet());
+    }
+
+    /**
+     * SM-UNL-01..03 (D3/D14): a call with samples leaving 'Submitted' — via either
+     * unlock path (the Support-ticket flow, SupportUnlockService.unlock, or a direct
+     * Sample Admin unlock behind Sample_Unlock_Calls) — must reverse every Disbursement
+     * it already posted, not edit them in place. Fires from SampleCallTrigger's existing
+     * after-update leg, right after beforeCallUpdate's own unlock validation already ran
+     * (and would have blocked the save entirely for an unauthorized controlled-substance
+     * unlock) — so by the time this runs, the status change is already committed and
+     * legitimate. Resubmitting later re-creates fresh Disbursements from whatever the
+     * call's sample lines say at that point (createTransactions only ever processes a
+     * Sample_Drop__c whose Transaction__c is null), so nothing here has to guess what the
+     * rep will change.
+     */
+    public static void afterCallUnlock(List<Call_Visit_Report__c> news, Map<Id, Call_Visit_Report__c> oldMap) {
+        if (oldMap == null) return;
+        Set<Id> unlockedIds = new Set<Id>();
+        for (Call_Visit_Report__c c : news) {
+            Call_Visit_Report__c o = oldMap.get(c.Id);
+            if (o != null && o.Record_Status__c == 'Submitted' && c.Record_Status__c != 'Submitted') unlockedIds.add(c.Id);
+        }
+        if (!unlockedIds.isEmpty()) reverseDisbursements(unlockedIds);
+    }
+
+    /** Reverses every posted Disbursement for these calls and frees their drop lines
+     *  (clears Sample_Drop__c.Transaction__c) so a later resubmit posts fresh ones. */
+    public static void reverseDisbursements(Set<Id> callIds) {
+        List<Sample_Drop__c> drops = [SELECT Id, Transaction__c FROM Sample_Drop__c WHERE CVR__c IN :callIds AND Transaction__c != null];
+        if (drops.isEmpty()) return;
+        Set<Id> txnIds = new Set<Id>();
+        for (Sample_Drop__c d : drops) txnIds.add(d.Transaction__c);
+
+        List<Sample_Transaction__c> originals = [
+            SELECT Id, Sample_Lot__c, Product__c, Quantity__c, HCP_Account__c, Call_Report__c, Sample_Drop__c,
+                   Pack_Size_At_Transaction__c, Unit_Value_At_Transaction__c
+            FROM Sample_Transaction__c
+            WHERE Id IN :txnIds AND Transaction_Type__c = 'Disbursement' AND Inventory_Applied__c = true
+        ];
+        if (originals.isEmpty()) return;
+
+        List<Sample_Transaction__c> reversals = new List<Sample_Transaction__c>();
+        for (Sample_Transaction__c o : originals) {
+            reversals.add(new Sample_Transaction__c(
+                Transaction_Type__c = 'Reversal', Status__c = 'Completed', Sample_Lot__c = o.Sample_Lot__c, Product__c = o.Product__c,
+                // Same magnitude as what was taken; SampleTransactionService applies it
+                // with a positive sign, restoring the lot. Pack size/unit value are
+                // copied from the original rather than left to re-default to the
+                // product's CURRENT price — an undo must match what was actually
+                // added, even if the price master has since changed.
+                Quantity__c = o.Quantity__c, Pack_Size_At_Transaction__c = o.Pack_Size_At_Transaction__c,
+                Unit_Value_At_Transaction__c = o.Unit_Value_At_Transaction__c, HCP_Account__c = o.HCP_Account__c,
+                Call_Report__c = o.Call_Report__c, Sample_Drop__c = o.Sample_Drop__c, Paired_Transaction__c = o.Id,
+                Performed_By__c = UserInfo.getUserId(), Performed_At__c = System.now(),
+                Notes__c = ('Reversal of ' + o.Id + ' — call ' + o.Call_Report__c + ' was unlocked for correction.').left(255),
+                Client_Id__c = 'REV-' + o.Id));
+        }
+        insert reversals;
+
+        List<Sample_Drop__c> clearLinks = new List<Sample_Drop__c>();
+        for (Sample_Drop__c d : drops) {
+            clearLinks.add(new Sample_Drop__c(Id = d.Id, Transaction__c = null, Eligibility_Status__c = null, Eligibility_Message__c = null));
+        }
+        update clearLinks;
     }
 }

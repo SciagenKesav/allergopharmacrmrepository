@@ -1,6 +1,28 @@
 @isTest
 private class SampleDropServiceTest {
 
+    // Users for the unlock tests below — created in @testSetup (a separate,
+    // already-committed transaction), not inline inside an @isTest method:
+    // FeatureManagement.checkPermission() does not reliably see a
+    // PermissionSetAssignment inserted in the same transaction it's checked in.
+    @testSetup
+    static void users() {
+        Profile std = [SELECT Id FROM Profile WHERE Name = 'Standard User' LIMIT 1];
+        Profile sysAdmin = [SELECT Id FROM Profile WHERE Name = 'System Administrator' LIMIT 1];
+        User rep = new User(FirstName = 'No', LastName = 'PermTest', Alias = 'noperm', Email = 'no.perm.unlock@sciagen-test.invalid',
+            Username = 'no.perm.unlock@sciagen-new-dev.invalid', TimeZoneSidKey = 'Asia/Kolkata', LocaleSidKey = 'en_US',
+            EmailEncodingKey = 'UTF-8', LanguageLocaleKey = 'en_US', ProfileId = std.Id, IsActive = true);
+        User admin = new User(FirstName = 'Sample', LastName = 'AdminUnlockTest', Alias = 'sadmu', Email = 'sample.admin.unlock@sciagen-test.invalid',
+            Username = 'sample.admin.unlock@sciagen-new-dev.invalid', TimeZoneSidKey = 'Asia/Kolkata', LocaleSidKey = 'en_US',
+            EmailEncodingKey = 'UTF-8', LanguageLocaleKey = 'en_US', ProfileId = sysAdmin.Id, IsActive = true);
+        insert new List<User>{ rep, admin };
+        insert new PermissionSetAssignment(AssigneeId = rep.Id, PermissionSetId = [SELECT Id FROM PermissionSet WHERE Name = 'Sciagen_Mobile_App_Access'].Id);
+        insert new PermissionSetAssignment(AssigneeId = admin.Id, PermissionSetId = [SELECT Id FROM PermissionSet WHERE Name = 'Sciagen_Sample_Admin'].Id);
+    }
+
+    static User repNoPermission() { return [SELECT Id FROM User WHERE Username = 'no.perm.unlock@sciagen-new-dev.invalid']; }
+    static User sampleAdminUser() { return [SELECT Id FROM User WHERE Username = 'sample.admin.unlock@sciagen-new-dev.invalid']; }
+
     static Decimal avail(Id lotId) { return [SELECT Available_Quantity__c FROM Sample_Lot__c WHERE Id = :lotId].Available_Quantity__c; }
 
     static Sample_Drop__c drop(Call_Visit_Report__c c, Product__c p, Integer qty) {
@@ -257,5 +279,102 @@ private class SampleDropServiceTest {
         System.assertEquals('Verified', [SELECT License_Verification_Status__c FROM Sciagen_Account__c WHERE Id = :fine.Id].License_Verification_Status__c);
         System.assertEquals(false, [SELECT Sample_Eligible__c FROM Sciagen_Account__c WHERE Id = :lapsed.Id].Sample_Eligible__c);
         System.assertEquals(true, [SELECT Sample_Eligible__c FROM Sciagen_Account__c WHERE Id = :fine.Id].Sample_Eligible__c);
+    }
+
+    // ---------------------------------------------------------------------
+    // SM-UNL-01..03 (D3/D14): unlock reverses the posted Disbursement(s)
+    // rather than editing them in place; resubmitting posts fresh ones with
+    // no double counting of stock or UCPMP expenditure.
+    // ---------------------------------------------------------------------
+
+    @isTest
+    static void unlockingASubmittedCallReversesItsDisbursementWithoutEditingItInPlace() {
+        Product__c p = SampleTestData.product('Unlock SKU');
+        Sciagen_Account__c d = SampleTestData.doctor('Dr Unlock');
+        Sample_Lot__c lot = SampleTestData.lot(p, 'UNL-1', 20, 200);
+        Call_Visit_Report__c call = SampleTestData.call(d, 'Draft');
+        Sample_Drop__c line = drop(call, p, 3);
+        insert line;
+        call.Record_Status__c = 'Submitted';
+        call.Signature_Captured__c = true;
+        call.Signee_Name__c = 'Dr Unlock';
+        update call;
+
+        System.assertEquals(17, avail(lot.Id), 'disbursement took 3 packs');
+        Sample_Transaction__c original = [SELECT Id, Quantity__c, Status__c, Transaction_Type__c FROM Sample_Transaction__c WHERE Call_Report__c = :call.Id];
+        Sample_Expenditure_Tracking__c e1 = [SELECT Total_Packs_Given__c FROM Sample_Expenditure_Tracking__c WHERE HCP_Account__c = :d.Id AND Product__c = :p.Id];
+        System.assertEquals(3, e1.Total_Packs_Given__c);
+
+        // Unlock (the direct Sample Admin path — SampleAdminController.unlockCall).
+        Test.startTest();
+        System.runAs(sampleAdminUser()) {
+            SampleAdminController.unlockCall(call.Id, 'Rep reported the wrong quantity.');
+        }
+        Test.stopTest();
+
+        System.assertEquals('Saved', [SELECT Record_Status__c FROM Call_Visit_Report__c WHERE Id = :call.Id].Record_Status__c);
+        // The original Disbursement itself is untouched — never edited in place.
+        Sample_Transaction__c untouchedOriginal = [SELECT Quantity__c, Status__c, Transaction_Type__c, Inventory_Applied__c FROM Sample_Transaction__c WHERE Id = :original.Id];
+        System.assertEquals('Disbursement', untouchedOriginal.Transaction_Type__c);
+        System.assertEquals('Completed', untouchedOriginal.Status__c);
+        System.assertEquals(3, untouchedOriginal.Quantity__c);
+        System.assertEquals(true, untouchedOriginal.Inventory_Applied__c, 'the original record itself is never flipped back off');
+        // A separate Reversal transaction exists, linked back to it.
+        Sample_Transaction__c reversal = [SELECT Transaction_Type__c, Quantity__c, Paired_Transaction__c, Sample_Lot__c FROM Sample_Transaction__c
+                                          WHERE Transaction_Type__c = 'Reversal' AND Paired_Transaction__c = :original.Id];
+        System.assertEquals(3, reversal.Quantity__c);
+        System.assertEquals(lot.Id, reversal.Sample_Lot__c);
+        System.assertEquals(20, avail(lot.Id), 'stock is fully restored');
+        Sample_Expenditure_Tracking__c e2 = [SELECT Total_Packs_Given__c FROM Sample_Expenditure_Tracking__c WHERE HCP_Account__c = :d.Id AND Product__c = :p.Id];
+        System.assertEquals(0, e2.Total_Packs_Given__c, 'the UCPMP counter is undone, not left over-counted');
+        System.assertEquals(null, [SELECT Transaction__c FROM Sample_Drop__c WHERE Id = :line.Id].Transaction__c, 'freed to be re-posted on resubmit');
+
+        // Edit the quantity, then resubmit — must post a FRESH disbursement, not touch the old records again.
+        line.Qty__c = 5;
+        update line;
+        call = [SELECT Id, Record_Status__c FROM Call_Visit_Report__c WHERE Id = :call.Id];
+        call.Record_Status__c = 'Submitted';
+        update call;
+
+        Sample_Drop__c afterResubmit = [SELECT Transaction__c, Eligibility_Status__c FROM Sample_Drop__c WHERE Id = :line.Id];
+        System.assertNotEquals(null, afterResubmit.Transaction__c, 'the resubmit posted a fresh disbursement, linked back to the drop line');
+        System.assertNotEquals('Blocked', afterResubmit.Eligibility_Status__c);
+        System.assertEquals(15, avail(lot.Id), '20 on hand minus the new, edited quantity of 5 — not 20-3-5');
+        System.assertEquals(2, [SELECT COUNT() FROM Sample_Transaction__c WHERE Call_Report__c = :call.Id AND Transaction_Type__c = 'Disbursement'],
+            'the original disbursement plus one fresh one for the resubmit — never a third');
+        Sample_Transaction__c fresh = [SELECT Quantity__c FROM Sample_Transaction__c WHERE Call_Report__c = :call.Id AND Transaction_Type__c = 'Disbursement'
+                                       AND Id != :original.Id];
+        System.assertEquals(5, fresh.Quantity__c);
+        Sample_Expenditure_Tracking__c e3 = [SELECT Total_Packs_Given__c FROM Sample_Expenditure_Tracking__c WHERE HCP_Account__c = :d.Id AND Product__c = :p.Id];
+        System.assertEquals(5, e3.Total_Packs_Given__c, 'reflects only the resubmitted quantity — no double counting');
+    }
+
+    @isTest
+    static void unlockCallRequiresThePermissionAndARunningReason() {
+        Sciagen_Account__c d = SampleTestData.doctor('Dr NoPerm');
+        Call_Visit_Report__c call = SampleTestData.call(d, 'Submitted');
+
+        // A plain rep (Sciagen_Mobile_App_Access only, no Sample Admin permission
+        // set) must be refused.
+        Test.startTest();
+        System.runAs(repNoPermission()) {
+            System.assertEquals(false, FeatureManagement.checkPermission('Sample_Unlock_Calls'), 'diagnostic: raw permission check for the no-perm rep');
+            try {
+                SampleAdminController.unlockCall(call.Id, 'trying without permission');
+                System.assert(false, 'a user without Sample_Unlock_Calls must be refused');
+            } catch (AuraHandledException e) {
+                System.assert(true);
+            }
+        }
+
+        System.runAs(sampleAdminUser()) {
+            try {
+                SampleAdminController.unlockCall(call.Id, '');
+                System.assert(false, 'a blank reason must be refused even with permission');
+            } catch (AuraHandledException e) {
+                System.assert(e.getMessage().contains('reason'), e.getMessage());
+            }
+        }
+        Test.stopTest();
     }
 }

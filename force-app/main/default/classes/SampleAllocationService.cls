@@ -4,12 +4,14 @@
  */
 public without sharing class SampleAllocationService {
 
+    /** sign +1 when disbursements are applied, -1 to undo one — either the old
+     *  in-place-reversal path or a new Transaction_Type__c = 'Reversal' row (SM-UNL-03). */
     public static void applyDisbursements(List<Sample_Transaction__c> txns, Integer sign) {
         if (txns == null || txns.isEmpty()) return;
         Set<Id> users = new Set<Id>();
         Set<Id> products = new Set<Id>();
         for (Sample_Transaction__c t : txns) {
-            if (t.Transaction_Type__c != 'Disbursement' || t.Performed_By__c == null) continue;
+            if ((t.Transaction_Type__c != 'Disbursement' && t.Transaction_Type__c != 'Reversal') || t.Performed_By__c == null) continue;
             users.add(t.Performed_By__c);
             products.add(t.Product__c);
         }
@@ -30,7 +32,7 @@ public without sharing class SampleAllocationService {
         ];
         Map<Id, Sample_Allocation__c> touched = new Map<Id, Sample_Allocation__c>();
         for (Sample_Transaction__c t : txns) {
-            if (t.Transaction_Type__c != 'Disbursement' || t.Performed_By__c == null) continue;
+            if ((t.Transaction_Type__c != 'Disbursement' && t.Transaction_Type__c != 'Reversal') || t.Performed_By__c == null) continue;
             Date givenOn = (t.Performed_At__c == null ? System.now() : t.Performed_At__c).date();
             Sample_Allocation__c hit = null;
             for (Sample_Allocation__c a : allocations) {
