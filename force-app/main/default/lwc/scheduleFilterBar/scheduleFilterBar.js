@@ -14,6 +14,8 @@ export default class ScheduleFilterBar extends LightningElement {
     @api territory = '';
     @api status = '';
     @api customListId = '';
+    @api callCategory = '';
+    @api categoryOptions = [];
     @api specialtyOptions = [];
     @api territoryOptions = [];
     @api customListOptions = [];
@@ -27,7 +29,11 @@ export default class ScheduleFilterBar extends LightningElement {
     }
 
     get statusOptions() {
-        return ['Planned', 'Completed', 'Cancelled'];
+        return ['Planned', 'Draft', 'Completed', 'Cancelled'];
+    }
+
+    get categoryComboOptions() {
+        return [{ label: 'All Call Types', value: '' }, ...this.categoryOptions.map((c) => ({ label: c, value: c }))];
     }
 
     get specialtyComboOptions() {
@@ -52,7 +58,7 @@ export default class ScheduleFilterBar extends LightningElement {
 
     get activeFilterCount() {
         return (this.kind !== 'All' ? 1 : 0)
-            + (this.specialty ? 1 : 0) + (this.territory ? 1 : 0) + (this.status ? 1 : 0) + (this.customListId ? 1 : 0);
+            + (this.specialty ? 1 : 0) + (this.territory ? 1 : 0) + (this.status ? 1 : 0) + (this.customListId ? 1 : 0) + (this.callCategory ? 1 : 0);
     }
 
     get filtersButtonLabel() {
@@ -93,6 +99,10 @@ export default class ScheduleFilterBar extends LightningElement {
 
     handleStatusChange(event) {
         this.dispatchEvent(new CustomEvent('filterchange', { detail: { field: 'status', value: event.detail.value } }));
+    }
+
+    handleCategoryChange(event) {
+        this.dispatchEvent(new CustomEvent('filterchange', { detail: { field: 'callCategory', value: event.detail.value } }));
     }
 
     handleCustomListChange(event) {

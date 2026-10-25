@@ -30,6 +30,10 @@
                 <behavior>Edit</behavior>
                 <field>Is_Training__c</field>
             </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Training_Type__c</field>
+            </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>
@@ -43,6 +47,10 @@
             <layoutItems>
                 <behavior>Edit</behavior>
                 <field>Version__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Display_Order__c</field>
             </layoutItems>
             <layoutItems>
                 <behavior>Edit</behavior>
@@ -78,6 +86,8 @@
         <customLabel>false</customLabel>
         <detailHeading>false</detailHeading>
         <editHeading>false</editHeading>
+        <layoutColumns/>
+        <layoutColumns/>
         <layoutColumns/>
         <style>CustomLinks</style>
     </layoutSections>

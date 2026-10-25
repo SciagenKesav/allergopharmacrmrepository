@@ -1,0 +1,58 @@
+<template>
+    <section role="dialog" class="slds-modal slds-fade-in-open slds-modal_medium" aria-modal="true">
+        <div class="slds-modal__container">
+            <header class="slds-modal__header">
+                <lightning-button-icon class="slds-modal__close" icon-name="utility:close" variant="bare-inverse" alternative-text="Close" onclick={close}></lightning-button-icon>
+                <h2 class="slds-modal__title">{heading}</h2>
+            </header>
+            <div class="slds-modal__content slds-p-around_medium body">
+                <div if:true={loading} class="slds-align_absolute-center slds-p-around_large"><lightning-spinner alternative-text="Loading" size="small"></lightning-spinner></div>
+                <div if:true={error} class="err">{error}</div>
+
+                <template if:true={isGroup}>
+                    <div class="row2">
+                        <lightning-input type="search" variant="label-hidden" label="Search" placeholder="Search doctor" onchange={handleSearch}></lightning-input>
+                        <lightning-combobox variant="label-hidden" label="Sort" options={sortOptions} value={sortKey} onchange={handleSort}></lightning-combobox>
+                    </div>
+                    <div class="cap">{caption}</div>
+                    <template for:each={docs} for:item="d">
+                        <div key={d.id} class="doc" data-id={d.id} onclick={openDoctor}>
+                            <div class="dl"><div class="dn">{d.name}</div><div class="ds">{d.tier} · {d.specialty} · {d.hospital}</div></div>
+                            <div class="dnums"><span>P {d.planned}</span><span>D {d.completed}</span><span>M {d.missed}</span><span class={d.tagClass}>{d.tag}</span></div>
+                        </div>
+                    </template>
+                </template>
+
+                <template if:true={isDoctor}>
+                    <lightning-button if:true={canGoBack} variant="base" label="‹ Back to group" onclick={backToGroup}></lightning-button>
+                    <div if:true={detail}>
+                        <div class="dsub">{detail.row.tier} · {detail.row.specialty} · {detail.row.hospital}</div>
+                        <div class="nums">
+                            <div class="n"><b>{detail.row.planned}</b><span>Planned</span></div>
+                            <div class="n"><b>{detail.row.completed}</b><span>Completed</span></div>
+                            <div class="n"><b>{detail.row.draft}</b><span>Draft</span></div>
+                            <div class="n"><b>{detail.row.missed}</b><span>Missed</span></div>
+                            <div class="n"><b>{detail.row.emailsSent}</b><span>Emails</span></div>
+                            <div class="n"><b>{detail.row.samples}</b><span>Samples</span></div>
+                        </div>
+                        <h3 class="sh">Call reports</h3>
+                        <template for:each={calls} for:item="c"><div key={c.key} class="li"><span>{c.date}</span><span>{c.status}</span><span class="grow">{c.products}</span></div></template>
+                        <div if:true={noCalls} class="none">None in this period.</div>
+                        <h3 class="sh">Plans</h3>
+                        <template for:each={plans} for:item="p"><div key={p.key} class="li"><span>{p.date}</span><span>{p.status}</span><span class="miss">{p.missed}</span></div></template>
+                        <div if:true={noPlans} class="none">None in this period.</div>
+                        <h3 class="sh">Approved emails</h3>
+                        <template for:each={emails} for:item="m"><div key={m.key} class="li"><span>{m.date}</span><span class="grow">{m.template}</span><span>{m.status}</span></div></template>
+                        <div if:true={noEmails} class="none">None in this period.</div>
+                    </div>
+                </template>
+
+                <template if:true={isTable}>
+                    <c-sci-report-table title={table.title} icon={table.icon} columns={table.columns} rows={table.rows}></c-sci-report-table>
+                </template>
+            </div>
+            <footer class="slds-modal__footer"><lightning-button label="Close" onclick={close}></lightning-button></footer>
+        </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+</template>

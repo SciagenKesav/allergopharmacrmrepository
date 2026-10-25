@@ -10,6 +10,20 @@
 
         <div class={layoutClass}>
             <section class="left">
+                <template if:true={ctx.canAdminView}>
+                    <div class="admin-panel">
+                        <p class="admin-title">View a Key Account Manager's requests</p>
+                        <lightning-combobox label="Territory" variant="label-stacked" value={territoryId} options={territoryOptions} placeholder="Choose a territory" onchange={territoryChanged}></lightning-combobox>
+                        <template if:true={showKamPicker}>
+                            <lightning-combobox label="Key Account Manager" variant="label-stacked" value={kamId} options={kamOptions} placeholder={kamPlaceholder} onchange={kamChanged}></lightning-combobox>
+                        </template>
+                        <template if:true={adminMode}>
+                            <div class="admin-note">Showing requests raised by {selectedKamName}.
+                                <button type="button" class="admin-clear" onclick={clearAdmin}>Back to my requests</button>
+                            </div>
+                        </template>
+                    </div>
+                </template>
                 <div class="tabs" role="tablist">
                     <template for:each={tabs} for:item="t">
                         <button key={t.value} type="button" role="tab" aria-selected={t.selected} class={t.cls} data-tab={t.value} onclick={setTab}>{t.label}</button>
@@ -58,7 +72,7 @@
             <section class="right">
                 <template if:true={selectedId}>
                     <button type="button" class="back" onclick={back}>Back to requests</button>
-                    <c-support-thread request-id={selectedId} onchange={handleChange}></c-support-thread>
+                    <c-support-thread request-id={selectedId} admin-mode={adminMode} onchange={handleChange}></c-support-thread>
                 </template>
                 <template if:false={selectedId}>
                     <div class="placeholder">

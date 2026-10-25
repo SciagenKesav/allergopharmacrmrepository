@@ -1,0 +1,75 @@
+<template>
+    <lightning-card>
+        <div class="wrap">
+            <div class="head">
+                <div class="left">
+                    <template if:true={inReport}>
+                        <lightning-button-icon icon-name="utility:back" variant="border-filled" alternative-text="Back to Reports" onclick={goLibrary}></lightning-button-icon>
+                        <lightning-icon icon-name={current.icon} size="small" alternative-text="" class="hico"></lightning-icon>
+                    </template>
+                    <div>
+                        <div class="title">{headerTitle}</div>
+                        <div class="sub">{headerSub}</div>
+                    </div>
+                </div>
+                <div class="right">
+                    <lightning-combobox if:true={isManager} class="terr" label="Territory" variant="label-hidden" options={territoryChoices} value={territoryId} onchange={handleTerritory}></lightning-combobox>
+                    <lightning-combobox if:true={isManager} class="rep" label="KAM" variant="label-hidden" options={repChoices} value={repUserId} onchange={handleRep}></lightning-combobox>
+                    <template if:false={isSales}>
+                        <lightning-combobox class="per" label="Period" variant="label-hidden" options={periodOptions} value={periodName} onchange={handlePeriod}></lightning-combobox>
+                        <template if:true={isCustom}>
+                            <lightning-input type="date" label="From" variant="label-hidden" value={customFrom} onchange={handleFrom}></lightning-input>
+                            <lightning-input type="date" label="To" variant="label-hidden" value={customTo} onchange={handleTo}></lightning-input>
+                        </template>
+                    </template>
+                    <lightning-button-icon icon-name="utility:refresh" alternative-text="Refresh" onclick={handleRefresh}></lightning-button-icon>
+                </div>
+            </div>
+
+            <template if:false={inReport}>
+                <div class="note">Standard, view-only reports on your data</div>
+                <template for:each={groups} for:item="g">
+                    <div key={g.name} class="group">
+                        <div class="gh">{g.name}</div>
+                        <div class="cards">
+                            <template for:each={g.cards} for:item="c">
+                                <button key={c.key} class="rcard" data-key={c.key} onclick={openReport}>
+                                    <span class="tile" style={c.tileStyle}><lightning-icon icon-name={c.icon} size="small" variant="inverse" alternative-text=""></lightning-icon></span>
+                                    <span class="rtext"><b>{c.name}</b><i>{c.summary}</i></span>
+                                    <span class="rnum"><b>{c.headline}</b><i>{c.label}</i></span>
+                                    <lightning-icon icon-name="utility:chevronright" size="x-small" alternative-text=""></lightning-icon>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </template>
+
+            <template if:true={inReport}>
+                <template if:true={showControls}>
+                    <div class="controls">
+                        <lightning-input class="srch" type="search" variant="label-hidden" label="Search" placeholder="Search doctor, hospital, specialty, city" value={filters.search} onchange={handleSearch}></lightning-input>
+                        <lightning-button label={filterLabel} icon-name="utility:filter" onclick={openFilters}></lightning-button>
+                        <lightning-combobox if:true={isCoverage} class="grp" label="Group by" variant="label-hidden" options={groupOptions} value={groupBy} onchange={handleGroupBy}></lightning-combobox>
+                    </div>
+                    <div if:true={hasChips} class="chips">
+                        <template for:each={chips} for:item="c"><button key={c.key} class="chip" data-dim={c.dim} data-value={c.value} onclick={removeChip}>{c.value} ×</button></template>
+                        <lightning-button variant="base" label="Clear all" onclick={clearAll}></lightning-button>
+                    </div>
+                </template>
+                <template if:true={isSales}><c-sci-sales-reports></c-sci-sales-reports></template>
+                <template if:false={isSales}>
+                    <c-sci-report-view report-key={screen} period={period} filters={filters} rep-user-id={repUserId} territory-id={territoryId} group-by={groupBy} refresh-token={refreshToken}
+                        onloaded={handleLoaded} ondrill={handleDrill}></c-sci-report-view>
+                </template>
+            </template>
+        </div>
+    </lightning-card>
+
+    <template if:true={showFilters}>
+        <c-sci-filter-panel options={options} value={filters} onapply={applyFilters} onclose={closeFilters}></c-sci-filter-panel>
+    </template>
+    <template if:true={drill}>
+        <c-sci-drill-panel target={drill} params-json={drillParams} start-date={period.start} end-date={period.end} rep-user-id={repUserId} territory-id={territoryId} period-label={period.label} onclose={closeDrill}></c-sci-drill-panel>
+    </template>
+</template>

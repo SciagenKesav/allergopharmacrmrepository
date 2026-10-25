@@ -2,8 +2,9 @@
     <div class="schedule">
         <div class="schedule-header">
             <div class="header-left">
-                <h2>My Schedule</h2>
-                <span class="range-label">{rangeLabel}</span>
+                <h2>{rangeLabel}</h2>
+                <span class="chip chip-planned">{plannedChipLabel}</span>
+                <span class="chip chip-submitted">{submittedChipLabel}</span>
             </div>
             <div class="header-right">
                 <lightning-button-group>
@@ -16,9 +17,63 @@
                         <lightning-button key={m.key} label={m.label} variant={m.variant} data-value={m.key} onclick={handleModeChange}></lightning-button>
                     </template>
                 </lightning-button-group>
-                <lightning-button variant="brand" label="Schedule" icon-name="utility:add" onclick={handleNewVisit}></lightning-button>
+                <template if:false={viewingOtherUser}>
+                    <lightning-button variant="brand" label="Schedule" icon-name="utility:add" onclick={handleNewVisit}></lightning-button>
+                </template>
             </div>
         </div>
+
+        <template if:true={isSelfMode}>
+            <div class="kam-picker">
+                <span class="my-schedule-label">My Schedule</span>
+            </div>
+        </template>
+
+        <template if:true={isAdminMode}>
+            <div class="kam-picker">
+                <lightning-combobox
+                    label="Region"
+                    variant="label-hidden"
+                    placeholder="Region"
+                    value={selectedRegionId}
+                    options={regionOptions}
+                    onchange={handleRegionChange}
+                ></lightning-combobox>
+                <lightning-combobox
+                    label="Territory"
+                    variant="label-hidden"
+                    placeholder="Territory"
+                    value={selectedTerritoryId}
+                    options={adminTerritoryOptions}
+                    onchange={handleTerritoryChange}
+                ></lightning-combobox>
+                <lightning-combobox
+                    label="Viewing"
+                    variant="label-hidden"
+                    value={selectedUserId}
+                    options={adminKamOptions}
+                    onchange={handleKamChange}
+                ></lightning-combobox>
+                <template if:true={viewingOtherUser}>
+                    <span class="kam-picker-note">Read-only — showing this KAM's schedule</span>
+                </template>
+            </div>
+        </template>
+
+        <template if:true={showKamPicker}>
+            <div class="kam-picker">
+                <lightning-combobox
+                    label="Viewing"
+                    variant="label-hidden"
+                    value={selectedUserId}
+                    options={kamPickerOptions}
+                    onchange={handleKamChange}
+                ></lightning-combobox>
+                <template if:true={viewingOtherUser}>
+                    <span class="kam-picker-note">Read-only — showing this KAM's schedule</span>
+                </template>
+            </div>
+        </template>
 
         <template if:true={showCallReport}>
             <div class="call-report-panel">
@@ -39,6 +94,8 @@
             specialty={specialty}
             territory={territory}
             status={status}
+            call-category={callCategory}
+            category-options={categoryOptions}
             custom-list-id={customListId}
             specialty-options={specialtyOptions}
             territory-options={territoryOptions}
@@ -47,6 +104,13 @@
             onfilterchange={handleFilterChange}
         ></c-schedule-filter-bar>
 
+        <div class="legend">
+            <template for:each={legendItems} for:item="l">
+                <span class="legend-item" key={l.key}><span class="legend-dot" style={l.style}></span>{l.label}</span>
+            </template>
+        </div>
+
+        <div class="schedule-form-anchor"></div>
         <template if:true={showForm}>
             <c-schedule-call-form
                 record-id={editingCallId}
@@ -57,7 +121,6 @@
                 oncancel={handleFormCancel}
             ></c-schedule-call-form>
         </template>
-
         <template if:true={isLoading}>
             <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
         </template>
@@ -66,30 +129,40 @@
             <template if:true={isAgendaMode}>
                 <div class="agenda">
                     <template if:false={hasAgendaResults}>
-                        <div class="empty-state">No visits in this range. Tap Schedule to add one.</div>
+                        <div class="empty-state">{agendaEmptyText}</div>
                     </template>
-                    <template for:each={agendaGroups} for:item="group">
-                        <div class="day-group" key={group.key}>
-                            <div class="day-header">{group.dateLabel}</div>
-                            <template for:each={group.items} for:item="call">
-                                <div class="call-row" key={call.id}>
-                                    <div class="call-time">{call.timeLabel}</div>
-                                    <div class="call-main" data-account-id={call.hcpId} data-planned-call-id={call.id}
-                                         data-hcpid={call.hcpId} data-hcoid={call.hcoId} data-cvrid={call.resultingCVRId}
-                                         onclick={handleRowClick}>
-                                        <span class="call-name">{call.displayName}</span>
-                                        <span class="call-subtitle">{call.subtitle}</span>
+                    <template for:each={agendaItems} for:item="call">
+                        <div class="call-card" key={call.id} style={call.cardStyle} data-id={call.id} onclick={handleRowClick}>
+                            <div class="call-card-body">
+                                <span class={call.nameClass}>{call.displayName}</span>
+                                <span class="call-subtitle">{call.subtitle}</span>
+                                <span class="call-time">{call.timeRange}</span>
+                            </div>
+                            <div class="call-card-side">
+                                <template if:false={viewingOtherUser}>
+                                    <div class="call-menu" onclick={stopClick}>
+                                        <lightning-button-menu alternative-text="Actions" icon-name="utility:threedots" variant="bare" menu-alignment="right">
+                                            <template if:false={call.isReportOnly}>
+                                                <lightning-menu-item label="Edit" data-id={call.id} onclick={handleEditVisit}></lightning-menu-item>
+                                            </template>
+                                            <lightning-menu-item label={call.logVisitLabel} data-id={call.id} data-hcpid={call.hcpId} data-hcoid={call.hcoId} data-cvrid={call.resultingCVRId} onclick={handleLogVisit}></lightning-menu-item>
+                                            <template if:false={call.isReportOnly}>
+                                                <lightning-menu-item label="Mark Completed" data-id={call.id} onclick={handleMarkCompleted}></lightning-menu-item>
+                                                <lightning-menu-item label="Mark Cancelled" data-id={call.id} onclick={handleMarkCancelled}></lightning-menu-item>
+                                                <template if:false={call.isLocked}>
+                                                    <template if:true={call.canDelete}>
+                                                        <lightning-menu-item label="Delete" value="delete" data-id={call.id} onclick={handleDeleteVisit}></lightning-menu-item>
+                                                    </template>
+                                                </template>
+                                            </template>
+                                        </lightning-button-menu>
                                     </div>
-                                    <span class="pill" style={call.statusStyle}>{call.visitLabel}</span>
-                                    <lightning-button-menu alternative-text="Actions" icon-name="utility:down" menu-alignment="right">
-                                        <lightning-menu-item label="Edit" data-id={call.id} onclick={handleEditVisit}></lightning-menu-item>
-                                        <lightning-menu-item label={call.logVisitLabel} data-id={call.id} data-hcpid={call.hcpId} data-hcoid={call.hcoId} data-cvrid={call.resultingCVRId} onclick={handleLogVisit}></lightning-menu-item>
-                                        <lightning-menu-item label="Mark Completed" data-id={call.id} onclick={handleMarkCompleted}></lightning-menu-item>
-                                        <lightning-menu-item label="Mark Cancelled" data-id={call.id} onclick={handleMarkCancelled}></lightning-menu-item>
-                                        <lightning-menu-item label="Delete" value="delete" data-id={call.id} onclick={handleDeleteVisit}></lightning-menu-item>
-                                    </lightning-button-menu>
+                                </template>
+                                <div class="call-pills">
+                                    <span class="pill" style={call.statusStyle}>{call.stateLabel}</span>
+                                    <template if:true={call.showCategory}><span class="pill" style={call.categoryStyle}>{call.callCategory}</span></template>
                                 </div>
-                            </template>
+                            </div>
                         </div>
                     </template>
                 </div>
@@ -99,8 +172,12 @@
                 <c-schedule-week-grid
                     calls={filteredCalls}
                     range-start={rangeStart}
+                    time-off={timeOff}
+                    read-only={viewingOtherUser}
                     onscheduledrop={handleScheduleDrop}
-                    onedit={handleGridEditVisit}
+                    onslotclick={handleSlotClick}
+                    onblockaction={handleBlockAction}
+                    onopencall={handleGridOpenCall}
                 ></c-schedule-week-grid>
             </template>
 
@@ -109,7 +186,8 @@
                     calls={filteredCalls}
                     range-start={rangeStart}
                     anchor-date={selectedDate}
-                    onedit={handleGridEditVisit}
+                    onopencall={handleGridOpenCall}
+                    onopenday={handleOpenDay}
                 ></c-schedule-month-grid>
             </template>
 

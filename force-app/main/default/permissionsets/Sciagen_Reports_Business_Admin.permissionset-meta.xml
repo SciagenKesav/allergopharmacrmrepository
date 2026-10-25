@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customPermissions>
+        <enabled>true</enabled>
+        <name>Sciagen_Reports_Business_Admin</name>
+    </customPermissions>
+    <description>Lets the user pick any territory and any KAM in the Sciagen Reports workspace. Assign together with Sciagen Reports User.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>Sciagen Reports Business Admin</label>
+</PermissionSet>

@@ -464,6 +464,72 @@ public with sharing class AccountPlanController {
         return options;
     }
 
+    // MARK: - Stakeholder / Team Member / Goal / Strategy create actions
+
+    @AuraEnabled
+    public static Id createStakeholder(Id planId, String stakeholderName, String role, String influence, String strength) {
+        if (String.isBlank(stakeholderName)) {
+            throw new AuraHandledException('Stakeholder name is required.');
+        }
+        Plan_Stakeholder__c st = new Plan_Stakeholder__c(
+            Plan__c = planId,
+            Stakeholder_Name__c = stakeholderName,
+            Role__c = role,
+            Influence__c = influence,
+            Strength__c = strength
+        );
+        insert st;
+        return st.Id;
+    }
+
+    @AuraEnabled
+    public static Id createTeamMember(Id planId, String memberName, String role, String accessLevel) {
+        if (String.isBlank(memberName)) {
+            throw new AuraHandledException('Member name is required.');
+        }
+        Account_Team_Member__c tm = new Account_Team_Member__c(
+            Plan__c = planId,
+            Member_Name__c = memberName,
+            Role__c = role,
+            Access__c = accessLevel
+        );
+        insert tm;
+        return tm.Id;
+    }
+
+    @AuraEnabled
+    public static Id createGoal(Id planId, String title, String metric, Decimal target, Decimal current, String unit, Date dueDate) {
+        if (String.isBlank(title)) {
+            throw new AuraHandledException('Goal title is required.');
+        }
+        Plan_Goal__c g = new Plan_Goal__c(
+            Plan__c = planId,
+            Title__c = title,
+            Metric__c = metric,
+            Target__c = target,
+            Current__c = current,
+            Unit__c = unit,
+            Due_Date__c = dueDate
+        );
+        insert g;
+        return g.Id;
+    }
+
+    @AuraEnabled
+    public static Id createStrategy(Id planId, String strategyName, String detail, List<String> shareWith) {
+        if (String.isBlank(strategyName)) {
+            throw new AuraHandledException('Strategy name is required.');
+        }
+        Plan_Strategy__c s = new Plan_Strategy__c(
+            Plan__c = planId,
+            Strategy_Name__c = strategyName,
+            Detail__c = detail,
+            Share_With__c = (shareWith != null && !shareWith.isEmpty()) ? String.join(shareWith, ';') : null
+        );
+        insert s;
+        return s.Id;
+    }
+
     // MARK: - Applied Products typeahead (New Account Plan modal)
 
     public class ProductOption {

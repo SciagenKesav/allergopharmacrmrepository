@@ -22,6 +22,9 @@ public without sharing class HCOGeocodingQueueable implements Queueable, Databas
     // edit this was built for).
     private static final Integer MAX_HCOS_PER_RUN = 100;
 
+    // Test hook: lets tests supply an API key, since Geocoding_Config__mdt can't be inserted in a test.
+    @TestVisible private static String testApiKey;
+
     private Set<Id> hcoIds;
 
     public HCOGeocodingQueueable(Set<Id> hcoIds) {
@@ -33,6 +36,7 @@ public without sharing class HCOGeocodingQueueable implements Queueable, Databas
 
         List<Geocoding_Config__mdt> configs = [SELECT Google_Maps_API_Key__c FROM Geocoding_Config__mdt LIMIT 1];
         String apiKey = configs.isEmpty() ? null : configs[0].Google_Maps_API_Key__c;
+        if (Test.isRunningTest() && testApiKey != null) apiKey = testApiKey;
         if (String.isBlank(apiKey)) {
             System.debug('[HCOGeocoding] No API key configured (Geocoding_Config__mdt.Default.Google_Maps_API_Key__c) — set it in Setup. Skipping ' + hcoIds.size() + ' HCO(s).');
             return;

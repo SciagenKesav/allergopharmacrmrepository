@@ -3,6 +3,9 @@ import { CurrentPageReference } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import getContext from '@salesforce/apex/SupportController.getContext';
 import listRequests from '@salesforce/apex/SupportController.listRequests';
+import getParentTerritories from '@salesforce/apex/SupportController.getParentTerritories';
+import getKamsForTerritory from '@salesforce/apex/SupportController.getKamsForTerritory';
+import listRequestsForKam from '@salesforce/apex/SupportController.listRequestsForKam';
 import createRequest from '@salesforce/apex/SupportController.createRequest';
 import uploadFile from '@salesforce/apex/SupportController.uploadFile';
 import myCallsForUnlock from '@salesforce/apex/SupportController.myCallsForUnlock';
@@ -21,6 +24,13 @@ export default class SupportCenter extends LightningElement {
     @track error = '';
     @track selectedId;
     @track showNew = false;
+
+    // admin view (System Administrator / Business Admin): territory -> KAM -> that KAM's requests
+    @track territories = [];
+    @track kams = [];
+    @track territoryId = '';
+    @track kamId = '';
+    @track loadingKams = false;
 
     // new request form
     @track form = { category: 'Sync Problem', subject: '', description: '', priority: 'Normal', callId: '' };
@@ -46,6 +56,9 @@ export default class SupportCenter extends LightningElement {
 
     async init() {
         try { this.ctx = await getContext(); } catch (e) { this.error = errorText(e); }
+        if (this.ctx.canAdminView) {
+            try { this.territories = await getParentTerritories(); } catch (e) { this.error = errorText(e); }
+        }
         await this.reload();
     }
 
@@ -64,12 +77,17 @@ export default class SupportCenter extends LightningElement {
         return f;
     }
 
+    fetchPage(withCursor) {
+        const filter = this.filter(withCursor);
+        return this.kamId ? listRequestsForKam({ filter, kamUserId: this.kamId }) : listRequests({ filter });
+    }
+
     async reload() {
         this.loading = true;
         this.error = '';
         this._cursor = { at: null, id: null };
         try {
-            const p = await listRequests({ filter: this.filter(false) });
+            const p = await this.fetchPage(false);
             this.rows = p.rows;
             this.total = p.total || p.rows.length;
             this.apply(p);
@@ -84,7 +102,7 @@ export default class SupportCenter extends LightningElement {
         if (!this.hasMore || this.loading) return;
         this.loading = true;
         try {
-            const p = await listRequests({ filter: this.filter(true) });
+            const p = await this.fetchPage(true);
             this.rows = [...this.rows, ...p.rows];
             this.apply(p);
         } catch (e) {
@@ -101,8 +119,8 @@ export default class SupportCenter extends LightningElement {
 
     get items() {
         return this.rows.map((r) => {
-            const mineWaiting = this.tab !== 'team' && r.isOpen && r.awaiting === 'Requester';
-            const unread = this.tab !== 'team' && r.unreadForRequester;
+            const mineWaiting = this.tab !== 'team' && !this.kamId && r.isOpen && r.awaiting === 'Requester';
+            const unread = this.tab !== 'team' && !this.kamId && r.unreadForRequester;
             return {
                 ...r,
                 key: r.id,
@@ -112,7 +130,7 @@ export default class SupportCenter extends LightningElement {
                 unread,
                 ago: relTime(r.lastActivityAt),
                 files: r.attachmentCount > 0 ? String(r.attachmentCount) : '',
-                who: this.tab === 'team' ? r.requesterName : ''
+                who: this.tab === 'team' || this.kamId ? r.requesterName : ''
             };
         });
     }
@@ -121,11 +139,13 @@ export default class SupportCenter extends LightningElement {
     get emptyTitle() {
         if (this.search) return 'No requests match your search';
         if (this.tab === 'closed') return 'No closed requests yet';
+        if (this.kamId) return this.tab === 'closed' ? 'No closed requests from this KAM' : 'No open requests from this KAM';
         if (this.tab === 'team') return 'Nothing from your team';
         return 'Nothing open';
     }
     get emptyText() {
         if (this.search) return 'Try a different word, or clear the search.';
+        if (this.kamId) return 'This Key Account Manager has not raised a request in this view.';
         if (this.tab === 'team') return 'Requests raised by people who report to you appear here, and you are copied on them.';
         return 'If something is not working, raise a request and the Business Admin team will reply here.';
     }
@@ -147,6 +167,38 @@ export default class SupportCenter extends LightningElement {
         clearTimeout(this._searchTimer);
         this._searchTimer = setTimeout(() => { this.search = v.trim(); this.reload(); }, 350);
     }
+    // ------------------------------------------------------------------ admin view
+
+    get territoryOptions() { return this.territories.map((t) => ({ label: t.name, value: t.id })); }
+    get kamOptions() { return this.kams.map((k) => ({ label: k.name + (k.territoryName ? ' (' + k.territoryName + ')' : ''), value: k.id })); }
+    get showKamPicker() { return !!this.territoryId; }
+    get kamPlaceholder() { return this.loadingKams ? 'Loading...' : (this.kams.length ? 'Choose a Key Account Manager' : 'No Key Account Managers here'); }
+    get adminMode() { return !!this.kamId; }
+    get selectedKamName() { const k = this.kams.find((x) => x.id === this.kamId); return k ? k.name : ''; }
+
+    async territoryChanged(e) {
+        this.territoryId = e.detail.value;
+        this.kamId = '';
+        this.kams = [];
+        this.selectedId = null;
+        this.loadingKams = true;
+        try { this.kams = await getKamsForTerritory({ territoryId: this.territoryId }); } catch (err) { this.error = errorText(err); }
+        this.loadingKams = false;
+        this.reload();
+    }
+    kamChanged(e) {
+        this.kamId = e.detail.value;
+        this.selectedId = null;
+        this.reload();
+    }
+    clearAdmin() {
+        this.territoryId = '';
+        this.kamId = '';
+        this.kams = [];
+        this.selectedId = null;
+        this.reload();
+    }
+
     open(e) { this.selectedId = e.currentTarget.dataset.id; }
     back() { this.selectedId = null; }
     refresh() { this.reload(); }
@@ -158,7 +210,8 @@ export default class SupportCenter extends LightningElement {
 
     // ------------------------------------------------------------------ new request
 
-    get categoryOptions() { return this.ctx.categories.map((c) => ({ label: c, value: c })); }
+    // A plan unlock is asked for from the iPad Scheduler, where the plan is picked for the rep.
+    get categoryOptions() { return this.ctx.categories.filter((c) => c !== 'Unlock Monthly Plan').map((c) => ({ label: c, value: c })); }
     get priorityOptions() { return this.ctx.priorities.map((c) => ({ label: c, value: c })); }
     get callOptions() { return this.calls.map((c) => ({ label: c.label, value: c.id })); }
     get categoryHint() { return CATEGORY_HINTS[this.form.category] || ''; }

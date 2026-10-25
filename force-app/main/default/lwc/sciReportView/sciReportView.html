@@ -1,0 +1,21 @@
+<template>
+    <div if:true={loading} class="slds-is-relative spin"><lightning-spinner alternative-text="Loading report" size="small"></lightning-spinner></div>
+    <div if:true={error} class="err">{error}</div>
+    <template if:true={result}>
+        <div if:true={result.headline} class="headline">{result.headline}</div>
+        <div if:true={result.note} class="note">{result.note}</div>
+        <div class="kpis">
+            <template for:each={result.kpis} for:item="k">
+                <c-sci-kpi-card key={k.label} label={k.label} value={k.value} delta={k.delta} delta-dir={k.deltaDir} positive-is-good={k.positiveIsGood}></c-sci-kpi-card>
+            </template>
+        </div>
+        <div class={chartGrid}>
+            <template for:each={result.charts} for:item="c"><c-sci-chart key={c.title} chart={c}></c-sci-chart></template>
+        </div>
+        <template for:each={result.tables} for:item="t">
+            <div key={t.title} class="tblwrap">
+                <c-sci-report-table title={t.title} icon={t.icon} columns={t.columns} rows={t.rows} row-action={t.rowAction} group-dim={t.groupDim} onrowclick={handleRowClick}></c-sci-report-table>
+            </div>
+        </template>
+    </template>
+</template>

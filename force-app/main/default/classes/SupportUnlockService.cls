@@ -43,12 +43,16 @@ public without sharing class SupportUnlockService {
         call.Unlocked_By__c = UserInfo.getUserId();
         call.Unlock_Request__c = req.Id;
         call.Unlock_Count__c = (call.Unlock_Count__c == null ? 0 : call.Unlock_Count__c) + 1;
+        // The only sanctioned way to move a submitted call off Submitted (CallReportLockService).
+        CallReportLockService.unlocking = true;
         try {
             update call;
             if (!keyMessages.isEmpty()) update keyMessages;
         } catch (DmlException e) {
             // e.g. calls that handed out controlled substances need the sample inventory manager
             throw new UnlockException(e.getDmlMessage(0));
+        } finally {
+            CallReportLockService.unlocking = false;
         }
 
         Support_Request__c u = new Support_Request__c(Id = req.Id, Unlock_Outcome__c = 'Unlocked', Status__c = 'Waiting on Rep', Assigned_To__c = UserInfo.getUserId());
@@ -70,6 +74,59 @@ public without sharing class SupportUnlockService {
     /** A message from support, sent as the running admin. */
     private static void addMessage(Id requestId, String body) {
         insert new Support_Comment__c(Support_Request__c = requestId, Body__c = body, Sent_Via__c = 'Web');
+    }
+
+    // ------------------------------------------------------------------ unlocking a frozen monthly plan
+
+    private static Support_Request__c loadPlanRequest(Id requestId) {
+        List<Support_Request__c> rows = [
+            SELECT Id, Category__c, Status__c, Monthly_Call_Plan__c FROM Support_Request__c WHERE Id = :requestId LIMIT 1 FOR UPDATE
+        ];
+        if (rows.isEmpty()) throw new UnlockException('That request was not found.');
+        if (rows[0].Category__c != MonthlyCallPlanService.CAT_UNLOCK_PLAN || rows[0].Monthly_Call_Plan__c == null) {
+            throw new UnlockException('This request is not about unlocking a monthly plan.');
+        }
+        if (!SupportRequestService.OPEN_STATUSES.contains(rows[0].Status__c)) throw new UnlockException('This request is already closed.');
+        return rows[0];
+    }
+
+    private static void requirePlanRight() {
+        if (!SupportRequestService.isAgent() || !MonthlyCallPlanService.canUnlock()) {
+            throw new UnlockException('You do not have permission to unlock monthly plans.');
+        }
+    }
+
+    /** Unfreezes the plan the request is about; MonthlyCallPlanService answers the request and tells the rep. */
+    public static void unlockPlan(Id requestId, String reason) {
+        requirePlanRight();
+        Support_Request__c req = loadPlanRequest(requestId);
+        try { MonthlyCallPlanService.unlock(req.Monthly_Call_Plan__c, reason); }
+        catch (MonthlyCallPlanService.UnlockException e) { throw new UnlockException(e.getMessage()); }
+    }
+
+    public static void declinePlan(Id requestId, String reason) {
+        requirePlanRight();
+        if (String.isBlank(reason)) throw new UnlockException('Tell the rep why the plan cannot be unlocked.');
+        Support_Request__c req = loadPlanRequest(requestId);
+        Support_Request__c u = new Support_Request__c(Id = req.Id, Unlock_Outcome__c = 'Declined', Resolution_Type__c = 'Declined', Status__c = 'Resolved');
+        SupportRequestService.updateInternally(new List<Support_Request__c>{ u }, false);
+        addMessage(req.Id, reason.trim());
+    }
+
+    public class PlanInfo {
+        @AuraEnabled public String month;
+        @AuraEnabled public String status;
+        @AuraEnabled public Datetime frozenAt;
+        @AuraEnabled public Integer callCount;
+    }
+    public static PlanInfo planInfo(Id requestId) {
+        List<Support_Request__c> r = [SELECT Monthly_Call_Plan__c FROM Support_Request__c WHERE Id = :requestId LIMIT 1];
+        if (r.isEmpty() || r[0].Monthly_Call_Plan__c == null) return null;
+        Monthly_Call_Plan__c p = [SELECT Month__c, Status__c, Frozen_At__c, Frozen_Call_Count__c FROM Monthly_Call_Plan__c WHERE Id = :r[0].Monthly_Call_Plan__c LIMIT 1];
+        PlanInfo i = new PlanInfo();
+        i.month = Datetime.newInstance(p.Month__c, Time.newInstance(12, 0, 0, 0)).format('MMMM yyyy');
+        i.status = p.Status__c; i.frozenAt = p.Frozen_At__c; i.callCount = p.Frozen_Call_Count__c == null ? 0 : (Integer) p.Frozen_Call_Count__c;
+        return i;
     }
 
     // ------------------------------------------------------------------ the rep submits the call again

@@ -199,6 +199,21 @@ public with sharing class DataChangeRequestApprovalHandler {
             String normalized = normalizePhone(phone);
             if (normalized != null) acc.Phone__c = normalized;
         }
+
+        String street = requestedVal(payload, 'street');
+        if (street != null) acc.Billing_Street__c = truncate(street, 255);
+
+        String country = requestedVal(payload, 'country');
+        if (country != null) acc.Billing_Country__c = truncate(country, 80);
+
+        String accountCode = requestedVal(payload, 'accountCode');
+        if (accountCode != null) acc.Account_Code__c = truncate(accountCode, 30);
+
+        String emailVal = requestedVal(payload, 'email');
+        if (emailVal != null) acc.Email__c = emailVal;
+
+        String website = requestedVal(payload, 'website');
+        if (website != null) acc.Website__c = website;
     }
 
     private static void applyHCPEdits(Sciagen_Account__c acc, Map<String, Object> payload) {
@@ -241,6 +256,27 @@ public with sharing class DataChangeRequestApprovalHandler {
 
         String degree = requestedVal(payload, 'degree1');
         if (degree != null) acc.Degree_1__c = degree;
+
+        String street = requestedVal(payload, 'street');
+        if (street != null) acc.Billing_Street__c = truncate(street, 255);
+
+        String country = requestedVal(payload, 'country');
+        if (country != null) acc.Billing_Country__c = truncate(country, 80);
+
+        String accountCode = requestedVal(payload, 'accountCode');
+        if (accountCode != null) acc.Account_Code__c = truncate(accountCode, 30);
+
+        String focusArea = requestedVal(payload, 'focusArea');
+        if (focusArea != null) acc.Focus_Area__c = focusArea;
+
+        String licenseNumber = requestedVal(payload, 'licenseNumber');
+        if (licenseNumber != null) acc.License_Number__c = licenseNumber;
+
+        String licensingBody = requestedVal(payload, 'licensingBody');
+        if (licensingBody != null) acc.Licensing_Body__c = licensingBody;
+
+        String primaryCountry = requestedVal(payload, 'primaryCountry');
+        if (primaryCountry != null) acc.Primary_Country__c = primaryCountry;
 
         String affiliationHCO = requestedVal(payload, 'affiliationHCO');
         if (String.isNotBlank(affiliationHCO)) {

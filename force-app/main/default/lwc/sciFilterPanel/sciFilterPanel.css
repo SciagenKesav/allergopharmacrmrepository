@@ -1,0 +1,7 @@
+.body { max-height: 60vh; overflow-y: auto; }
+.grp { margin-bottom: 16px; }
+.gl { font-weight: 600; font-size: 0.8rem; margin-bottom: 6px; color: #0F172A; }
+.chip, .opt { border: 1px solid #CBD5E1; background: #fff; color: #334155; border-radius: 999px; padding: 4px 12px; margin: 0 6px 6px 0; font-size: 0.8rem; cursor: pointer; }
+.chip.on { background: #4F46E5; border-color: #4F46E5; color: #fff; }
+.opts { max-height: 120px; overflow-y: auto; margin-top: 6px; }
+.opt { border-radius: 6px; }

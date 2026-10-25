@@ -6,23 +6,13 @@
     <trackTrending>false</trackTrending>
     <type>Picklist</type>
     <valueSet>
-        <restricted>true</restricted>
         <valueSetDefinition>
             <sorted>false</sorted>
+            
             <value>
-                <fullName>Cardiology</fullName>
+                <fullName>Multi-speciality</fullName>
                 <default>false</default>
-                <label>Cardiology</label>
-            </value>
-            <value>
-                <fullName>Endocrinology</fullName>
-                <default>false</default>
-                <label>Endocrinology</label>
-            </value>
-            <value>
-                <fullName>Oncology</fullName>
-                <default>false</default>
-                <label>Oncology</label>
+                <label>Multi-speciality</label>
             </value>
             <value>
                 <fullName>Pulmonology</fullName>
@@ -30,34 +20,34 @@
                 <label>Pulmonology</label>
             </value>
             <value>
-                <fullName>Immunology</fullName>
+                <fullName>Otorhinolaryngology (ENT)</fullName>
                 <default>false</default>
-                <label>Immunology</label>
+                <label>Otorhinolaryngology (ENT)</label>
             </value>
             <value>
-                <fullName>General Physician</fullName>
+                <fullName>Paediatrics</fullName>
                 <default>false</default>
-                <label>General Physician</label>
+                <label>Paediatrics</label>
             </value>
             <value>
-                <fullName>Internal Medicine</fullName>
+                <fullName>Allergology</fullName>
                 <default>false</default>
-                <label>Internal Medicine</label>
+                <label>Allergology</label>
             </value>
             <value>
-                <fullName>Nephrology</fullName>
+                <fullName>Allergy &amp; Immunology</fullName>
                 <default>false</default>
-                <label>Nephrology</label>
+                <label>Allergy &amp; Immunology</label>
             </value>
             <value>
-                <fullName>Neurology</fullName>
+                <fullName>Paediatric Pulmonology</fullName>
                 <default>false</default>
-                <label>Neurology</label>
+                <label>Paediatric Pulmonology</label>
             </value>
             <value>
-                <fullName>Other</fullName>
+                <fullName>General Medicine</fullName>
                 <default>false</default>
-                <label>Other</label>
+                <label>General Medicine</label>
             </value>
         </valueSetDefinition>
     </valueSet>

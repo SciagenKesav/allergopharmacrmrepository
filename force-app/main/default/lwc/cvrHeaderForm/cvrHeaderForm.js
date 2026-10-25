@@ -10,8 +10,8 @@ export default class CvrHeaderForm extends LightningElement {
     @api defaultHcpId;
     @api defaultHcoId;
     @api defaultHcoAddress;
+    @api defaultPlannedCallId; // links a newly-created CVR back to the Planned Call it was started from
     @api recordStatus; // only meaningful when recordId is set
-    @api pastEditWindow = false; // Call_Backdate_Limit__c — see callVisitReportDetail.js
 
     isSaving = false;
 
@@ -32,10 +32,8 @@ export default class CvrHeaderForm extends LightningElement {
 
     // Submitted call reports are locked — the header form becomes read-only,
     // matching iOS's isLocked behavior (Draft and Saved both stay editable).
-    // A draft/saved report older than the Call_Backdate_Limit__c window also
-    // locks, matching iOS RootView's isCVREditable.
     get isReadOnly() {
-        return this.isEditing && (this.recordStatus === 'Submitted' || this.pastEditWindow);
+        return this.isEditing && this.recordStatus === 'Submitted';
     }
 
     handleSubmit() {

@@ -16,7 +16,7 @@ private class CMSContentReceiverTest {
 
     @isTest
     static void testApprovedPushCreatesMultiSlideDeckAcrossCalls() {
-        Product__c prod = new Product__c(Brand_Name__c = 'Emrok', Division__c = 'Cardiology', SKU_Code__c = 'EMROK-SKU-1');
+        Product__c prod = new Product__c(Brand_Name__c = 'Emrok', Division__c = 'Cardiology', SKU_Code__c = 'EMROK-SKU-1', Product_Code__c = 'CMS-TEST-P1');
         insert prod;
 
         // A multi-page deck arrives as one call per page, all sharing cmsDocumentId — the CMS
@@ -33,7 +33,7 @@ private class CMSContentReceiverTest {
             'EMROK | EMROK O — Robust Efficacy and Safety', 'Approved Promotional',
             3, 'Safety Data', 'PDF', 'https://sciagen-cms-assets.s3.amazonaws.com/wockhardt/p3.pdf?X-Amz-Signature=abc');
         for (CMSContentReceiver.ContentPushRequest r : new List<CMSContentReceiver.ContentPushRequest>{ req1, req2, req3 }) {
-            r.brand = 'Emrok';
+            r.brand = 'ACAROID';
             r.productSkuCode = 'EMROK-SKU-1';
             r.expiryDate = '2026-12-31';
             r.mlrReference = 'MLR-2026-CV-0047';
@@ -53,7 +53,7 @@ private class CMSContentReceiverTest {
         Presentation__c pres = [SELECT CMS_Document_Id__c, Approval_Status__c, Brand__c FROM Presentation__c WHERE Id = :result1.presentationId];
         System.assertEquals('Wockhardt_P-2026-0001', pres.CMS_Document_Id__c);
         System.assertEquals('Approved Promotional', pres.Approval_Status__c);
-        System.assertEquals('Emrok', pres.Brand__c);
+        System.assertEquals('ACAROID', pres.Brand__c);
 
         List<Slide__c> slides = [SELECT Slide_No__c, Slide_Name__c, File_Type__c, Asset_URL__c FROM Slide__c WHERE Presentation__c = :result1.presentationId ORDER BY Slide_No__c];
         System.assertEquals(3, slides.size());
@@ -134,15 +134,17 @@ private class CMSContentReceiverTest {
         Test.startTest();
         CMSContentReceiver.ContentPushResult pngResult = CMSContentReceiver.processPush(
             pushReq('Wockhardt_P-2026-0007', 'Image Push Test', 'Approved Promotional',
-                1, 'Cover Image', 'Image', 'https://s3.example.com/cover.png?sig=1'));
+                1, 'Cover Deck', 'Image', 'https://s3.example.com/cover.pptx?sig=1'));
         CMSContentReceiver.ContentPushResult unknownResult = CMSContentReceiver.processPush(
             pushReq('Wockhardt_P-2026-0007', 'Image Push Test', 'Approved Promotional',
                 2, 'Truly Unknown', 'SomethingElseEntirely', 'https://s3.example.com/mystery-no-extension'));
         Test.stopTest();
 
         Slide__c pngSlide = [SELECT File_Type__c FROM Slide__c WHERE Id = :pngResult.slideId];
-        System.assertEquals('PNG', pngSlide.File_Type__c,
-            'An unrecognized assetFileType with a .png asset URL should infer PNG, not silently fall back to PDF');
+        // Uses an extension the Slide File Type picklist (a restricted list: Native, HTML, PDF, PPT, Word, Video,
+        // Audio) can hold -- image extensions such as .png are not in that list.
+        System.assertEquals('PPT', pngSlide.File_Type__c,
+            'An unrecognized assetFileType with a .pptx asset URL should infer PPT, not silently fall back to PDF');
 
         Slide__c unknownSlide = [SELECT File_Type__c FROM Slide__c WHERE Id = :unknownResult.slideId];
         System.assertEquals('PDF', unknownSlide.File_Type__c,
@@ -233,5 +235,99 @@ private class CMSContentReceiverTest {
         System.assertEquals(2, alerts.size(), 'one New alert from the first push, one Updated alert from the re-push');
         System.assertEquals('New', alerts[0].Kind__c);
         System.assertEquals('Updated', alerts[1].Kind__c);
+    }
+
+    @isTest
+    static void testBrandMatchingIsCaseInsensitiveAndUnknownBrandDoesNotFailThePush() {
+        CMSContentReceiver.ContentPushRequest lower = pushReq('BRD-1', 'Lower', 'Approved Promotional', 1, 'S', 'PDF', 'https://x/p1.pdf');
+        lower.brand = 'acaroid';
+        System.assertEquals(true, CMSContentReceiver.processPush(lower).success);
+        System.assertEquals('ACAROID', [SELECT Brand__c FROM Presentation__c WHERE CMS_Document_Id__c = 'BRD-1'].Brand__c);
+
+        CMSContentReceiver.ContentPushRequest unknown = pushReq('BRD-2', 'Unknown', 'Approved Promotional', 1, 'S', 'PDF', 'https://x/p1.pdf');
+        unknown.brand = 'Some New Brand';
+        CMSContentReceiver.ContentPushResult r = CMSContentReceiver.processPush(unknown);
+        System.assertEquals(true, r.success, r.message);
+        System.assertEquals(null, [SELECT Brand__c FROM Presentation__c WHERE CMS_Document_Id__c = 'BRD-2'].Brand__c, 'an unrecognised brand is left blank, not rejected');
+        System.assertEquals('Other', [SELECT Brand__c FROM Slide__c WHERE Presentation__c = :r.presentationId].Brand__c);
+
+        CMSContentReceiver.ContentPushRequest none = pushReq('BRD-3', 'None', 'Approved Promotional', 1, 'S', 'PDF', 'https://x/p1.pdf');
+        System.assertEquals(true, CMSContentReceiver.processPush(none).success, 'a push with no brand still works');
+    }
+
+    // ---------------------------------------------------------------- isTraining / trainingType
+
+    private static Presentation__c trainingOf(String docId) {
+        return [SELECT Is_Training__c, Training_Type__c FROM Presentation__c WHERE CMS_Document_Id__c = :docId];
+    }
+
+    @isTest
+    static void testIsTrainingAndTypeAreSaved() {
+        CMSContentReceiver.ContentPushRequest r = pushReq('TRN-1', 'Onboarding', 'Approved Promotional', 1, 'Intro', 'PDF', 'https://x/p1.pdf');
+        r.isTraining = true;
+        r.trainingType = 'Medical';
+        System.assertEquals(true, CMSContentReceiver.processPush(r).success);
+        Presentation__c p = trainingOf('TRN-1');
+        System.assertEquals(true, p.Is_Training__c);
+        System.assertEquals('Medical', p.Training_Type__c);
+    }
+
+    @isTest
+    static void testTrainingTypeMatchesIgnoringCaseAndSpacing() {
+        CMSContentReceiver.ContentPushRequest r = pushReq('TRN-2', 'Policy', 'Approved Promotional', 1, 'Intro', 'PDF', 'https://x/p1.pdf');
+        r.isTraining = true;
+        r.trainingType = 'COMPLIANCE   AND  policy';   // different case and extra spaces than the picklist value
+        CMSContentReceiver.processPush(r);
+        System.assertEquals('Compliance and Policy', trainingOf('TRN-2').Training_Type__c);
+    }
+
+    @isTest
+    static void testUnknownTrainingTypeIsLeftBlankAndPushStillSucceeds() {
+        CMSContentReceiver.ContentPushRequest r = pushReq('TRN-3', 'Deck', 'Approved Promotional', 1, 'Intro', 'PDF', 'https://x/p1.pdf');
+        r.isTraining = true;
+        r.trainingType = 'Not A Real Type';
+        System.assertEquals(true, CMSContentReceiver.processPush(r).success);
+        Presentation__c p = trainingOf('TRN-3');
+        System.assertEquals(true, p.Is_Training__c);
+        System.assertEquals(null, p.Training_Type__c);
+    }
+
+    @isTest
+    static void testOmittedFieldsKeepExistingValuesAndFalseClearsTheType() {
+        CMSContentReceiver.ContentPushRequest first = pushReq('TRN-4', 'Deck', 'Approved Promotional', 1, 'Intro', 'PDF', 'https://x/p1.pdf');
+        CMSContentReceiver.processPush(first);
+        System.assertEquals(false, trainingOf('TRN-4').Is_Training__c, 'new deck without the flag is not training');
+
+        CMSContentReceiver.ContentPushRequest flagged = pushReq('TRN-4', 'Deck', 'Approved Promotional', 1, 'Intro', 'PDF', 'https://x/p1.pdf');
+        flagged.isTraining = true; flagged.trainingType = 'References';
+        CMSContentReceiver.processPush(flagged);
+
+        CMSContentReceiver.ContentPushRequest later = pushReq('TRN-4', 'Deck', 'Approved Promotional', 2, 'Next', 'PDF', 'https://x/p2.pdf');
+        CMSContentReceiver.processPush(later);
+        Presentation__c kept = trainingOf('TRN-4');
+        System.assertEquals(true, kept.Is_Training__c, 'omitting isTraining must not reset it');
+        System.assertEquals('References', kept.Training_Type__c, 'omitting trainingType must not clear it');
+
+        CMSContentReceiver.ContentPushRequest cleared = pushReq('TRN-4', 'Deck', 'Approved Promotional', 3, 'Last', 'PDF', 'https://x/p3.pdf');
+        cleared.isTraining = false;
+        CMSContentReceiver.processPush(cleared);
+        Presentation__c off = trainingOf('TRN-4');
+        System.assertEquals(false, off.Is_Training__c);
+        System.assertEquals(null, off.Training_Type__c, 'an explicit false clears the type');
+    }
+
+    @isTest
+    static void testFieldsAreReadFromTheRestJsonBody() {
+        RestRequest req = new RestRequest();
+        req.requestUri = '/services/apexrest/cms/v1/content';
+        req.httpMethod = 'POST';
+        req.requestBody = Blob.valueOf('{"cmsDocumentId":"TRN-5","title":"Json deck","approvalStatus":"Approved Promotional","slideNo":1,"assetFileType":"PDF","assetUrl":"https://x/s1.pdf","isTraining":true,"trainingType":"Company Communication"}');
+        RestContext.request = req;
+        RestContext.response = new RestResponse();
+        CMSContentReceiver.ContentPushResult res = CMSContentReceiver.receive();
+        System.assertEquals(true, res.success, res.message);
+        Presentation__c p = trainingOf('TRN-5');
+        System.assertEquals(true, p.Is_Training__c);
+        System.assertEquals('Company Communication', p.Training_Type__c);
     }
 }

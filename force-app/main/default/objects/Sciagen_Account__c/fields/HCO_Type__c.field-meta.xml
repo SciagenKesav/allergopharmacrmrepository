@@ -54,6 +54,56 @@
                 <default>false</default>
                 <label>Diagnostic Centre</label>
             </value>
+            <value>
+                <fullName>Acaedemic Instituiton</fullName>
+                <default>false</default>
+                <label>Acaedemic Instituiton</label>
+            </value>
+            <value>
+                <fullName>Corporate Hospital</fullName>
+                <default>false</default>
+                <label>Corporate Hospital</label>
+            </value>
+            <value>
+                <fullName>Private Hospital</fullName>
+                <default>false</default>
+                <label>Private Hospital</label>
+            </value>
+            <value>
+                <fullName>Government Hospital</fullName>
+                <default>false</default>
+                <label>Government Hospital</label>
+            </value>
+            <value>
+                <fullName>Office Based Clinic</fullName>
+                <default>false</default>
+                <label>Office Based Clinic</label>
+            </value>
+            <value>
+                <fullName>Academic Institution</fullName>
+                <default>false</default>
+                <label>Academic Institution</label>
+            </value>
+            <value>
+                <fullName>Charitable Trust Hospital</fullName>
+                <default>false</default>
+                <label>Charitable Trust Hospital</label>
+            </value>
+            <value>
+                <fullName>Private Clinic</fullName>
+                <default>false</default>
+                <label>Private Clinic</label>
+            </value>
+            <value>
+                <fullName>Personal Clinic</fullName>
+                <default>false</default>
+                <label>Personal Clinic</label>
+            </value>
+            <value>
+                <fullName>Polyclinic</fullName>
+                <default>false</default>
+                <label>Polyclinic</label>
+            </value>
         </valueSetDefinition>
     </valueSet>
 </CustomField>

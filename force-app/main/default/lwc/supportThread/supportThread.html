@@ -32,6 +32,7 @@
                         <div><dt>First reply due</dt><dd><span class={slaClass}>{sla.text}</span></dd></div>
                     </template>
                 </dl>
+                <template if:true={planSummary}><p class="outcome">{planSummary}</p></template>
                 <template if:true={unlockOutcomeText}><p class="outcome">{unlockOutcomeText}</p></template>
                 <div class="head-actions">
                     <template if:true={showCancel}>
@@ -39,6 +40,9 @@
                     </template>
                     <template if:true={showReopen}>
                         <lightning-button variant="neutral" label="Reopen request" onclick={reopen}></lightning-button>
+                    </template>
+                    <template if:true={showAdminClose}>
+                        <lightning-button variant="destructive-text" label="Close request" icon-name="utility:close" onclick={closeAsAdmin}></lightning-button>
                     </template>
                 </div>
             </header>
@@ -49,7 +53,7 @@
                     <lightning-combobox class="mg-field" label="Priority" value={row.priority} options={priorityOptions} onchange={priorityChanged}></lightning-combobox>
                     <template if:true={showUnlock}>
                         <div class="mg-buttons">
-                            <lightning-button variant="brand" label="Unlock this call" onclick={toggleUnlock}></lightning-button>
+                            <lightning-button variant="brand" label={unlockLabel} onclick={toggleUnlock}></lightning-button>
                             <lightning-button variant="neutral" label="Decline" onclick={toggleDecline}></lightning-button>
                         </div>
                     </template>
@@ -61,14 +65,14 @@
                 </section>
                 <template if:true={unlockOpen}>
                     <section class="panel">
-                        <p class="panel-text">The call goes back to Saved so the rep can correct it and submit it again. The request closes by itself when they do. Add a note for the rep (optional).</p>
+                        <p class="panel-text">{unlockHelp}</p>
                         <textarea class="area" rows="2" placeholder="For example: Unlocked. Please fix the product and submit again today." onchange={unlockNoteChanged}></textarea>
-                        <lightning-button variant="brand" label="Unlock call and notify the rep" onclick={confirmUnlock}></lightning-button>
+                        <lightning-button variant="brand" label={unlockConfirmLabel} onclick={confirmUnlock}></lightning-button>
                     </section>
                 </template>
                 <template if:true={declineOpen}>
                     <section class="panel">
-                        <p class="panel-text">Tell the rep why this call cannot be unlocked.</p>
+                        <p class="panel-text">{declineHelp}</p>
                         <textarea class="area" rows="2" placeholder="For example: The monthly cut-off has passed. Please ask your manager." onchange={declineChanged}></textarea>
                         <lightning-button variant="destructive" label="Decline and resolve" onclick={confirmDecline}></lightning-button>
                     </section>

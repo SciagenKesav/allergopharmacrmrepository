@@ -202,7 +202,7 @@
 
                         <div class="edit-actions">
                             <lightning-button label="Cancel" onclick={handleCancelEdit} disabled={isSaving}></lightning-button>
-                            <lightning-button variant="brand" type="submit" label="Save" disabled={isSaving}></lightning-button>
+                            <lightning-button variant="brand" type="submit" label={saveButtonLabel} disabled={isSaving}></lightning-button>
                         </div>
                     </lightning-record-edit-form>
                 </template>

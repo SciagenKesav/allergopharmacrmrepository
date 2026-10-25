@@ -1,0 +1,12 @@
+.card { background: #fff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px; }
+.hdr { display: flex; align-items: center; gap: 8px; font-weight: 600; color: #0F172A; margin-bottom: 8px; }
+.svg { width: 100%; height: auto; }
+.legend { display: flex; gap: 14px; justify-content: center; font-size: 0.75rem; color: #64748B; }
+.lg i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; }
+.hrow { display: grid; grid-template-columns: minmax(80px, 28%) 1fr 52px; align-items: center; gap: 8px; margin: 6px 0; font-size: 0.8rem; }
+.hlab { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #0F172A; }
+.htrack { position: relative; background: #F1F5F9; border-radius: 4px; height: 16px; }
+.hfill { height: 100%; border-radius: 4px; }
+.hrefline { position: absolute; top: -2px; bottom: -2px; border-left: 2px dashed #64748B; }
+.hval { text-align: right; font-weight: 600; color: #0F172A; }
+.empty { color: #64748B; font-size: 0.85rem; padding: 12px 0; text-align: center; }

@@ -138,3 +138,21 @@
     color: var(--brand-subtle);
     padding: 0.05rem 0.25rem;
 }
+.month-controls {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.5rem 1.25rem;
+    background: #ffffff;
+    border-bottom: 1px solid var(--brand-hairline);
+}
+
+.month-grid-six .month-weekday-row,
+.month-grid-six .month-week-row {
+    grid-template-columns: repeat(6, 1fr);
+}
+
+.month-call-overflow {
+    cursor: pointer;
+    color: var(--brand-primary);
+    font-weight: 600;
+}

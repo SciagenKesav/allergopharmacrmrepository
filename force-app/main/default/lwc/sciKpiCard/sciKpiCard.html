@@ -1,0 +1,9 @@
+<template>
+    <div class="kpi">
+        <div class="val">{value}</div>
+        <div class="lbl">{label}</div>
+        <template if:true={delta}>
+            <span class={deltaClass}><lightning-icon icon-name={arrow} size="xx-small" alternative-text=""></lightning-icon> {delta}</span>
+        </template>
+    </div>
+</template>

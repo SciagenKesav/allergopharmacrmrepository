@@ -2,7 +2,7 @@
 <CustomApplication xmlns="http://soap.sforce.com/2006/04/metadata">
     <brand>
         <headerColor>#0A0A5C</headerColor>
-        <logo>images2</logo>
+        <logo>allergo</logo>
         <logoVersion>1</logoVersion>
         <shouldOverrideOrgTheme>true</shouldOverrideOrgTheme>
     </brand>
@@ -14,18 +14,30 @@
     <isOmniPinnedViewEnabled>false</isOmniPinnedViewEnabled>
     <label>Sciagen CRM</label>
     <navType>Standard</navType>
+    <profileActionOverrides>
+        <actionName>View</actionName>
+        <content>Sciagen_Account_Record_Page</content>
+        <formFactor>Small</formFactor>
+        <pageOrSobjectType>Sciagen_Account__c</pageOrSobjectType>
+        <type>Flexipage</type>
+        <profile>StandardAul</profile>
+    </profileActionOverrides>
+    <profileActionOverrides>
+        <actionName>View</actionName>
+        <content>Sciagen_Account_Record_Page</content>
+        <formFactor>Large</formFactor>
+        <pageOrSobjectType>Sciagen_Account__c</pageOrSobjectType>
+        <type>Flexipage</type>
+        <profile>StandardAul</profile>
+    </profileActionOverrides>
     <setupExperience>all</setupExperience>
     <tabs>Account_Browser_Page</tabs>
-    <tabs>Global_Account_Search_Page</tabs>
     <tabs>KAM_Dashboard_Page</tabs>
     <tabs>My_Schedule_Page</tabs>
-    <tabs>RCPA_Browser_Page</tabs>
-    <tabs>DCR_Review_Page</tabs>
     <tabs>CLM_Library_Page</tabs>
+    <tabs>Global_Account_Search_Page</tabs>
+    <tabs>RCPA_Browser_Page</tabs>
     <tabs>standard-report</tabs>
-    <tabs>Plan_Goal__c</tabs>
-    <tabs>User_Territory__c</tabs>
-    <tabs>RCPA_Target__c</tabs>
-    <tabs>Product__c</tabs>
+    <tabs>Sciagen_Reports</tabs>
     <uiType>Lightning</uiType>
 </CustomApplication>

@@ -44,7 +44,7 @@
 .lbl { display: block; margin-top: 0.6rem; font-size: 0.8rem; color: #3e4653; }
 .area { width: 100%; box-sizing: border-box; margin: 0.25rem 0 0.7rem; padding: 0.55rem 0.7rem; border: 1px solid #c9d0dc; border-radius: 0.5rem; font: inherit; font-size: 0.9rem; resize: vertical; }
 .area:focus { outline: 2px solid #3b6fd4; border-color: #3b6fd4; }
-.attach { display: flex; gap: 0.7rem; align-items: center; flex-wrap: wrap; }
+.attach { display: flex; gap: 0.7rem; align-items: center; flex-wrap: wrap; margin-top: 1rem; }
 .hidden { display: none; }
 .pending { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
 .chip { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.2rem 0.3rem 0.2rem 0.4rem; border: 1px solid #d9dee7; border-radius: 0.5rem; background: #f8fafc; font-size: 0.78rem; }
@@ -59,4 +59,35 @@
     .has-selection .left { display: none; }
     .has-selection .right { display: flex; }
     .back { display: block; }
+}
+.admin-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+    background: #E6EEF9;
+    border: 1px solid #C9D6EC;
+    border-radius: 0.5rem;
+}
+
+.admin-title {
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: #12294B;
+}
+
+.admin-note {
+    font-size: 0.8125rem;
+    color: #12294B;
+}
+
+.admin-clear {
+    margin-left: 0.5rem;
+    border: 0;
+    background: none;
+    color: #1B6EC2;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
 }

@@ -328,6 +328,26 @@ public with sharing class RCPAMatrixController {
         return byMolecule.values();
     }
 
+    /// Distinct Product__c.Competitor1__c values recorded for one molecule — feeds the
+    /// "Competitor 1" picker on the New RCPA Audit form. Read without field-level
+    /// enforcement on purpose: it's reference data (competitor brand names) every rep
+    /// needs, and Competitor1__c isn't on every user's permission sets.
+    @AuraEnabled(cacheable=true)
+    public static List<String> getCompetitor1ForMolecule(String molecule) {
+        Set<String> names = new Set<String>();
+        if (String.isNotBlank(molecule)) {
+            for (Product__c p : [
+                SELECT Competitor1__c FROM Product__c
+                WHERE Parent_Molecule__c = :molecule AND Active__c = true AND Competitor1__c != null
+            ]) {
+                if (String.isNotBlank(p.Competitor1__c)) names.add(p.Competitor1__c.trim());
+            }
+        }
+        List<String> result = new List<String>(names);
+        result.sort();
+        return result;
+    }
+
     // MARK: - Target Qty (web-side only; does not sync with the iPad app's
     // local-only UserDataStore.rcpaTargets — see the RCPA plan doc)
 

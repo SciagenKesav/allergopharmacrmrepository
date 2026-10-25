@@ -7,6 +7,7 @@ public without sharing class SupportListService {
 
     public class Filter {
         @AuraEnabled public String view;            // open, closed, all, unassigned, mine, needsReply, waiting, overdue
+        @AuraEnabled public String requesterId;     // admin view: only this user's requests (set by SupportController, ignored for reps)
         @AuraEnabled public String scope;           // mine (raised by me), team (I am the copied manager), all (support)
         @AuraEnabled public String category;
         @AuraEnabled public String priority;
@@ -166,7 +167,8 @@ public without sharing class SupportListService {
         binds.put('me', me);
         binds.put('nowAt', Datetime.now());
         String scope = f.scope == null ? 'mine' : f.scope;
-        if (scope == 'mine') w.add('Requester__c = :me');
+        if (String.isNotBlank(f.requesterId)) { w.add('Requester__c = :requesterId'); binds.put('requesterId', (Id) f.requesterId); }
+        else if (scope == 'mine') w.add('Requester__c = :me');
         else if (scope == 'team') w.add('(Manager__c = :me AND Requester__c != :me)');
 
         String view = f.view == null ? 'open' : f.view;

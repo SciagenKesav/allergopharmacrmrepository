@@ -27,7 +27,7 @@ export function pillStyle(hex) {
 }
 
 // Segmentation__c.Classification__c — matches enum ABC in UserModels.swift
-export const CLASSIFICATION_COLOR = { A: BRAND.accent, B: BRAND.primary, C: BRAND.amber, Unclassified: BRAND.subtle };
+export const CLASSIFICATION_COLOR = { V3: BRAND.accent, V2: BRAND.primary, V1: BRAND.amber, A: BRAND.accent, B: BRAND.primary, C: BRAND.amber, Unclassified: BRAND.subtle };
 
 // Segmentation__c.Tier__c — matches enum Tier in UserModels.swift
 export const TIER_COLOR = { Gold: BRAND.gold, Silver: BRAND.silver, Bronze: BRAND.bronze, None: BRAND.subtle };
@@ -53,6 +53,15 @@ export const TREND_COLOR = {
 // Office_Window__c.Preference__c — matches enum MeetPreference in UserModels.swift
 export const PREFERENCE_COLOR = { Best: BRAND.accent, Good: BRAND.amber, Avoid: BRAND.red };
 
+export const ACAROID_READINESS_COLOR = { Ready: BRAND.accent, Conditional: BRAND.amber, 'Not Ready': BRAND.red };
+export const ACAROID_CAN_ADMINISTER_COLOR = { Yes: BRAND.accent, Conditional: BRAND.amber, 'No - Referral only': BRAND.red };
+export const ACAROID_TIER_COLOR = {
+    A: BRAND.accent, B: BRAND.primary, C: BRAND.amber, Referral: BRAND.subtle,
+    'Tier 1 - AIT Centre of Excellence': BRAND.accent, 'Tier 2 - Specialty AIT Site': BRAND.primary,
+    'Tier 3 - Referral Site': BRAND.amber, 'Not Targeted': BRAND.subtle,
+};
+
+
 // Planned_Call__c.Status__c — matches PlannedCall.status in CLMModels.swift.
 // Superseded by visitState() below for anywhere that shows a call's status
 // to the rep (My Schedule's Agenda/Week/Month views) — this flat 3-color map
@@ -60,7 +69,7 @@ export const PREFERENCE_COLOR = { Best: BRAND.accent, Good: BRAND.amber, Avoid: 
 // still-open Planned call from one whose date has already passed unfiled,
 // which is exactly the distinction visitState() exists to make. Kept around
 // only for call sites that haven't been ported to visitState() yet.
-export const PLANNED_CALL_STATUS_COLOR = { Planned: BRAND.primary, Completed: BRAND.accent, Cancelled: BRAND.subtle };
+export const PLANNED_CALL_STATUS_COLOR = { Planned: BRAND.primary, Draft: BRAND.amber, Completed: BRAND.accent, Cancelled: BRAND.subtle };
 
 // Matches CalendarPlannerView.swift's visitState(_:) color scheme exactly —
 // hex-for-hex, not just conceptually — so a call reads the same color on the

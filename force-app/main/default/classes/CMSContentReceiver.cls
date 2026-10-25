@@ -39,6 +39,8 @@ global with sharing class CMSContentReceiver {
         public String slideName;           // falls back to the document title if blank
         public String assetFileType;       // Native / HTML / PDF / PPT / Word / Video / Audio
         public String assetUrl;            // S3 signed URL for this page's file, already uploaded by the CMS
+        public Boolean isTraining;         // optional: true = training-only content; omitted leaves an existing deck's flag unchanged
+        public String trainingType;        // optional: Medical / Compliance and Policy / Company Communication / References (matched to the picklist)
     }
 
     global class ContentPushResult {
@@ -124,8 +126,22 @@ global with sharing class CMSContentReceiver {
         // back whether it inserted or updated — needed to tell a brand-new deck from a re-push
         // of one already in the library, so the Content_Alert__c created further down says the
         // right thing ("New" vs "Updated") instead of always claiming new content.
-        Boolean isNewPresentation =
-            [SELECT COUNT() FROM Presentation__c WHERE CMS_Document_Id__c = :payload.cmsDocumentId] == 0;
+        List<Presentation__c> existingPres =
+            [SELECT Id, Is_Training__c, Training_Type__c FROM Presentation__c WHERE CMS_Document_Id__c = :payload.cmsDocumentId LIMIT 1];
+        Boolean isNewPresentation = existingPres.isEmpty();
+        // isTraining / trainingType are optional. A push that omits them must not reset what an
+        // earlier push (or a person) already set; a brand-new deck defaults to not-training.
+        Boolean trainingFlag = payload.isTraining != null
+            ? payload.isTraining
+            : (isNewPresentation ? false : existingPres[0].Is_Training__c == true);
+        String currentType = isNewPresentation ? null : existingPres[0].Training_Type__c;
+        String trainingTypeValue = currentType;
+        if (payload.isTraining == false) {
+            trainingTypeValue = null;                       // not training content -> no training type
+        } else if (String.isNotBlank(payload.trainingType)) {
+            // unrecognised value: keep what is there (blank for a new deck) instead of failing the push
+            trainingTypeValue = matchPicklist(Presentation__c.Training_Type__c, payload.trainingType, currentType);
+        }
 
         // 2) Upsert Presentation__c (used by the CLM library). Every page's call re-sends the
         // same document-level metadata, so this is naturally idempotent across all of a deck's
@@ -134,13 +150,14 @@ global with sharing class CMSContentReceiver {
             CMS_Document_Id__c = payload.cmsDocumentId,
             Presentation_Name__c = payload.title,
             Version__c = 'v1.0',
-            Brand__c = mapBrand(payload.brand),
+            Brand__c = matchPicklist(Presentation__c.Brand__c, payload.brand, null),
             Product__c = productId,
             Approval_Status__c = payload.approvalStatus,
             Expiry_Date__c = expiry,
             MLR_Reference__c = payload.mlrReference,
             Is_Custom__c = false,
-            Is_Training__c = false
+            Is_Training__c = trainingFlag,
+            Training_Type__c = trainingTypeValue
         );
         upsert pres Presentation__c.CMS_Document_Id__c;
         result.presentationId = pres.Id;
@@ -158,7 +175,7 @@ global with sharing class CMSContentReceiver {
             : new Slide__c(Presentation__c = pres.Id, Slide_No__c = payload.slideNo);
         slide.Slide_Name__c = String.isNotBlank(payload.slideName) ? payload.slideName : payload.title;
         slide.Product__c = productId;
-        slide.Brand__c = mapBrand(payload.brand);
+        slide.Brand__c = matchPicklist(Slide__c.Brand__c, payload.brand, 'Other');
         slide.File_Type__c = mapFileType(payload.assetFileType, payload.assetUrl);
         slide.Asset_URL__c = payload.assetUrl;
         upsert slide;
@@ -174,7 +191,7 @@ global with sharing class CMSContentReceiver {
             insert new Content_Alert__c(
                 Name = isNewPresentation ? 'New Content' : 'Updated Content',
                 Title__c = payload.title + (isNewPresentation ? ' is now available' : ' was updated'),
-                Detail__c = mapBrand(payload.brand) + (String.isNotBlank(payload.documentType) ? ' - ' + payload.documentType : ''),
+                Detail__c = (String.isNotBlank(payload.brand) ? payload.brand : 'Other') + (String.isNotBlank(payload.documentType) ? ' - ' + payload.documentType : ''),
                 Presentation__c = pres.Id,
                 Kind__c = isNewPresentation ? 'New' : 'Updated'
             );
@@ -232,8 +249,18 @@ global with sharing class CMSContentReceiver {
         return EXTENSION_TO_FILE_TYPE.get(ext);
     }
 
-    private static String mapBrand(String brand) {
-        Set<String> known = new Set<String>{'Emrok','Glaritus','Miqnaf','Cardiace','Neutraline'};
-        return known.contains(brand) ? brand : 'Other';
+    /// Returns the picklist's own spelling of `value` (matched ignoring case) when it is an active
+    /// value of that field, otherwise `fallback`. The Brand picklists are restricted and differ
+    /// between Presentation and Slide, so a hard-coded brand list used to fail the whole push with
+    /// INVALID_OR_NULL_FOR_RESTRICTED_PICKLIST whenever the CMS sent a brand the field did not allow
+    /// (e.g. ACAROID mapped to "Other"). Reading the allowed values from the field keeps this in step
+    /// with whatever the org's picklist currently contains.
+    private static String matchPicklist(Schema.SObjectField field, String value, String fallback) {
+        if (String.isBlank(value)) return fallback;
+        String wanted = value.trim().toLowerCase().replaceAll('\\s+', ' ');
+        for (Schema.PicklistEntry e : field.getDescribe().getPicklistValues()) {
+            if (e.isActive() && e.getValue().toLowerCase().replaceAll('\\s+', ' ') == wanted) return e.getValue();
+        }
+        return fallback;
     }
 }

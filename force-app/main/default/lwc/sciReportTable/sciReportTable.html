@@ -1,0 +1,34 @@
+<template>
+    <div class="card">
+        <div class="bar">
+            <div class="ttl"><lightning-icon icon-name={icon} size="x-small" alternative-text=""></lightning-icon><span>{title}</span></div>
+            <div class="tools">
+                <lightning-combobox class="sortpick" label="Sort" variant="label-hidden" placeholder="Sort" options={sortOptions} value={sortKey} onchange={handleSortPick}></lightning-combobox>
+                <lightning-button label="Export CSV" icon-name="utility:download" variant="neutral" onclick={handleExport}></lightning-button>
+            </div>
+        </div>
+        <div class="scroll">
+            <table class="tbl">
+                <thead>
+                    <tr>
+                        <template for:each={headers} for:item="h">
+                            <th key={h.key} class={h.cls} onclick={handleHeader} data-key={h.key}>{h.label}<span class="arrow">{h.arrow}</span></th>
+                        </template>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template for:each={visibleRows} for:item="r">
+                        <tr key={r.id} class={r.cls} onclick={handleRow} data-index={r.index}>
+                            <template for:each={r.cells} for:item="c"><td key={c.key} class={c.cls}>{c.value}</td></template>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </div>
+        <div if:true={isEmpty} class="empty">No data for this period and these filters.</div>
+        <div if:false={isEmpty} class="foot">
+            <span>{footer}</span>
+            <lightning-button if:true={canToggle} variant="base" label={toggleLabel} onclick={handleToggle}></lightning-button>
+        </div>
+    </div>
+</template>

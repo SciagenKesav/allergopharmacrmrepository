@@ -1,0 +1,28 @@
+<template>
+    <section role="dialog" class="slds-modal slds-fade-in-open slds-modal_medium" aria-modal="true">
+        <div class="slds-modal__container">
+            <header class="slds-modal__header"><h2 class="slds-modal__title">Filters</h2></header>
+            <div class="slds-modal__content slds-p-around_medium body">
+                <div class="grp"><div class="gl">Segment</div>
+                    <template for:each={segmentChips} for:item="c"><button key={c.value} class={c.cls} data-dim="segments" data-value={c.value} onclick={toggleChip}>{c.value}</button></template></div>
+                <div class="grp"><div class="gl">Coverage</div>
+                    <template for:each={coverageChips} for:item="c"><button key={c.value} class={c.cls} data-dim="coverage" data-value={c.value} onclick={toggleChip}>{c.value}</button></template></div>
+                <div class="grp"><div class="gl">Consent</div>
+                    <template for:each={consentChips} for:item="c"><button key={c.value} class={c.cls} data-dim="consents" data-value={c.value} onclick={toggleChip}>{c.value}</button></template></div>
+                <template for:each={lists} for:item="l">
+                    <div key={l.dim} class="grp">
+                        <div class="gl">{l.label}</div>
+                        <div class="sel"><template for:each={l.selected} for:item="v"><button key={v} class="chip on" data-dim={l.dim} data-value={v} onclick={toggleChip}>{v} ×</button></template></div>
+                        <lightning-input type="search" variant="label-hidden" label={l.label} placeholder={l.placeholder} data-dim={l.dim} onchange={handleSearch}></lightning-input>
+                        <div class="opts"><template for:each={l.options} for:item="o"><button key={o} class="opt" data-dim={l.dim} data-value={o} onclick={toggleChip}>{o}</button></template></div>
+                    </div>
+                </template>
+            </div>
+            <footer class="slds-modal__footer">
+                <lightning-button label="Clear" onclick={handleClear}></lightning-button>
+                <lightning-button variant="brand" label="Apply" class="slds-m-left_x-small" onclick={handleApply}></lightning-button>
+            </footer>
+        </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+</template>

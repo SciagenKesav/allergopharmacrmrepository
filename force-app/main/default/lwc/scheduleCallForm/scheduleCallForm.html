@@ -1,66 +1,122 @@
 <template>
-    <div class="call-form">
-        <div class="card-header">
-            <lightning-icon icon-name="utility:event" size="x-small"></lightning-icon>
-            <h3>{title}</h3>
-        </div>
-        <lightning-record-edit-form
-            object-api-name="Planned_Call__c"
-            record-id={recordId}
-            onsubmit={handleSubmit}
-            onsuccess={handleSuccess}
-            onerror={handleError}
-        >
-            <template if:false={isEditing}>
-                <div class="kind-row">
-                    <lightning-button-group>
-                        <template for:each={kindButtons} for:item="k">
-                            <lightning-button
-                                key={k.key}
-                                label={k.label}
-                                variant={k.variant}
-                                data-value={k.key}
-                                onclick={handleKindChange}
-                            ></lightning-button>
+    <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="schedule-form-title" class="slds-modal slds-fade-in-open slds-modal_medium">
+        <div class="slds-modal__container">
+            <lightning-record-edit-form
+                class="form-shell"
+                object-api-name="Planned_Call__c"
+                record-id={recordId}
+                onload={handleLoad}
+                onsubmit={handleSubmit}
+                onsuccess={handleSuccess}
+                onerror={handleError}
+            >
+                <div class="shell">
+                <header class="slds-modal__header modal-header">
+                    <span class="header-icon">
+                        <lightning-icon icon-name="utility:event" size="small" variant="inverse"></lightning-icon>
+                    </span>
+                    <div class="header-text">
+                        <h2 id="schedule-form-title" class="slds-modal__title">{title}</h2>
+                        <p class="header-sub">{subtitle}</p>
+                    </div>
+                    <button type="button" class="close-btn" title="Close" onclick={handleCancel} disabled={isSaving}>
+                        <lightning-icon icon-name="utility:close" size="x-small"></lightning-icon>
+                    </button>
+                </header>
+
+                <div class="slds-modal__content modal-body">
+                    <div class="card">
+                        <div class="card-title">
+                            <lightning-icon icon-name="utility:user" size="x-small"></lightning-icon>
+                            <span>Account</span>
+                        </div>
+                        <template if:false={isEditing}>
+                            <div class="segmented" role="group" aria-label="Account type">
+                                <template for:each={kindButtons} for:item="k">
+                                    <button type="button" key={k.key} class={k.className} data-value={k.key} onclick={handleKindChange}>{k.label}</button>
+                                </template>
+                            </div>
                         </template>
-                    </lightning-button-group>
+                        <div class="grid one-col">
+                            <template if:true={isEditing}>
+                                <lightning-input-field field-name="HCP__c" variant="label-stacked"></lightning-input-field>
+                                <lightning-input-field field-name="HCO__c" variant="label-stacked"></lightning-input-field>
+                            </template>
+                            <template if:false={isEditing}>
+                                <template if:true={isHcpKind}>
+                                    <lightning-input-field field-name="HCP__c" value={defaultHcpId} variant="label-stacked"></lightning-input-field>
+                                </template>
+                                <template if:true={isHcoKind}>
+                                    <lightning-input-field field-name="HCO__c" value={defaultHcoId} variant="label-stacked"></lightning-input-field>
+                                </template>
+                            </template>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">
+                            <lightning-icon icon-name="utility:date_time" size="x-small"></lightning-icon>
+                            <span>Schedule</span>
+                        </div>
+                        <div class="grid two-col">
+                            <div class="span-2">
+                                <lightning-input-field field-name="Call_DateTime__c" value={defaultDateTime} variant="label-stacked" onchange={handleDateTimeChange}></lightning-input-field>
+                                <template if:true={isSunday}>
+                                    <div class="soft-warning" role="alert">
+                                        <lightning-icon icon-name="utility:warning" size="x-small"></lightning-icon>
+                                        <span>This visit is on a Sunday, normally a non-working day. You can still schedule it.</span>
+                                    </div>
+                                </template>
+                            </div>
+                            <div class="duration">
+                                <label class="duration-label" for="duration-input">Duration (min)</label>
+                                <div class="stepper">
+                                    <button type="button" class="step-btn" title="Decrease" onclick={handleDurationDec} disabled={atMinDuration}>
+                                        <lightning-icon icon-name="utility:dash" size="xx-small"></lightning-icon>
+                                    </button>
+                                    <input id="duration-input" class="duration-input" type="number" inputmode="numeric" min="5" max="120" step="5"
+                                           value={duration} onchange={handleDurationInput} onblur={handleDurationBlur} />
+                                    <button type="button" class="step-btn" title="Increase" onclick={handleDurationInc} disabled={atMaxDuration}>
+                                        <lightning-icon icon-name="utility:add" size="xx-small"></lightning-icon>
+                                    </button>
+                                </div>
+                                <div class="chips">
+                                    <template for:each={durationChips} for:item="d">
+                                        <button type="button" key={d.value} class={d.className} data-value={d.value} onclick={handleDurationChip}>{d.label}</button>
+                                    </template>
+                                </div>
+                            </div>
+                            <lightning-input-field field-name="Call_Type__c" variant="label-stacked"></lightning-input-field>
+                            <lightning-input-field field-name="Status__c" variant="label-stacked"></lightning-input-field>
+                            <lightning-input-field field-name="Plan__c" variant="label-stacked"></lightning-input-field>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">
+                            <lightning-icon icon-name="utility:events" size="x-small"></lightning-icon>
+                            <span>Event</span>
+                        </div>
+                        <lightning-input-field class="slds-hide" field-name="Is_Event__c" value={isEvent}></lightning-input-field>
+                        <lightning-input type="checkbox" label="This is a medical/speaker event" checked={isEvent} onchange={handleEventToggle}></lightning-input>
+                        <template if:true={isEvent}>
+                            <div class="grid two-col event-fields">
+                                <lightning-input-field field-name="Event_Title__c" variant="label-stacked"></lightning-input-field>
+                                <lightning-input-field field-name="Venue__c" variant="label-stacked"></lightning-input-field>
+                                <lightning-input-field field-name="Product__c" variant="label-stacked"></lightning-input-field>
+                                <lightning-input-field field-name="Program_Type__c" variant="label-stacked"></lightning-input-field>
+                            </div>
+                        </template>
+                    </div>
                 </div>
-            </template>
-            <div class="edit-grid">
-                <template if:true={isEditing}>
-                    <lightning-input-field field-name="HCP__c"></lightning-input-field>
-                    <lightning-input-field field-name="HCO__c"></lightning-input-field>
-                </template>
-                <template if:false={isEditing}>
-                    <template if:true={isHcpKind}>
-                        <lightning-input-field field-name="HCP__c" value={defaultHcpId}></lightning-input-field>
-                    </template>
-                    <template if:true={isHcoKind}>
-                        <lightning-input-field field-name="HCO__c" value={defaultHcoId}></lightning-input-field>
-                    </template>
-                </template>
-                <div class="field-datetime">
-                    <lightning-input-field field-name="Call_DateTime__c" value={defaultDateTime}></lightning-input-field>
+
+                <footer class="slds-modal__footer modal-footer">
+                    <lightning-button label="Cancel" onclick={handleCancel} disabled={isSaving}></lightning-button>
+                    <lightning-button variant="brand" type="submit" label={saveLabel} disabled={isSaving}></lightning-button>
+                </footer>
                 </div>
-                <lightning-input-field field-name="Duration_Min__c"></lightning-input-field>
-                <lightning-input-field field-name="Call_Type__c"></lightning-input-field>
-                <lightning-input-field field-name="Status__c"></lightning-input-field>
-                <lightning-input-field field-name="Plan__c"></lightning-input-field>
-                <lightning-input-field class="slds-hide" field-name="Is_Event__c" value={isEvent}></lightning-input-field>
-                <div class="field-checkbox slds-form-element">
-                    <lightning-input type="checkbox" label="This is a medical/speaker event" checked={isEvent} onchange={handleEventToggle}></lightning-input>
-                </div>
-                <template if:true={isEvent}>
-                    <lightning-input-field field-name="Event_Title__c"></lightning-input-field>
-                    <lightning-input-field field-name="Venue__c"></lightning-input-field>
-                    <lightning-input-field field-name="Product__c"></lightning-input-field>
-                    <lightning-input-field field-name="Program_Type__c"></lightning-input-field>
-                </template>
-            </div>
-            <div class="edit-actions">
-                <lightning-button label="Cancel" onclick={handleCancel} disabled={isSaving}></lightning-button>
-                <lightning-button variant="brand" type="submit" label="Save" disabled={isSaving}></lightning-button>
-            </div>
-        </lightning-record-edit-form>
-    </div>
+            </lightning-record-edit-form>
+        </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open"></div>
 </template>

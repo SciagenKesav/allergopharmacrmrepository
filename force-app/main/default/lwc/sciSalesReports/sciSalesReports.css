@@ -1,0 +1,9 @@
+.ctl { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 12px; }
+.pick { width: 170px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.charts { display: grid; gap: 12px; margin-bottom: 14px; }
+.tblwrap { margin-bottom: 14px; }
+.note { color: #64748B; font-size: 0.8rem; margin-bottom: 10px; }
+.empty { text-align: center; color: #64748B; padding: 40px 0; }
+.err { color: #DC2626; }
+.spin { min-height: 60px; }

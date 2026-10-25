@@ -1,0 +1,8 @@
+.kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.charts { display: grid; gap: 12px; margin-bottom: 14px; }
+.charts.two { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.tblwrap { margin-bottom: 14px; }
+.headline { background: #EEF2FF; border: 1px solid #C7D2FE; color: #312E81; padding: 10px 14px; border-radius: 10px; margin-bottom: 12px; font-weight: 500; }
+.note { color: #64748B; font-size: 0.8rem; margin-bottom: 10px; }
+.err { color: #DC2626; padding: 10px 0; }
+.spin { min-height: 60px; }

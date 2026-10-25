@@ -104,3 +104,17 @@
     font-size: 0.85rem;
     padding: 0.5rem 0;
 }
+/* Keep the header button on one line ("Log Presentation") — let the title
+   wrap instead of squeezing the button. */
+.card-header lightning-button {
+    flex: none;
+    white-space: nowrap;
+}
+
+.card-header lightning-button::part(button) {
+    white-space: nowrap;
+}
+
+.card-header h3 {
+    min-width: 0;
+}

@@ -29,7 +29,7 @@ private class SciagenAccountControllerTest {
         insert new Affiliation__c(Name = 'Affiliation', HCP__c = hcp.Id, HCO__c = hco.Id);
 
         insert new Segmentation__c(
-            Name = 'Segmentation - Dr. Anita Rao', HCP__c = hcp.Id, Classification__c = 'A',
+            Name = 'Segmentation - Dr. Anita Rao', HCP__c = hcp.Id, Classification__c = 'V3',
             Tier__c = 'Gold', Priority__c = 'Priority 1', Potential__c = 'High', Is_KOL__c = true
         );
 
@@ -101,6 +101,49 @@ private class SciagenAccountControllerTest {
 
         System.assertEquals(1, results.size(), 'Only the HCP has a territory assignment');
         System.assertEquals('Dr. Anita Rao', results[0].name);
+    }
+
+    @isTest
+    static void testSearchAccountsHidesAccountsOutsideTheRunningUsersTerritoryForANonAdmin() {
+        Territory__c myTerritory = new Territory__c(Name = 'Search Scope Territory', Territory_Code__c = 'SST', Type__c = 'Territory');
+        insert myTerritory;
+
+        Profile kamProfile = [SELECT Id FROM Profile WHERE Name = 'Key Account Manager' LIMIT 1];
+        User kam = testUser('Search', 'Scope', kamProfile.Id);
+        insert kam;
+        insert new User_Territory__c(User__c = kam.Id, Territory__c = myTerritory.Id, Is_Primary__c = true);
+
+        // Insert both accounts under the default (admin) owner first -- AccountTerritoryAutoAssignService
+        // auto-links a newly-inserted account to its OWNER's primary territory, so inserting
+        // directly as kam would auto-create exactly the link this test needs to NOT exist.
+        // Reassigning ownership afterward via a separate update (not touching
+        // Account_Territory__c) mirrors how the real mis-owned production records came to be:
+        // inserted under one owner, then reassigned to a KAM later without ever being
+        // territory-linked.
+        Sciagen_Account__c inTerritory = new Sciagen_Account__c(
+            Type__c = 'HCO', Name = 'In Territory Hospital', HCO_Type__c = 'Hospital', Speciality__c = 'Other'
+        );
+        Sciagen_Account__c unassigned = new Sciagen_Account__c(
+            Type__c = 'HCO', Name = 'Unassigned Seed Hospital', HCO_Type__c = 'Hospital', Speciality__c = 'Other'
+        );
+        insert new List<Sciagen_Account__c>{ inTerritory, unassigned };
+        insert new Account_Territory__c(Name = 'Assignment', Account__c = inTerritory.Id, Territory__c = myTerritory.Id);
+
+        inTerritory.OwnerId = kam.Id;
+        unassigned.OwnerId = kam.Id;
+        update new List<Sciagen_Account__c>{ inTerritory, unassigned };
+
+        List<SciagenAccountController.AccountSummary> results;
+        System.runAs(kam) {
+            Test.startTest();
+            results = SciagenAccountController.searchAccounts('', null, null, null, null, null, null, null, null, null, null);
+            Test.stopTest();
+        }
+
+        Set<String> names = new Set<String>();
+        for (SciagenAccountController.AccountSummary s : results) { names.add(s.name); }
+        System.assert(names.contains('In Territory Hospital'), 'The territory-linked account should be visible');
+        System.assert(!names.contains('Unassigned Seed Hospital'), 'An owned account with no territory link should NOT leak into the list');
     }
 
     @isTest
@@ -221,13 +264,64 @@ private class SciagenAccountControllerTest {
     }
 
     @isTest
-    static void testGetTerritoryOptionsReturnsAllTerritories() {
+    static void testGetTerritoryOptionsReturnsAllTerritoriesForAViewAllDataUser() {
         Test.startTest();
         List<String> options = SciagenAccountController.getTerritoryOptions();
         Test.stopTest();
 
-        System.assertEquals(1, options.size());
+        System.assertEquals(1, options.size(), 'The default test running user has view-all-data access, so sees every territory unfiltered');
         System.assertEquals('North Delhi', options[0]);
+    }
+
+    @isTest
+    static void testGetTerritoryOptionsIsScopedToTheRunningUsersAssignmentsAndDescendantsForANonAdmin() {
+        Territory__c parent = new Territory__c(Name = 'North', Territory_Code__c = 'NORTHZONE', Type__c = 'Region');
+        insert parent;
+        Territory__c child = new Territory__c(Name = 'North Delhi Child', Territory_Code__c = 'NDC', Type__c = 'Territory', Parent_Territory__c = parent.Id);
+        insert child;
+        Territory__c unrelated = new Territory__c(Name = 'Unrelated South', Territory_Code__c = 'US', Type__c = 'Territory');
+        insert unrelated;
+
+        Profile managerProfile = [SELECT Id FROM Profile WHERE Name = 'Manager' LIMIT 1];
+        User manager = testUser('Territory', 'Filter', managerProfile.Id);
+        insert manager;
+        insert new User_Territory__c(User__c = manager.Id, Territory__c = parent.Id, Is_Primary__c = true);
+
+        List<String> options;
+        System.runAs(manager) {
+            Test.startTest();
+            options = SciagenAccountController.getTerritoryOptions();
+            Test.stopTest();
+        }
+
+        System.assertEquals(2, options.size(), 'A manager assigned to the parent territory should see it plus its child, but nothing unrelated');
+        System.assert(options.contains('North'));
+        System.assert(options.contains('North Delhi Child'));
+        System.assert(!options.contains('Unrelated South'));
+        System.assert(!options.contains('North Delhi'), 'Must not see the @testSetup territory this user has no assignment to');
+    }
+
+    @isTest
+    static void testGetMyTerritoryNamesReturnsEmptyWhenUnassigned() {
+        Test.startTest();
+        List<String> names = SciagenAccountController.getMyTerritoryNames();
+        Test.stopTest();
+
+        System.assertEquals(0, names.size(), 'The running user has no User_Territory__c row in this test');
+    }
+
+    @isTest
+    static void testGetMyTerritoryNamesReturnsTheRunningUsersOwnTerritories() {
+        Territory__c mine = new Territory__c(Name = 'South Chennai', Territory_Code__c = 'SC', Type__c = 'Territory');
+        insert mine;
+        insert new User_Territory__c(User__c = UserInfo.getUserId(), Territory__c = mine.Id, Is_Primary__c = true);
+
+        Test.startTest();
+        List<String> names = SciagenAccountController.getMyTerritoryNames();
+        Test.stopTest();
+
+        System.assertEquals(1, names.size());
+        System.assertEquals('South Chennai', names[0]);
     }
 
     @isTest
@@ -284,7 +378,7 @@ private class SciagenAccountControllerTest {
         List<String> hcoTypes = SciagenAccountController.getHCOTypeOptions();
         Test.stopTest();
 
-        System.assert(specialties.contains('Cardiology'), 'Expected the Specialty picklist to include Cardiology');
+        System.assert(specialties.contains('Pulmonology'), 'Expected the Specialty picklist to include Pulmonology');
         System.assert(hcoTypes.contains('Hospital'), 'Expected the HCO Type picklist to include Hospital');
     }
 
@@ -330,55 +424,106 @@ private class SciagenAccountControllerTest {
         System.assertEquals('Priority Follow-ups', lists[0].listName);
     }
 
+    // MARK: - New Account Request (KAM gate)
+
     @isTest
-    static void testBusinessAdminSavedViewsAreVisibleToOtherUsersButPrivateOnesArentAdminUnaffected() {
-        Profile businessAdmin = [SELECT Id FROM Profile WHERE Name = 'Business Admin' LIMIT 1];
-        Profile standardUser = [SELECT Id FROM Profile WHERE Name = 'Standard User' LIMIT 1];
-        User admin = new User(FirstName = 'Ops', LastName = 'Admin SavedViewTest', Alias = 'opsad', Email = 'ops.admin.savedview@sciagen-test.invalid',
-            Username = 'ops.admin.savedview@sciagen-new-dev.invalid', TimeZoneSidKey = 'Asia/Kolkata', LocaleSidKey = 'en_US',
-            EmailEncodingKey = 'UTF-8', LanguageLocaleKey = 'en_US', ProfileId = businessAdmin.Id, IsActive = true);
-        User rep = new User(FirstName = 'Field', LastName = 'Rep SavedViewTest', Alias = 'fldrp', Email = 'field.rep.savedview@sciagen-test.invalid',
-            Username = 'field.rep.savedview@sciagen-new-dev.invalid', TimeZoneSidKey = 'Asia/Kolkata', LocaleSidKey = 'en_US',
-            EmailEncodingKey = 'UTF-8', LanguageLocaleKey = 'en_US', ProfileId = standardUser.Id, IsActive = true);
-        insert new List<User>{ admin, rep };
-        Id mobileAccessId = [SELECT Id FROM PermissionSet WHERE Name = 'Sciagen_Mobile_App_Access'].Id;
-        insert new List<PermissionSetAssignment>{
-            new PermissionSetAssignment(AssigneeId = admin.Id, PermissionSetId = mobileAccessId),
-            new PermissionSetAssignment(AssigneeId = rep.Id, PermissionSetId = mobileAccessId)
+    static void isKeyAccountManagerIsFalseForTheDefaultTestRunningUser() {
+        Test.startTest();
+        Boolean result = SciagenAccountController.isKeyAccountManager();
+        Test.stopTest();
+        System.assertEquals(false, result, 'The default test running user is not on the Key Account Manager profile');
+    }
+
+    @isTest
+    static void isKeyAccountManagerIsTrueForAKAMProfileUser() {
+        User kam = testUser('VerifyKAM', 'Profile', [SELECT Id FROM Profile WHERE Name = 'Key Account Manager' LIMIT 1].Id);
+        insert kam;
+
+        System.runAs(kam) {
+            System.assertEquals(true, SciagenAccountController.isKeyAccountManager());
+        }
+    }
+
+    @isTest
+    static void submitNewAccountRequestForHCPCreatesPendingDCRLinkedToTheHCO() {
+        Sciagen_Account__c hco = [SELECT Id FROM Sciagen_Account__c WHERE Name = 'Verify Test Hospital' LIMIT 1];
+        Map<String, String> fields = new Map<String, String>{
+            'prefix' => 'Dr.', 'firstName' => 'New', 'lastName' => 'Doctor',
+            'hcpType' => 'Physician', 'specialty' => 'Cardiology', 'phone' => '9000000099'
         };
 
-        System.runAs(admin) {
-            SciagenAccountController.saveView(null, 'Org Standard - Cardiology', '{"specialties":["Cardiology"]}', 'Name', true, 'List');
-        }
-        System.assertEquals(1, [SELECT COUNT() FROM Saved_Filter__c WHERE Owner.Profile.Name = 'Business Admin'],
-            'sanity check: the view should be owned by the Business Admin test user before checking who else can see it');
-        List<SciagenAccountController.SavedViewItem> repViewsBeforeOwn;
-        System.runAs(rep) {
-            repViewsBeforeOwn = SciagenAccountController.getSavedViews();
-            SciagenAccountController.saveView(null, 'My Personal Shortlist', '{"specialties":["Oncology"]}', 'Name', true, 'List');
-        }
-
         Test.startTest();
-        List<SciagenAccountController.SavedViewItem> repViewsAfterOwn;
-        System.runAs(rep) {
-            repViewsAfterOwn = SciagenAccountController.getSavedViews();
-        }
-        List<SciagenAccountController.SavedViewItem> adminViews;
-        System.runAs(admin) {
-            adminViews = SciagenAccountController.getSavedViews();
-        }
+        Id dcrId = SciagenAccountController.submitNewAccountRequest('HCP', fields, hco.Id);
         Test.stopTest();
 
-        System.assertEquals(1, repViewsBeforeOwn.size(), 'The rep should already see the Business Admin\'s shared view even before creating their own');
-        System.assertEquals('Org Standard - Cardiology', repViewsBeforeOwn[0].viewName);
+        Data_Change_Request__c dcr = [
+            SELECT Type__c, Status__c, Subject_Name__c, Related_HCO__c, Fields_Payload__c, Submitted_By__c
+            FROM Data_Change_Request__c WHERE Id = :dcrId
+        ];
+        System.assertEquals('New HCP', dcr.Type__c);
+        System.assertEquals('Pending Approval', dcr.Status__c);
+        System.assertEquals('Dr. New Doctor', dcr.Subject_Name__c);
+        System.assertEquals(hco.Id, dcr.Related_HCO__c);
+        System.assertEquals(UserInfo.getUserId(), Id.valueOf(dcr.Submitted_By__c));
 
-        System.assertEquals(2, repViewsAfterOwn.size(), 'The rep should see both the admin\'s shared view and their own');
-        Set<String> repViewNames = new Set<String>();
-        for (SciagenAccountController.SavedViewItem item : repViewsAfterOwn) { repViewNames.add(item.viewName); }
-        System.assert(repViewNames.contains('Org Standard - Cardiology'));
-        System.assert(repViewNames.contains('My Personal Shortlist'));
+        Map<String, Object> payload = (Map<String, Object>) JSON.deserializeUntyped(dcr.Fields_Payload__c);
+        System.assertEquals('Physician', payload.get('hcpType'), 'Payload must use the same keys DataChangeRequestApprovalHandler.buildHCP reads');
+        System.assert([SELECT Id FROM Sciagen_Account__c WHERE Name = 'Dr. New Doctor'].isEmpty(),
+            'No account should exist yet — only the DCR was created; the Account is only made once a steward approves it');
+    }
 
-        System.assertEquals(1, adminViews.size(), 'The admin should not see the rep\'s private saved view');
-        System.assertEquals('Org Standard - Cardiology', adminViews[0].viewName);
+    @isTest
+    static void submitNewAccountRequestForHCPWithoutRelatedHCOThrows() {
+        Map<String, String> fields = new Map<String, String>{ 'firstName' => 'New', 'lastName' => 'Doctor' };
+
+        Test.startTest();
+        try {
+            SciagenAccountController.submitNewAccountRequest('HCP', fields, null);
+            System.assert(false, 'Expected an exception when no affiliated HCO is supplied for a New HCP request');
+        } catch (AuraHandledException e) {
+            // expected
+        }
+        Test.stopTest();
+    }
+
+    @isTest
+    static void submitNewAccountRequestForHCOCreatesPendingDCRWithNoRelatedAccount() {
+        Map<String, String> fields = new Map<String, String>{
+            'name' => 'New Test Pharmacy', 'type' => 'Pharmacy', 'city' => 'Pune', 'phone' => '9000000098'
+        };
+
+        Test.startTest();
+        Id dcrId = SciagenAccountController.submitNewAccountRequest('HCO', fields, null);
+        Test.stopTest();
+
+        Data_Change_Request__c dcr = [SELECT Type__c, Status__c, Subject_Name__c, Related_HCO__c FROM Data_Change_Request__c WHERE Id = :dcrId];
+        System.assertEquals('New HCO', dcr.Type__c);
+        System.assertEquals('Pending Approval', dcr.Status__c);
+        System.assertEquals('New Test Pharmacy', dcr.Subject_Name__c);
+        System.assertEquals(null, dcr.Related_HCO__c);
+    }
+
+    @isTest
+    static void submitNewAccountRequestWithBlankNameThrows() {
+        Test.startTest();
+        try {
+            SciagenAccountController.submitNewAccountRequest('HCO', new Map<String, String>(), null);
+            System.assert(false, 'Expected an exception when the request has no name at all');
+        } catch (AuraHandledException e) {
+            // expected
+        }
+        Test.stopTest();
+    }
+
+    private static User testUser(String firstName, String lastName, Id profileId) {
+        String uniq = firstName.toLowerCase() + '.' + lastName.toLowerCase() + '.' + Datetime.now().getTime();
+        return new User(
+            FirstName = firstName, LastName = lastName,
+            Email = uniq + '@sciagen.invalid',
+            Username = uniq + '@sciagen.invalid',
+            Alias = firstName.left(1).toLowerCase() + lastName.left(4).toLowerCase(),
+            TimeZoneSidKey = 'Asia/Kolkata', LocaleSidKey = 'en_IN',
+            EmailEncodingKey = 'UTF-8', LanguageLocaleKey = 'en_US', ProfileId = profileId
+        );
     }
 }

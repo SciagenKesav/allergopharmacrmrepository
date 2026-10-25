@@ -15,6 +15,11 @@
                 <label>KAM</label>
             </value>
             <value>
+                <fullName>Key Account Manager</fullName>
+                <default>false</default>
+                <label>Key Account Manager</label>
+            </value>
+            <value>
                 <fullName>RSM</fullName>
                 <default>false</default>
                 <label>RSM</label>

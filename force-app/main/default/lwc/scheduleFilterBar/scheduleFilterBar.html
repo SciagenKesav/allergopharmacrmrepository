@@ -41,6 +41,7 @@
                 <lightning-combobox label="Specialty" variant="label-hidden" options={specialtyComboOptions} value={specialty} onchange={handleSpecialtyChange}></lightning-combobox>
                 <lightning-combobox label="Territory" variant="label-hidden" options={territoryComboOptions} value={territory} onchange={handleTerritoryChange}></lightning-combobox>
                 <lightning-combobox label="Status" variant="label-hidden" options={statusComboOptions} value={status} onchange={handleStatusChange}></lightning-combobox>
+                <lightning-combobox label="Call Category" variant="label-hidden" options={categoryComboOptions} value={callCategory} onchange={handleCategoryChange}></lightning-combobox>
                 <lightning-combobox label="Custom List" variant="label-hidden" options={customListComboOptions} value={customListId} onchange={handleCustomListChange}></lightning-combobox>
                 <template if:true={hasActiveFilters}>
                     <lightning-button label="Clear" icon-name="utility:clear" onclick={handleClear}></lightning-button>

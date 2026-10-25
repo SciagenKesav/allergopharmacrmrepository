@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Product__c</fullName>
+    <description>Optional brand/product this item promotes.</description>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <label>Related Product</label>
+    <referenceTo>Product__c</referenceTo>
+    <relationshipLabel>Promotional Items</relationshipLabel>
+    <relationshipName>PromotionalItems</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

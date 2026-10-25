@@ -1,0 +1,7 @@
+.kpi { background: #fff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px; min-height: 84px; }
+.val { font-size: 1.6rem; font-weight: 700; color: #0F172A; line-height: 1.15; word-break: break-word; }
+.lbl { color: #64748B; font-size: 0.78rem; margin-top: 2px; }
+.badge { display: inline-flex; align-items: center; gap: 2px; margin-top: 6px; font-size: 0.72rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; }
+.good { background: #05966922; color: #059669; }
+.bad { background: #DC262622; color: #DC2626; }
+.flat { background: #64748B22; color: #64748B; }

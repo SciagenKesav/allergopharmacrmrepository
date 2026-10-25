@@ -1,0 +1,34 @@
+<template>
+    <div class="card">
+        <div class="hdr"><lightning-icon icon-name="utility:chart" size="x-small" alternative-text=""></lightning-icon><span>{title}</span></div>
+        <template if:true={isHbar}>
+            <div class="hbars">
+                <template for:each={hbarRows} for:item="r">
+                    <div key={r.key} class="hrow">
+                        <div class="hlab" title={r.label}>{r.label}</div>
+                        <div class="htrack"><div class="hfill" style={r.style}></div><div class="hrefline" style={refStyle}></div></div>
+                        <div class="hval">{r.text}</div>
+                    </div>
+                </template>
+            </div>
+        </template>
+        <template if:false={isHbar}>
+            <svg viewBox="0 0 600 260" class="svg" role="img" aria-label={title}>
+                <template for:each={gridLines} for:item="g">
+                    <g key={g.key}><line x1="44" x2="590" y1={g.y} y2={g.y} stroke="#E2E8F0" stroke-width="1"></line><text x="38" y={g.ty} text-anchor="end" font-size="10" fill="#64748B">{g.label}</text></g>
+                </template>
+                <template if:true={refLineY}><line x1="44" x2="590" y1={refLineY} y2={refLineY} stroke="#64748B" stroke-width="1.2" stroke-dasharray="5 4"></line></template>
+                <template for:each={bars} for:item="b">
+                    <g key={b.key}><rect x={b.x} y={b.y} width={b.w} height={b.h} rx="3" fill={b.color}></rect><text x={b.tx} y={b.ty} text-anchor="middle" font-size="10" fill="#0F172A">{b.text}</text></g>
+                </template>
+                <template for:each={xLabels} for:item="l"><text key={l.key} x={l.x} y="244" text-anchor="middle" font-size="10" fill="#64748B">{l.text}</text></template>
+                <template for:each={lines} for:item="ln"><polyline key={ln.key} points={ln.points} fill="none" stroke={ln.color} stroke-width="2.5"></polyline></template>
+                <template for:each={dots} for:item="d"><g key={d.key}><circle cx={d.x} cy={d.y} r="3.5" fill={d.color}></circle><text x={d.x} y={d.ty} text-anchor="middle" font-size="10" fill="#0F172A">{d.text}</text></g></template>
+            </svg>
+            <div if:true={showLegend} class="legend">
+                <template for:each={legend} for:item="s"><span key={s.name} class="lg"><i style={s.style}></i>{s.name}</span></template>
+            </div>
+        </template>
+        <div if:true={isEmpty} class="empty">No data for this period and these filters.</div>
+    </div>
+</template>

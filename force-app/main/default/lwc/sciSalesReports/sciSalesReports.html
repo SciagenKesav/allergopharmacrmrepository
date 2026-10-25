@@ -1,0 +1,29 @@
+<template>
+    <div class="ctl">
+        <lightning-button-group>
+            <template for:each={views} for:item="v"><lightning-button key={v.value} label={v.label} variant={v.variant} data-value={v.value} onclick={pickView}></lightning-button></template>
+        </lightning-button-group>
+        <lightning-button-group if:true={showBy}>
+            <template for:each={bys} for:item="v"><lightning-button key={v.value} label={v.label} variant={v.variant} data-value={v.value} onclick={pickBy}></lightning-button></template>
+        </lightning-button-group>
+        <lightning-combobox if:false={isTrend} class="pick" label="Month" variant="label-hidden" options={monthChoices} value={month} onchange={pickMonth}></lightning-combobox>
+        <lightning-combobox if:true={isTrend} class="pick" label="Brand" variant="label-hidden" options={brandChoices} value={brand} onchange={pickBrand}></lightning-combobox>
+        <lightning-button-icon icon-name="utility:refresh" alternative-text="Refresh" onclick={refresh}></lightning-button-icon>
+    </div>
+    <div if:true={loading} class="slds-is-relative spin"><lightning-spinner alternative-text="Loading" size="small"></lightning-spinner></div>
+    <div if:true={error} class="err">{error}</div>
+    <template if:true={result}>
+        <div if:true={result.noData} class="empty">No Sales data loaded yet</div>
+        <template if:false={result.noData}>
+            <div if:true={result.note} class="note">{result.note}</div>
+            <div class="kpis"><template for:each={result.kpis} for:item="k"><c-sci-kpi-card key={k.label} label={k.label} value={k.value}></c-sci-kpi-card></template></div>
+            <div class="charts"><template for:each={result.charts} for:item="c"><c-sci-chart key={c.title} chart={c}></c-sci-chart></template></div>
+            <template for:each={result.tables} for:item="t">
+                <div key={t.title} class="tblwrap"><c-sci-report-table title={t.title} icon={t.icon} columns={t.columns} rows={t.rows} row-action={t.rowAction} group-dim={t.groupDim} onrowclick={handleRow}></c-sci-report-table></div>
+            </template>
+        </template>
+    </template>
+    <template if:true={drill}>
+        <c-sci-drill-panel target={drill} params-json={paramsJson} onclose={closeDrill}></c-sci-drill-panel>
+    </template>
+</template>

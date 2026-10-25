@@ -49,6 +49,25 @@
     flex-wrap: wrap;
 }
 
+.kam-picker {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    background: #ffffff;
+    border-bottom: 1px solid var(--brand-hairline);
+}
+
+.kam-picker lightning-combobox {
+    min-width: 260px;
+}
+
+.kam-picker-note {
+    color: var(--brand-subtle);
+    font-size: 0.8rem;
+    font-style: italic;
+}
+
 .agenda {
     padding: 1rem 1.25rem;
 }
@@ -122,4 +141,106 @@
     padding: 0.15rem 0.55rem;
     border-radius: 0.75rem;
     flex-shrink: 0;
+}
+.my-schedule-label {
+    font-weight: 600;
+    color: var(--brand-ink, #0f172a);
+}
+
+.header-left h2 {
+    font-size: 1.15rem;
+}
+
+.chip {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.15rem 0.6rem;
+    border-radius: 0.75rem;
+}
+
+.chip-planned {
+    background: #4F46E522;
+    color: #4F46E5;
+}
+
+.chip-submitted {
+    background: #05966922;
+    color: #059669;
+}
+
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    padding: 0.5rem 1.25rem;
+    background: #ffffff;
+    border-bottom: 1px solid var(--brand-hairline);
+    font-size: 0.72rem;
+    color: var(--brand-subtle);
+}
+
+.legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.legend-dot {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.call-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: 0.75rem;
+    min-height: 5.2rem;
+    padding: 0.8rem 0.9rem;
+    margin-bottom: 0.7rem;
+    border-radius: 0.8rem;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+    cursor: pointer;
+}
+
+.call-card:hover {
+    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.12);
+}
+
+.call-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+.call-card .call-name {
+    font-size: 1rem;
+}
+
+.call-name-cancelled {
+    text-decoration: line-through;
+    color: var(--brand-subtle);
+}
+
+.call-card .call-time {
+    width: auto;
+    font-size: 0.85rem;
+    color: var(--brand-ink);
+}
+
+.call-card-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+
+.call-pills {
+    display: flex;
+    gap: 0.4rem;
 }

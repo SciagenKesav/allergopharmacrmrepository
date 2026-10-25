@@ -7,6 +7,7 @@ import markRead from '@salesforce/apex/SupportController.markRead';
 import addMessage from '@salesforce/apex/SupportController.addMessage';
 import cancelRequest from '@salesforce/apex/SupportController.cancelRequest';
 import reopenRequest from '@salesforce/apex/SupportController.reopenRequest';
+import closeRequestAsAdmin from '@salesforce/apex/SupportController.closeRequestAsAdmin';
 import uploadFile from '@salesforce/apex/SupportController.uploadFile';
 import getConsoleContext from '@salesforce/apex/SupportConsoleController.getContext';
 import getConsoleRequest from '@salesforce/apex/SupportConsoleController.getRequest';
@@ -17,6 +18,9 @@ import consolePriority from '@salesforce/apex/SupportConsoleController.setPriori
 import consoleStatus from '@salesforce/apex/SupportConsoleController.setStatus';
 import unlockCall from '@salesforce/apex/SupportConsoleController.unlockCall';
 import declineUnlock from '@salesforce/apex/SupportConsoleController.declineUnlock';
+import unlockPlan from '@salesforce/apex/SupportConsoleController.unlockPlan';
+import declinePlanUnlock from '@salesforce/apex/SupportConsoleController.declinePlanUnlock';
+import getPlanInfo from '@salesforce/apex/SupportConsoleController.getPlanInfo';
 import { ACCEPT, MAX_FILES, absTime, errorText, humanSize, priorityClass, readFile, relTime, slaText, statusClass, uuid } from 'c/supportUtil';
 
 const REPLY_MODES = [
@@ -28,9 +32,13 @@ const REPLY_MODES = [
 export default class SupportThread extends LightningElement {
     @api requestId;
     @api recordId;
+    /** Set by the Help and Support page when a System Administrator / Business Admin is looking at a KAM's request. */
+    @api adminMode = false;
 
     @track ctx = {};
-    @track consoleCtx = { agents: [], resolutions: [], canUnlock: false };
+    @track consoleCtx = { agents: [], resolutions: [], canUnlock: false, canUnlockPlan: false };
+    @track planInfo;
+    planInfoFor;
     @track detail;
     @track text = '';
     @track pending = [];
@@ -61,6 +69,7 @@ export default class SupportThread extends LightningElement {
     disconnectedCallback() { clearInterval(this._timer); }
 
     renderedCallback() {
+        this.loadPlanInfo();
         if (this.currentId && this.currentId !== this._loadedId) {
             this._loadedId = this.currentId;
             this.text = '';
@@ -137,7 +146,9 @@ export default class SupportThread extends LightningElement {
     get showCancel() { return this.detail && this.detail.canCancel && this.isRequester && !this.isAgent; }
     get showReopen() { return this.detail && this.detail.canReopen && (this.isRequester || this.isAgent) && !this.detail.canCancel; }
     get closedNote() { return this.detail ? this.detail.closedNote : ''; }
-    get showComposer() { return this.detail && this.detail.canReply; }
+    // An administrator who is not a support agent reads and closes only; replies come from the support team.
+    get showComposer() { return this.detail && this.detail.canReply && !(this.adminMode && !this.isAgent); }
+    get showAdminClose() { return this.adminMode && !this.isAgent && this.row && this.row.status !== 'Closed' && this.row.status !== 'Cancelled'; }
     get composerLabel() { return this.row && !this.row.isOpen ? 'Reply to reopen this request' : 'Reply'; }
     get canSend() { return !this.sending && this.text.trim().length > 0; }
     get canSendDisabled() { return !this.canSend; }
@@ -155,11 +166,31 @@ export default class SupportThread extends LightningElement {
     }
     get priorityOptions() { return (this.ctx.priorities || []).map((p) => ({ label: p, value: p })); }
     get assignedValue() { return this.row && this.row.assignedId ? this.row.assignedId : ''; }
-    get isUnlockRequest() { return this.row && this.row.category === 'Unlock Submitted Call'; }
-    get showUnlock() { return this.isAgent && this.isUnlockRequest && this.row.isOpen && this.row.unlockOutcome !== 'Unlocked' && this.consoleCtx.canUnlock; }
+    get isCallUnlock() { return this.row && this.row.category === 'Unlock Submitted Call'; }
+    get isPlanUnlock() { return this.row && this.row.category === 'Unlock Monthly Plan'; }
+    get isUnlockRequest() { return this.isCallUnlock || this.isPlanUnlock; }
+    get showUnlock() {
+        if (!this.isAgent || !this.row || !this.row.isOpen || this.row.unlockOutcome === 'Unlocked') return false;
+        return (this.isCallUnlock && this.consoleCtx.canUnlock) || (this.isPlanUnlock && this.consoleCtx.canUnlockPlan);
+    }
+    get unlockLabel() { return this.isPlanUnlock ? 'Unlock this plan' : 'Unlock this call'; }
+    get unlockHelp() {
+        return this.isPlanUnlock
+            ? 'The plan goes back to Draft and its frozen baseline is cleared, so the rep can change the month and freeze it again. The request closes by itself when they do. Give a reason (required, the rep sees it).'
+            : 'The call goes back to Saved so the rep can correct it and submit it again. The request closes by itself when they do. Add a note for the rep (optional).';
+    }
+    get unlockConfirmLabel() { return this.isPlanUnlock ? 'Unlock plan and notify the rep' : 'Unlock call and notify the rep'; }
+    get declineHelp() { return this.isPlanUnlock ? 'Tell the rep why this plan cannot be unlocked.' : 'Tell the rep why this call cannot be unlocked.'; }
+    get planSummary() {
+        const i = this.planInfo;
+        if (!this.isPlanUnlock || !i) return '';
+        const when = i.frozenAt ? ` · frozen ${new Date(i.frozenAt).toLocaleDateString()}` : '';
+        return `${i.month} plan · ${i.status}${when} · ${i.callCount} calls frozen`;
+    }
     get unlockOutcomeText() {
         if (!this.row || !this.isUnlockRequest || !this.row.unlockOutcome) return '';
-        return this.row.unlockOutcome === 'Unlocked' ? 'Call unlocked. The rep can now edit and submit it again.' : 'Unlock declined.';
+        if (this.row.unlockOutcome === 'Declined') return 'Unlock declined.';
+        return this.isPlanUnlock ? 'Plan unlocked. The rep can now change it and freeze it again.' : 'Call unlocked. The rep can now edit and submit it again.';
     }
     get pendingFiles() { return this.pending.map((f) => ({ ...f, sizeText: humanSize(f.size), isImage: !!f.previewUrl })); }
     get hasPending() { return this.pending.length > 0; }
@@ -274,21 +305,36 @@ export default class SupportThread extends LightningElement {
         await this.run(() => cancelRequest({ requestId: this.currentId }), 'Request cancelled.');
     }
     reopen() { return this.run(() => reopenRequest({ requestId: this.currentId }), 'Request reopened.'); }
+    async closeAsAdmin() {
+        const ok = await LightningConfirm.open({ message: 'Close this conversation? The status changes to Closed.', label: 'Close request', variant: 'header', theme: 'warning' });
+        if (!ok) return;
+        await this.run(() => closeRequestAsAdmin({ requestId: this.currentId }), 'Request closed.');
+    }
     assignChanged(e) {
         const v = e.detail.value;
         return this.run(() => consoleAssign({ ids: [this.currentId], userId: v || null }), 'Assignment updated.');
     }
     priorityChanged(e) { return this.run(() => consolePriority({ ids: [this.currentId], priority: e.detail.value }), 'Priority updated.'); }
     closeNow() { return this.run(() => consoleStatus({ ids: [this.currentId], status: 'Closed', resolutionType: 'Answered' }), 'Request closed.'); }
+    loadPlanInfo() {
+        if (this.isAgent && this.isPlanUnlock && this.currentId && this.planInfoFor !== this.currentId) {
+            this.planInfoFor = this.currentId;
+            getPlanInfo({ requestId: this.currentId }).then((i) => { this.planInfo = i; }).catch(() => { this.planInfo = null; });
+        }
+    }
     toggleUnlock() { this.unlockOpen = !this.unlockOpen; this.declineOpen = false; }
     toggleDecline() { this.declineOpen = !this.declineOpen; this.unlockOpen = false; }
     unlockNoteChanged(e) { this.unlockNote = e.target.value; }
     declineChanged(e) { this.declineReason = e.target.value; }
     confirmUnlock() {
+        if (this.isPlanUnlock) {
+            return this.run(() => unlockPlan({ requestId: this.currentId, reason: this.unlockNote }), 'Plan unlocked. The rep can change it and freeze it again.', () => { this.unlockOpen = false; this.unlockNote = ''; this.planInfo = null; this.planInfoFor = null; });
+        }
         return this.run(() => unlockCall({ requestId: this.currentId, note: this.unlockNote }), 'Call unlocked. The rep can edit it on their next sync.', () => { this.unlockOpen = false; this.unlockNote = ''; });
     }
     confirmDecline() {
-        return this.run(() => declineUnlock({ requestId: this.currentId, reason: this.declineReason }), 'Unlock declined.', () => { this.declineOpen = false; this.declineReason = ''; });
+        const call = this.isPlanUnlock ? declinePlanUnlock : declineUnlock;
+        return this.run(() => call({ requestId: this.currentId, reason: this.declineReason }), 'Unlock declined.', () => { this.declineOpen = false; this.declineReason = ''; });
     }
 
     async run(action, done, after) {

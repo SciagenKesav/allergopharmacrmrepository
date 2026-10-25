@@ -29,25 +29,11 @@
     color: var(--brand-ink);
 }
 
-/* 200px was too narrow for this form's longer field labels ("Call Channel
-   Type", "Account Plan", "Next Visit Date") — at that width they wrapped
-   into a squished, near-unreadable single-word-per-line stack instead of
-   the normal 1-2 line label SLDS renders everywhere else (same issue and
-   same fix as rcpaDetail's .edit-grid). */
 .edit-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 0.75rem;
     margin-bottom: 0.75rem;
-}
-
-/* A hairline under each field — reads as a grid line per row of the form
-   (adjacent fields in the same row end at the same height, so their
-   borders line up into one row divider) instead of fields just floating
-   in space with only the grid gap between them. */
-.edit-grid > lightning-input-field {
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid var(--brand-hairline);
 }
 
 .edit-grid-wide {
@@ -55,16 +41,6 @@
     grid-template-columns: 1fr;
     gap: 0.75rem;
     margin-bottom: 1rem;
-}
-
-.edit-grid-wide > lightning-input-field {
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid var(--brand-hairline);
-}
-
-.edit-grid-wide > lightning-input-field:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
 }
 
 .detail-field-wide {
@@ -101,6 +77,44 @@
 
 .view-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 0.75rem;
+}
+
+.hidden-field {
+    display: none;
+}
+/* Fields sit on a fixed column grid with stacked labels, so every label stays
+   on a single line and the inputs align. Extra fields go on a new row rather
+   than squeezing into narrower columns (see the "labels on one line, stacked,
+   wrap to a new row" convention). */
+.form-grid {
+    display: grid;
+    gap: 0.75rem 1.25rem;
+    margin-bottom: 0.75rem;
+    align-items: start;
+}
+
+.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+@media (max-width: 1100px) {
+    .cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+    .cols-2, .cols-3, .cols-4 { grid-template-columns: minmax(0, 1fr); }
+}
+
+.detail-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.form-grid label,
+.form-grid .detail-label {
+    white-space: nowrap;
 }

@@ -3,7 +3,6 @@
     <fullName>Call_Type__c</fullName>
     <label>Call Type</label>
     <required>false</required>
-    <trackHistory>true</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Picklist</type>
     <valueSet>
@@ -29,6 +28,11 @@
                 <fullName>Introductory</fullName>
                 <default>false</default>
                 <label>Introductory</label>
+            </value>
+            <value>
+                <fullName>Group Call</fullName>
+                <default>false</default>
+                <label>Group Call</label>
             </value>
             <value>
                 <fullName>Visit</fullName>

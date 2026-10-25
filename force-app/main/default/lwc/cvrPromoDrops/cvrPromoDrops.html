@@ -18,8 +18,8 @@
             >
                 <lightning-input-field class="slds-hide" field-name="CVR__c" value={cvrId}></lightning-input-field>
                 <div class="edit-grid">
-                    <lightning-input-field field-name="Item__c"></lightning-input-field>
-                    <lightning-input-field field-name="Qty__c"></lightning-input-field>
+                    <lightning-input-field field-name="Promotional_Item__c" variant="label-stacked" required></lightning-input-field>
+                    <lightning-input-field field-name="Qty__c" variant="label-stacked"></lightning-input-field>
                 </div>
                 <div class="edit-actions">
                     <lightning-button label="Cancel" onclick={handleCancelAdd} disabled={isSaving}></lightning-button>
@@ -49,8 +49,8 @@
                                 onerror={handleError}
                             >
                                 <div class="edit-grid">
-                                    <lightning-input-field field-name="Item__c"></lightning-input-field>
-                                    <lightning-input-field field-name="Qty__c"></lightning-input-field>
+                                    <lightning-input-field field-name="Promotional_Item__c" variant="label-stacked" required></lightning-input-field>
+                                    <lightning-input-field field-name="Qty__c" variant="label-stacked"></lightning-input-field>
                                 </div>
                                 <div class="edit-actions">
                                     <lightning-button label="Cancel" onclick={handleCancelEdit} disabled={isSaving}></lightning-button>

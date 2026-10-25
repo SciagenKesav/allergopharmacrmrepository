@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Promotional_Item__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>Catalog item handed over in this drop. Item (text) is filled from its name automatically.</description>
+    <label>Promotional Item</label>
+    <referenceTo>Promotional_Item__c</referenceTo>
+    <relationshipLabel>Promotional Item Drops</relationshipLabel>
+    <relationshipName>PromoDrops</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

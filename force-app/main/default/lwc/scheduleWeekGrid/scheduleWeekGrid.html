@@ -1,79 +1,143 @@
 <template>
     <div class="week-controls">
-        <lightning-button label={hideSundayLabel} onclick={handleToggleHideSunday}></lightning-button>
-        <lightning-button label={fullDayLabel} onclick={handleToggleFullDay}></lightning-button>
+        <button type="button" class={hideSundayClass} onclick={handleToggleHideSunday}>{hideSundayLabel}</button>
+        <button type="button" class={fullDayClass} onclick={handleToggleFullDay}>{fullDayLabel}</button>
     </div>
     <div class="week-body">
-        <template if:false={panelCollapsed}>
-            <div class="account-panel">
-                <div class="panel-header">
-                    <lightning-button-group>
-                        <template for:each={panelKindButtons} for:item="k">
-                            <lightning-button key={k.key} label={k.label} variant={k.variant} data-value={k.key} onclick={handlePanelKindChange}></lightning-button>
-                        </template>
-                    </lightning-button-group>
-                    <lightning-button-icon icon-name="utility:chevronleft" alternative-text="Collapse" onclick={handleTogglePanel}></lightning-button-icon>
-                </div>
-                <lightning-input type="search" label="Search accounts" variant="label-hidden" placeholder="Search accounts" onchange={handlePanelSearch}></lightning-input>
-                <lightning-combobox label="Territory" variant="label-hidden" options={territoryComboOptions} value={panelTerritory} onchange={handlePanelTerritoryChange}></lightning-combobox>
-                <p class="panel-hint">Drag an account onto the week grid to schedule a visit.</p>
-                <div class="panel-list">
-                    <template for:each={panelRows} for:item="row">
-                        <div key={row.id} class="panel-row" draggable="true" data-token={row.dragToken} ondragstart={handleDragStart}>
-                            <div class="panel-row-main">
-                                <span class="panel-row-name">{row.name}</span>
-                                <span class="panel-row-subtitle">{row.subtitle}</span>
+        <template if:true={showPanel}>
+            <template if:true={panelExpanded}>
+                <div class="account-panel">
+                    <div class="panel-top">
+                        <div class="panel-title-row">
+                            <span class="panel-title">{panelCountLabel}</span>
+                            <div class="panel-title-actions">
+                                <lightning-button-menu icon-name="utility:filterList" variant="bare" alternative-text="Filter by territory" menu-alignment="left" onselect={handlePanelTerritorySelect}>
+                                    <template for:each={territoryMenuItems} for:item="t">
+                                        <lightning-menu-item key={t.key} value={t.value} label={t.label} checked={t.checked}></lightning-menu-item>
+                                    </template>
+                                </lightning-button-menu>
+                                <lightning-button-icon icon-name="utility:chevronleft" variant="bare" alternative-text="Collapse" onclick={handleTogglePanel}></lightning-button-icon>
                             </div>
-                            <lightning-icon icon-name="utility:drag_and_drop" size="x-small"></lightning-icon>
+                        </div>
+                        <lightning-input type="search" label="Search accounts" variant="label-hidden" placeholder="Search accounts" onchange={handlePanelSearch}></lightning-input>
+                        <lightning-button-group class="panel-kind">
+                            <template for:each={panelKindButtons} for:item="k">
+                                <lightning-button key={k.key} label={k.label} variant={k.variant} data-value={k.key} onclick={handlePanelKindChange}></lightning-button>
+                            </template>
+                        </lightning-button-group>
+                        <template if:true={hasPanelTerritory}>
+                            <div><lightning-pill label={panelTerritoryLabel} onremove={handlePanelTerritoryClear}></lightning-pill></div>
+                        </template>
+                        <p class="panel-hint">Drag an account onto the week — or tap any empty time slot — to schedule a call.</p>
+                    </div>
+                    <div class="panel-list">
+                        <template if:true={hasBookmarks}>
+                            <div class="panel-section"><lightning-icon icon-name="utility:favorite" size="xx-small"></lightning-icon> Bookmarks</div>
+                            <template for:each={bookmarkRows} for:item="row">
+                                <div key={row.token} class="panel-row" draggable="true" data-token={row.token} ondragstart={handleDragStart}>
+                                    <span class={row.avatarClass}><lightning-icon icon-name={row.iconName} size="xx-small"></lightning-icon></span>
+                                    <div class="panel-row-main">
+                                        <span class="panel-row-name">{row.name}</span>
+                                        <span class="panel-row-subtitle">{row.subtitle}</span>
+                                    </div>
+                                    <button type="button" class={row.bookmarkClass} data-token={row.token} onclick={handleBookmarkToggle} title="Bookmark">
+                                        <lightning-icon icon-name={row.bookmarkIcon} size="xx-small"></lightning-icon>
+                                    </button>
+                                    <lightning-icon icon-name="utility:rows" size="xx-small" class="drag-handle"></lightning-icon>
+                                </div>
+                            </template>
+                            <div class="panel-divider"></div>
+                        </template>
+                        <template for:each={panelRows} for:item="row">
+                            <div key={row.token} class="panel-row" draggable="true" data-token={row.token} ondragstart={handleDragStart}>
+                                <span class={row.avatarClass}><lightning-icon icon-name={row.iconName} size="xx-small"></lightning-icon></span>
+                                <div class="panel-row-main">
+                                    <span class="panel-row-name">{row.name}</span>
+                                    <span class="panel-row-subtitle">{row.subtitle}</span>
+                                </div>
+                                <button type="button" class={row.bookmarkClass} data-token={row.token} onclick={handleBookmarkToggle} title="Bookmark">
+                                    <lightning-icon icon-name={row.bookmarkIcon} size="xx-small"></lightning-icon>
+                                </button>
+                                <lightning-icon icon-name="utility:rows" size="xx-small" class="drag-handle"></lightning-icon>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+            <template if:false={panelExpanded}>
+                <div class="panel-rail">
+                    <button type="button" class="rail-btn" onclick={handleTogglePanel} title="Show accounts">
+                        <lightning-icon icon-name="utility:chevronright" size="xx-small"></lightning-icon>
+                    </button>
+                    <lightning-icon icon-name="utility:groups" size="xx-small"></lightning-icon>
+                    <span class="rail-label">Accounts</span>
+                </div>
+            </template>
+        </template>
+
+        <div class="grid-scroll">
+            <div class="grid-inner" style={innerStyle}>
+                <div class="grid-header">
+                    <div class="time-gutter-header"></div>
+                    <template for:each={dayColumns} for:item="day">
+                        <div key={day.key} class="day-header-cell">
+                            <span class="day-weekday">{day.weekday}</span>
+                            <span class={day.numClass}>{day.dayNumber}</span>
+                            <template if:true={day.holidayName}><span class="flag flag-holiday">{day.holidayName}</span></template>
+                            <template if:true={day.isTimeOff}><span class="flag flag-timeoff">Time Off</span></template>
+                        </div>
+                    </template>
+                </div>
+                <div class="grid-body">
+                    <div class="time-gutter" style={gridHeightStyle}>
+                        <template for:each={hourRows} for:item="hr">
+                            <div key={hr.key} class="hour-label">{hr.label}</div>
+                        </template>
+                    </div>
+                    <template for:each={dayColumns} for:item="day">
+                        <div
+                            key={day.key}
+                            class={day.columnClass}
+                            style={gridHeightStyle}
+                            data-day={day.key}
+                            ondragover={handleDragOver}
+                            ondragleave={handleDragLeave}
+                            ondrop={handleDrop}
+                        >
+                            <template for:each={day.cells} for:item="cell">
+                                <div key={cell.key} class="hour-cell" data-day={cell.day} data-hour={cell.hour} onclick={handleCellClick}></div>
+                            </template>
+                            <div class={day.tintClass}></div>
+                            <template for:each={day.blocks} for:item="block">
+                                <div key={block.key} class={block.blockClass} style={block.blockStyle} data-id={block.id}
+                                     onclick={handleBlockClick} oncontextmenu={handleBlockContext} title={block.displayName}>
+                                    <div class="block-time-row">
+                                        <span class="block-time" style={block.timeStyle}>{block.timeLabel}</span>
+                                        <template if:true={block.conflict}>
+                                            <lightning-icon icon-name="utility:warning" size="xx-small" class="conflict-icon" alternative-text="Scheduling conflict — another visit for this HCP is close by."></lightning-icon>
+                                        </template>
+                                    </div>
+                                    <span class={block.nameClass}>{block.displayName}</span>
+                                    <template if:true={block.showDetail}><span class="block-detail">{block.detailLine}</span></template>
+                                    <template if:true={block.showChip}><span class="chip" style={block.chipStyle}>{block.chipLabel}</span></template>
+                                </div>
+                            </template>
                         </div>
                     </template>
                 </div>
             </div>
-        </template>
-        <template if:true={panelCollapsed}>
-            <div class="panel-rail">
-                <lightning-button-icon icon-name="utility:chevronright" alternative-text="Expand" onclick={handleTogglePanel}></lightning-button-icon>
-            </div>
-        </template>
-
-        <div class="grid-scroll">
-            <div class="grid-header">
-                <div class="time-gutter-header"></div>
-                <template for:each={dayColumns} for:item="day">
-                    <div key={day.key} class="day-header-cell">{day.label}</div>
-                </template>
-            </div>
-            <div class="grid-body">
-                <div class="time-gutter" style={gridHeightStyle}>
-                    <template for:each={hourRows} for:item="hr">
-                        <div key={hr.key} class="hour-label">{hr.label}</div>
-                    </template>
-                </div>
-                <template for:each={dayColumns} for:item="day">
-                    <div
-                        key={day.key}
-                        class={day.columnClass}
-                        style={gridHeightStyle}
-                        data-day={day.key}
-                        ondragover={handleDragOver}
-                        ondragleave={handleDragLeave}
-                        ondrop={handleDrop}
-                    >
-                        <template for:each={hourRows} for:item="hr">
-                            <div key={hr.key} class="hour-line"></div>
-                        </template>
-                        <template for:each={day.blocks} for:item="block">
-                            <div key={block.key} class="call-block" style={block.blockStyle} data-id={block.id} onclick={handleBlockClick} title={block.displayName}>
-                                <div class="block-header">
-                                    <span class="block-time">{block.timeLabel}</span>
-                                    <span class="block-name">{block.displayName}</span>
-                                </div>
-                                <span class="pill" style={block.statusStyle}>{block.visitLabel}</span>
-                            </div>
-                        </template>
-                    </div>
-                </template>
-            </div>
         </div>
     </div>
+
+    <template if:true={showMenu}>
+        <div class="menu-backdrop" onclick={handleMenuClose} oncontextmenu={handleMenuClose}></div>
+        <div class="context-menu" style={menuStyle}>
+            <template for:each={menuItems} for:item="item">
+                <button type="button" key={item.key} class={item.itemClass} data-action={item.action} onclick={handleMenuAction}>
+                    <lightning-icon icon-name={item.icon} size="xx-small"></lightning-icon>
+                    <span>{item.label}</span>
+                </button>
+            </template>
+        </div>
+    </template>
 </template>

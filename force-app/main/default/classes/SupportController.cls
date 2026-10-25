@@ -18,6 +18,7 @@ public with sharing class SupportController {
         @AuraEnabled public List<String> priorities = new List<String>();
         @AuraEnabled public Integer maxFileMb = 10;
         @AuraEnabled public List<String> allowedTypes = new List<String>();
+        @AuraEnabled public Boolean canAdminView = false;   // System Administrator / Business Admin: browse any KAM's requests
     }
 
     public class CallOption {
@@ -39,6 +40,7 @@ public with sharing class SupportController {
         for (Schema.PicklistEntry e : Support_Request__c.Priority__c.getDescribe().getPicklistValues()) if (e.isActive()) c.priorities.add(e.getValue());
         c.allowedTypes = new List<String>(ALLOWED_TYPES);
         c.allowedTypes.sort();
+        c.canAdminView = isSupportAdmin();
         return c;
     }
 
@@ -46,6 +48,7 @@ public with sharing class SupportController {
     public static SupportListService.ListPage listRequests(SupportListService.Filter filter) {
         SupportListService.Filter f = filter == null ? new SupportListService.Filter() : filter;
         if (f.scope != 'team') f.scope = 'mine';
+        f.requesterId = null;   // a rep can never ask for someone else's list
         return SupportListService.search(f, AccessLevel.USER_MODE);
     }
 
@@ -95,6 +98,94 @@ public with sharing class SupportController {
             throw new AuraHandledException(e.getDmlMessage(0));
         }
         return c.Id;
+    }
+
+    // ------------------------------------------------------------------ admin view (System Administrator and Business Admin only)
+
+    public class TerritoryOption {
+        @AuraEnabled public Id id;
+        @AuraEnabled public String name;
+    }
+
+    public class KamOption {
+        @AuraEnabled public Id id;
+        @AuraEnabled public String name;
+        @AuraEnabled public String territoryName;
+    }
+
+    /** True for users on the System Administrator or Business Admin profile. */
+    public static Boolean isSupportAdmin() {
+        String profile = [SELECT Profile.Name FROM User WHERE Id = :UserInfo.getUserId() LIMIT 1].Profile.Name;
+        return profile == 'System Administrator' || profile == 'Business Admin';
+    }
+
+    private static void requireSupportAdmin() {
+        if (!isSupportAdmin()) throw new AuraHandledException('Only a System Administrator or Business Admin can do this.');
+    }
+
+    /** Top-level (parent) territories, i.e. the regions, for the admin picker. */
+    @AuraEnabled(cacheable=false)
+    public static List<TerritoryOption> getParentTerritories() {
+        requireSupportAdmin();
+        List<TerritoryOption> out = new List<TerritoryOption>();
+        for (Territory__c t : [SELECT Id, Name FROM Territory__c WHERE Parent_Territory__c = null ORDER BY Name]) {
+            TerritoryOption o = new TerritoryOption();
+            o.id = t.Id;
+            o.name = t.Name;
+            out.add(o);
+        }
+        return out;
+    }
+
+    /** Key Account Managers assigned to a parent territory or any territory under it. */
+    @AuraEnabled(cacheable=false)
+    public static List<KamOption> getKamsForTerritory(Id territoryId) {
+        requireSupportAdmin();
+        List<KamOption> out = new List<KamOption>();
+        if (territoryId == null) return out;
+        Set<Id> territoryIds = TerritoryHierarchyUtil.withDescendants(new Set<Id>{ territoryId });
+        // System mode: a Business Admin cannot read the Profile object, so the KAM-profile filter would silently match nothing.
+        List<User_Territory__c> rows = (List<User_Territory__c>) Database.queryWithBinds(
+            'SELECT User__c, User__r.Name, Territory__r.Name FROM User_Territory__c ' +
+            'WHERE Territory__c IN :territoryIds AND User__c != null AND User__r.IsActive = true ' +
+            'AND User__r.Profile.Name = \'Key Account Manager\' ORDER BY User__r.Name',
+            new Map<String, Object>{ 'territoryIds' => territoryIds }, AccessLevel.SYSTEM_MODE);
+        Set<Id> seen = new Set<Id>();
+        for (User_Territory__c ut : rows) {
+            if (seen.contains(ut.User__c)) continue;
+            seen.add(ut.User__c);
+            KamOption o = new KamOption();
+            o.id = ut.User__c;
+            o.name = ut.User__r.Name;
+            o.territoryName = ut.Territory__r.Name;
+            out.add(o);
+        }
+        return out;
+    }
+
+    /** The requests one KAM raised. */
+    @AuraEnabled
+    public static SupportListService.ListPage listRequestsForKam(SupportListService.Filter filter, Id kamUserId) {
+        requireSupportAdmin();
+        if (kamUserId == null) throw new AuraHandledException('Choose a Key Account Manager first.');
+        SupportListService.Filter f = filter == null ? new SupportListService.Filter() : filter;
+        f.scope = 'mine';
+        f.requesterId = String.valueOf(kamUserId);
+        return SupportListService.search(f, AccessLevel.USER_MODE);
+    }
+
+    /** Close a request on the rep's behalf (status Closed). */
+    @AuraEnabled
+    public static void closeRequestAsAdmin(Id requestId) {
+        requireSupportAdmin();
+        List<Support_Request__c> rows = [SELECT Id, Status__c FROM Support_Request__c WHERE Id = :requestId WITH USER_MODE LIMIT 1];
+        if (rows.isEmpty()) throw new AuraHandledException('Request not found or not accessible.');
+        if (rows[0].Status__c == 'Closed' || rows[0].Status__c == 'Cancelled') throw new AuraHandledException('This request is already closed.');
+        try {
+            SupportRequestService.updateInternally(new List<Support_Request__c>{ new Support_Request__c(Id = requestId, Status__c = 'Closed') }, false);
+        } catch (DmlException e) {
+            throw new AuraHandledException(e.getDmlMessage(0));
+        }
     }
 
     @AuraEnabled

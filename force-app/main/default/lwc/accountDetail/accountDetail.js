@@ -4,6 +4,8 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { deleteRecord, updateRecord } from 'lightning/uiRecordApi';
 import { getObjectInfo } from 'lightning/uiObjectInfoApi';
 import getAccountDetail from '@salesforce/apex/SciagenAccountController.getAccountDetail';
+import isKeyAccountManager from '@salesforce/apex/SciagenAccountController.isKeyAccountManager';
+import submitEditDcr from '@salesforce/apex/SciagenAccountController.submitEditDcr';
 import getAccountHierarchy from '@salesforce/apex/SciagenAccountController.getAccountHierarchy';
 import unassignFromMyTerritory from '@salesforce/apex/SciagenAccountTerritoryController.unassignFromMyTerritory';
 import { BRAND, pillStyle, CLASSIFICATION_COLOR, TIER_COLOR, DCR_STATUS_COLOR, PREFERENCE_COLOR, callStatusColor } from 'c/sciagenColors';
@@ -524,8 +526,49 @@ export default class AccountDetail extends NavigationMixin(LightningElement) {
         this.isSaving = false;
     }
 
-    handleSubmit() {
+    // A Key Account Manager's edit never saves directly — it files an
+    // Edit HCP/Edit HCO DCR for approval instead (see
+    // SciagenAccountController.submitEditDcr).
+    @wire(isKeyAccountManager)
+    kamFlag;
+
+    get isKam() {
+        return this.kamFlag?.data === true;
+    }
+
+    get saveButtonLabel() {
+        return this.isKam ? 'Submit for Approval' : 'Save';
+    }
+
+    async handleSubmit(event) {
+        if (!this.isKam) {
+            this.isSaving = true;
+            return;
+        }
+        event.preventDefault();
         this.isSaving = true;
+        const requested = {};
+        Object.entries(event.detail.fields || {}).forEach(([api, value]) => {
+            requested[api] = value == null ? '' : String(value);
+        });
+        try {
+            await submitEditDcr({ accountId: this._recordId, requested });
+            this.isEditing = false;
+            this.dispatchEvent(new ShowToastEvent({
+                title: 'Submitted for approval',
+                message: 'Your changes were sent as a Data Change Request. They will apply once approved.',
+                variant: 'success',
+            }));
+            this.loadDetail();
+        } catch (e) {
+            this.dispatchEvent(new ShowToastEvent({
+                title: 'Couldn’t submit request',
+                message: e.body?.message || 'Please try again.',
+                variant: 'error',
+            }));
+        } finally {
+            this.isSaving = false;
+        }
     }
 
     handleSaveSuccess() {

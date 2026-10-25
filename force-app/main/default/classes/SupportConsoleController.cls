@@ -38,6 +38,7 @@ public without sharing class SupportConsoleController {
         @AuraEnabled public Id userId;
         @AuraEnabled public String userName;
         @AuraEnabled public Boolean canUnlock;
+        @AuraEnabled public Boolean canUnlockPlan;
         @AuraEnabled public List<AgentOption> agents = new List<AgentOption>();
         @AuraEnabled public List<String> categories = new List<String>();
         @AuraEnabled public List<String> priorities = new List<String>();
@@ -61,6 +62,7 @@ public without sharing class SupportConsoleController {
         c.userId = UserInfo.getUserId();
         c.userName = UserInfo.getName();
         c.canUnlock = FeatureManagement.checkPermission('Support_Unlock_Calls');
+        c.canUnlockPlan = MonthlyCallPlanService.canUnlock();
         for (User u : SupportAssignmentService.agents().values()) {
             AgentOption o = new AgentOption();
             o.id = u.Id;
@@ -230,6 +232,26 @@ public without sharing class SupportConsoleController {
         requireAgent();
         try { SupportUnlockService.decline(requestId, reason); }
         catch (SupportUnlockService.UnlockException e) { throw new AuraHandledException(e.getMessage()); }
+    }
+
+    @AuraEnabled
+    public static void unlockPlan(Id requestId, String reason) {
+        requireAgent();
+        try { SupportUnlockService.unlockPlan(requestId, reason); }
+        catch (SupportUnlockService.UnlockException e) { throw new AuraHandledException(e.getMessage()); }
+    }
+
+    @AuraEnabled
+    public static void declinePlanUnlock(Id requestId, String reason) {
+        requireAgent();
+        try { SupportUnlockService.declinePlan(requestId, reason); }
+        catch (SupportUnlockService.UnlockException e) { throw new AuraHandledException(e.getMessage()); }
+    }
+
+    @AuraEnabled
+    public static SupportUnlockService.PlanInfo getPlanInfo(Id requestId) {
+        requireAgent();
+        return SupportUnlockService.planInfo(requestId);
     }
 
     private static List<Id> capped(List<Id> ids) {

@@ -10,14 +10,17 @@ private class SciagenPicklistServiceTest {
         System.assert(options.hcoTypes.contains('Hospital'));
         System.assert(options.hcoTypes.contains('Pharmacy'), 'Full HCO_Type__c picklist should be returned, not a hardcoded subset');
         System.assert(options.hcoTypes.contains('Chemist Shop'));
-        System.assertEquals(9, options.hcoTypes.size());
+        // The list has grown over time (legacy values reactivated, Private/Personal Clinic and Polyclinic added),
+        // so assert the values this service must return rather than a fixed count.
+        System.assert(options.hcoTypes.contains('Private Clinic'));
+        System.assert(options.hcoTypes.size() >= 12);
 
         System.assert(options.hcpTypes.contains('Physician'));
         System.assert(options.hcpTypes.contains('Super Specialist'));
         System.assertEquals(7, options.hcpTypes.size());
 
-        System.assert(options.hcoSpecialties.contains('Cardiology'));
-        System.assert(options.hcpSpecialties.contains('Cardiology'));
+        System.assert(options.hcoSpecialties.contains('Pulmonology'), 'HCO specialties are the master-data list');
+        System.assert(options.hcpSpecialties.contains('Pulmonology'), 'HCP specialties are the master-data list');
     }
 
     @isTest

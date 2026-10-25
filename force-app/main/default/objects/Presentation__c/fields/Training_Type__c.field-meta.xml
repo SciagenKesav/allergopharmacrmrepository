@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Training_Type__c</fullName>
+    <label>Training Type</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Medical</fullName>
+                <default>false</default>
+                <label>Medical</label>
+            </value>
+            <value>
+                <fullName>Compliance  and Policy</fullName>
+                <default>false</default>
+                <label>Compliance  and Policy</label>
+            </value>
+            <value>
+                <fullName>Company Communication</fullName>
+                <default>false</default>
+                <label>Company Communication</label>
+            </value>
+            <value>
+                <fullName>References</fullName>
+                <default>false</default>
+                <label>References</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

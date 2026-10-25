@@ -24,16 +24,25 @@ public with sharing class SciagenAccountController {
         @AuraEnabled public Boolean isEmergingExpert;
         @AuraEnabled public Decimal latitude;
         @AuraEnabled public Decimal longitude;
-        // Optional table-view columns (accountBrowser.js's "Add Column" picker,
-        // hidden by default) — Specialty__c/Speciality__c and HCP_Type__c/
-        // HCO_Type__c already feed `subtitle` above, but a rep who wants them
-        // as their own sortable/scannable column needs the raw value too.
+        // Optional list/table columns the rep can switch on with "Add Column" in the Accounts page.
         @AuraEnabled public String specialty;
         @AuraEnabled public String subType;
         @AuraEnabled public String accountCode;
         @AuraEnabled public String website;
         @AuraEnabled public String focusArea;
         @AuraEnabled public String licenseNumber;
+        @AuraEnabled public String licensingBody;
+        @AuraEnabled public String licenseStatus;
+        @AuraEnabled public Date licenseExpiry;
+        @AuraEnabled public String reachFlag;
+        @AuraEnabled public String street;
+        @AuraEnabled public String state;
+        @AuraEnabled public String postalCode;
+        @AuraEnabled public String country;
+        @AuraEnabled public Date lastVisit;
+        @AuraEnabled public Decimal experienceYears;
+        @AuraEnabled public Decimal graduationYear;
+        @AuraEnabled public String councilRegNumber;
     }
 
     public class SavedViewItem {
@@ -52,7 +61,6 @@ public with sharing class SciagenAccountController {
     }
 
     public class RelatedAccountItem {
-        @AuraEnabled public Id affiliationId;
         @AuraEnabled public Id accountId;
         @AuraEnabled public String name;
         @AuraEnabled public String type;
@@ -122,6 +130,17 @@ public with sharing class SciagenAccountController {
         @AuraEnabled public String endpoints;
     }
 
+    public class AcaroidInfo {
+        @AuraEnabled public String brandName;           // from the Product master, see AcaroidConfig.brandName
+        @AuraEnabled public String tier;               // HCO: Acaroid_Tier__c; HCP: Acaroid_Target_Tier__c
+        @AuraEnabled public Decimal score;              // HCO: Acaroid_Potential_Score__c; HCP: Acaroid_Score_Total__c
+        @AuraEnabled public String segment;             // HCP only: Acaroid_Segment__c
+        @AuraEnabled public String readinessStatus;      // HCO only: Acaroid_Admin_Readiness_Status__c
+        @AuraEnabled public String canAdminister;        // HCP only: Acaroid_Can_Administer_SCIT__c
+        @AuraEnabled public Integer recommendedCallsMonth; // HCP only
+        @AuraEnabled public String lastScoredDate;
+    }
+
     public class SegmentationInfo {
         @AuraEnabled public Id id;
         @AuraEnabled public String classification;
@@ -131,6 +150,12 @@ public with sharing class SciagenAccountController {
         @AuraEnabled public Boolean isKOL;
         @AuraEnabled public String ownerRep;
         @AuraEnabled public String tags;
+        @AuraEnabled public String relationship;
+        @AuraEnabled public String adoptionLadder;
+        @AuraEnabled public String prescriptionPattern;
+        @AuraEnabled public String aitPreference;
+        @AuraEnabled public String behaviourSegmentation;
+        @AuraEnabled public String customerProfile;
     }
 
     public class CVRItem {
@@ -140,12 +165,6 @@ public with sharing class SciagenAccountController {
         @AuraEnabled public String status;
         @AuraEnabled public String rep;
         @AuraEnabled public String discussionSummary;
-        // False for the Planned_Call__c-sourced "Completed" rows merged into
-        // this same list below — those have no Call_Visit_Report__c behind
-        // them at all, so `id` is a Planned_Call__c Id and there's no CVR
-        // detail to open in the read-only view modal. Only true rows are
-        // clickable in accountDetail's Activity tab.
-        @AuraEnabled public Boolean isCVR;
     }
 
     public class DCRItem {
@@ -167,25 +186,6 @@ public with sharing class SciagenAccountController {
         @AuraEnabled public String occurredAt;
         @AuraEnabled public String title;
         @AuraEnabled public String subtitle;
-    }
-
-    // Merges real Call_Visit_Report__c rows with completed-but-never-written-up
-    // Planned_Call__c rows into one chronological Activity feed (see the CVR/
-    // Planned_Call__c loops below) — same sort-wrapper shape as TimelineEntry.
-    private class CVREntry implements Comparable {
-        Date sortAt;
-        CVRItem item;
-        CVREntry(Date sortAt, CVRItem item) {
-            this.sortAt = sortAt;
-            this.item = item;
-        }
-        public Integer compareTo(Object other) {
-            Date otherAt = ((CVREntry) other).sortAt;
-            if (sortAt == otherAt) return 0;
-            if (sortAt == null) return 1;
-            if (otherAt == null) return -1;
-            return sortAt > otherAt ? -1 : 1;
-        }
     }
 
     private class TimelineEntry implements Comparable {
@@ -265,6 +265,7 @@ public with sharing class SciagenAccountController {
         @AuraEnabled public String parentAccountName;
 
         @AuraEnabled public SegmentationInfo segmentation;
+        @AuraEnabled public AcaroidInfo acaroid;
         @AuraEnabled public ConsentInfo consent;
         @AuraEnabled public List<RelatedAccountItem> affiliations;
         @AuraEnabled public List<PublicationItem> publications;
@@ -325,6 +326,14 @@ public with sharing class SciagenAccountController {
         if (emergingOnly == true) {
             whereClauses.add('Emerging_Expert__c = true');
         }
+        // Territory (or a Region, which includes every territory under it) is applied inside the query,
+        // before the row cap below -- filtering the capped list afterwards returned only whichever few
+        // accounts of that territory happened to fall within the first rows alphabetically.
+        if (String.isNotBlank(territoryFilter)) {
+            Set<Id> territoryAccountIds = accountIdsInTerritoryNames(territoryNamesWithChildren(territoryFilter));
+            whereClauses.add('Id IN :territoryAccountIds');
+            binds.put('territoryAccountIds', territoryAccountIds);
+        }
 
         // AccessLevel.USER_MODE (passed to queryWithBinds below) enforces FLS/CRUD here —
         // a query string can't also carry `WITH USER_MODE` alongside an explicit AccessLevel.
@@ -333,16 +342,41 @@ public with sharing class SciagenAccountController {
         // it can't be an ORDER BY target in SOQL.
         String query = 'SELECT Id, Name, Type__c, HCP_Type__c, Specialty__c, HCO_Type__c, Speciality__c, ' +
             'Billing_City__c, Phone__c, Email__c, Emerging_Expert__c, Geolocation__Latitude__s, Geolocation__Longitude__s, ' +
-            'Account_Code__c, Website__c, Focus_Area__c, License_Number__c ' +
-            'FROM Sciagen_Account__c WHERE ' + String.join(whereClauses, ' AND ') + ' ORDER BY Name LIMIT 200';
+            'Account_Code__c, Website__c, Focus_Area__c, License_Number__c, Licensing_Body__c, License_Verification_Status__c, ' +
+            'License_Expiry_Date__c, Reach_Flag__c, Billing_Street__c, Billing_State__c, Billing_Postal_Code__c, Billing_Country__c, ' +
+            'Last_Visit__c, Experience_Years__c, Graduation_Year__c, Medical_Council_Reg_Number__c ' +
+            'FROM Sciagen_Account__c WHERE ' + String.join(whereClauses, ' AND ') + ' ORDER BY Name LIMIT 500';
 
         List<Sciagen_Account__c> accounts = Database.queryWithBinds(query, binds, AccessLevel.USER_MODE);
 
         Map<Id, String> territoryByAccountId = territoryNamesByAccountId(idsOf(accounts));
+
+        // Baseline territory scoping for non-admin users: never show an account with no
+        // territory link at all, or one outside the user's own territories, even one they
+        // happen to own -- Private OWD ownership alone shouldn't leak unassigned/seed data
+        // into the Accounts list just because the owner's territory assignment changed (or
+        // was never set) after the record was created. Independent of the optional
+        // territoryFilter param below, which only narrows further once this baseline applies.
+        if (!isViewAllDataUser()) {
+            Set<String> myTerritories = myVisibleTerritoryNames();
+            List<Sciagen_Account__c> inTerritory = new List<Sciagen_Account__c>();
+            for (Sciagen_Account__c acc : accounts) {
+                String t = territoryByAccountId.get(acc.Id);
+                if (t != null && myTerritories.contains(t)) {
+                    inTerritory.add(acc);
+                }
+            }
+            accounts = inTerritory;
+        }
+
         if (String.isNotBlank(territoryFilter)) {
+            // A region (e.g. North) has no accounts of its own -- they sit on its child territories --
+            // so picking a region matches every territory underneath it as well. A normal territory
+            // has no children, so it still matches only itself.
+            Set<String> filterNames = territoryNamesWithChildren(territoryFilter);
             List<Sciagen_Account__c> filtered = new List<Sciagen_Account__c>();
             for (Sciagen_Account__c acc : accounts) {
-                if (territoryFilter.equals(territoryByAccountId.get(acc.Id))) {
+                if (filterNames.contains(territoryByAccountId.get(acc.Id))) {
                     filtered.add(acc);
                 }
             }
@@ -419,6 +453,18 @@ public with sharing class SciagenAccountController {
             summary.website = acc.Website__c;
             summary.focusArea = acc.Focus_Area__c;
             summary.licenseNumber = acc.License_Number__c;
+            summary.licensingBody = acc.Licensing_Body__c;
+            summary.licenseStatus = acc.License_Verification_Status__c;
+            summary.licenseExpiry = acc.License_Expiry_Date__c;
+            summary.reachFlag = acc.Reach_Flag__c;
+            summary.street = acc.Billing_Street__c;
+            summary.state = acc.Billing_State__c;
+            summary.postalCode = acc.Billing_Postal_Code__c;
+            summary.country = acc.Billing_Country__c;
+            summary.lastVisit = acc.Last_Visit__c;
+            summary.experienceYears = acc.Experience_Years__c;
+            summary.graduationYear = acc.Graduation_Year__c;
+            summary.councilRegNumber = acc.Medical_Council_Reg_Number__c;
             results.add(summary);
         }
 
@@ -463,67 +509,108 @@ public with sharing class SciagenAccountController {
         return sorted;
     }
 
-    /// A System Administrator (Profile.PermissionsViewAllData = true — the same
-    /// check TerritorySharingService/PlannedCallTerritorySharingService/
-    /// RCPAAuditTerritorySharingService already use to mean "sees everything,
-    /// doesn't need territory-based sharing") gets every Territory__c in the
-    /// org and the "All Territories" search; everyone else only gets the
-    /// territory(ies) they're actually assigned via User_Territory__c — they
-    /// shouldn't be able to see, let alone filter by, a territory that isn't
-    /// theirs. A Key Account Manager or Zonal Manager always falls in the
-    /// latter group on this page, even if their Profile happens to carry View
-    /// All Data (common in sandboxes where field users are provisioned on an
-    /// admin-equivalent profile for convenience) — their role, not their
-    /// profile, decides it for those two roles specifically. A genuine
-    /// admin's own view (any other View All Data profile, regardless of role)
-    /// is unaffected — see canSeeAllTerritories.
-    @AuraEnabled(cacheable=true)
-    public static List<String> getTerritoryOptions() {
-        List<String> names = new List<String>();
-        if (canSeeAllTerritories()) {
-            for (Territory__c t : [SELECT Name FROM Territory__c WITH USER_MODE ORDER BY Name]) {
-                names.add(t.Name);
-            }
-        } else {
-            Set<String> ownNames = new Set<String>();
-            for (User_Territory__c ut : [
-                SELECT Territory__r.Name
-                FROM User_Territory__c
-                WHERE User__c = :UserInfo.getUserId() AND Territory__c != null
-                WITH USER_MODE
-            ]) {
-                ownNames.add(ut.Territory__r.Name);
-            }
-            names.addAll(ownNames);
-            names.sort();
+    /// The accounts linked (Account_Territory__c) to any of the named territories.
+    @TestVisible
+    private static Set<Id> accountIdsInTerritoryNames(Set<String> territoryNames) {
+        Set<Id> ids = new Set<Id>();
+        for (Account_Territory__c at : [
+            SELECT Account__c FROM Account_Territory__c WHERE Territory__r.Name IN :territoryNames WITH USER_MODE
+        ]) {
+            ids.add(at.Account__c);
+        }
+        return ids;
+    }
+
+    /// The territory itself plus every territory below it, by name -- the Accounts page territory
+    /// filter uses this so picking a Region returns the accounts of all its child territories.
+    @TestVisible
+    private static Set<String> territoryNamesWithChildren(String territoryName) {
+        Set<String> names = new Set<String>{ territoryName };
+        Set<Id> ids = new Set<Id>();
+        for (Territory__c t : [SELECT Id FROM Territory__c WHERE Name = :territoryName WITH USER_MODE]) ids.add(t.Id);
+        if (ids.isEmpty()) return names;
+        for (Territory__c t : [SELECT Name FROM Territory__c WHERE Id IN :TerritoryHierarchyUtil.withDescendants(ids) WITH USER_MODE]) {
+            names.add(t.Name);
         }
         return names;
     }
 
-    /// Profile.PermissionsViewAllData always wins first — a genuine System
-    /// Administrator (or any other profile granted View All Data) sees every
-    /// territory no matter what role they happen to be assigned, since that
-    /// role is often just there for hierarchy/sharing purposes and shouldn't
-    /// narrow an admin's own view. Only once that's ruled out does a Key
-    /// Account Manager or Zonal Manager's role step in to force the
-    /// restricted, own-territory-only view for everyone else on those roles,
-    /// even if a lower-privilege profile has View All Data by mistake.
-    @AuraEnabled(cacheable=true)
-    public static Boolean canSeeAllTerritories() {
-        List<User> matches = [
-            SELECT Profile.PermissionsViewAllData, UserRole.Name FROM User WHERE Id = :UserInfo.getUserId() WITH USER_MODE LIMIT 1
-        ];
-        if (matches.isEmpty() || matches[0].Profile == null || matches[0].Profile.PermissionsViewAllData != true) return false;
+    /// True for a user with view-all-data access (e.g. System Administrator, or a Business Admin) -- already sees
+    /// every account regardless of territory, via sharing, so territory scoping doesn't apply
+    /// to them (getTerritoryOptions' full unfiltered list, and searchAccounts' baseline
+    /// restriction below, both key off this).
+    private static Boolean isViewAllDataUser() {
+        User runningUser = [SELECT Profile.Name, Profile.PermissionsViewAllData FROM User WHERE Id = :UserInfo.getUserId() WITH USER_MODE];
+        // A Business Admin sees every account too (View All via Business_Admin_Full_Access), though the
+        // profile itself lacks View All Data -- without this they were limited to their own (usually
+        // no) territories and saw zero HCPs/HCOs.
+        return runningUser.Profile.PermissionsViewAllData == true || runningUser.Profile.Name == 'Business Admin';
+    }
 
-        // Profile grants View All Data — normally enough on its own, but a Key
-        // Account Manager or Zonal Manager is still held to their own
-        // territory(ies), since those two field roles should never see the
-        // unrestricted "All Territories" search regardless of profile. Any
-        // other profile with View All Data (System Administrator and the
-        // like) sees everything, as before.
-        String roleName = matches[0].UserRole != null ? matches[0].UserRole.Name : null;
-        Boolean isKamOrZonalManager = roleName == 'Key Account Manager' || roleName == 'Zonal Manager';
-        return !isKamOrZonalManager;
+    /// The running user's own territory names, including every descendant territory
+    /// (TerritoryHierarchyUtil) -- a manager assigned to the "North" parent territory gets
+    /// "North" and every territory under it, same as the sharing model those assignments
+    /// already grant. Empty for a user with no territory assignment. Shared by
+    /// getTerritoryOptions() (the filter dropdown) and searchAccounts() (the baseline
+    /// restriction that keeps a non-admin from ever seeing an account with no territory
+    /// link at all, even one they happen to own).
+    private static Set<String> myVisibleTerritoryNames() {
+        Set<Id> myTerritoryIds = new Set<Id>();
+        for (User_Territory__c ut : [
+            SELECT Territory__c FROM User_Territory__c
+            WHERE User__c = :UserInfo.getUserId() AND Territory__c != null
+            WITH USER_MODE
+        ]) {
+            myTerritoryIds.add(ut.Territory__c);
+        }
+
+        Set<String> names = new Set<String>();
+        if (myTerritoryIds.isEmpty()) return names;
+
+        Set<Id> visibleTerritoryIds = TerritoryHierarchyUtil.withDescendants(myTerritoryIds);
+        for (Territory__c t : [SELECT Name FROM Territory__c WHERE Id IN :visibleTerritoryIds WITH USER_MODE]) {
+            names.add(t.Name);
+        }
+        return names;
+    }
+
+    /// Territory filter options for the Accounts (and RCPA Audits, via RCPAController's
+    /// delegate) browser sidebar. A view-all-data user (e.g. System Administrator) gets every
+    /// territory in the org; anyone else gets only their own (see myVisibleTerritoryNames).
+    @AuraEnabled(cacheable=true)
+    public static List<String> getTerritoryOptions() {
+        if (isViewAllDataUser()) {
+            List<String> names = new List<String>();
+            for (Territory__c t : [SELECT Name FROM Territory__c WITH USER_MODE ORDER BY Name]) {
+                names.add(t.Name);
+            }
+            return names;
+        }
+
+        List<String> sorted = new List<String>(myVisibleTerritoryNames());
+        sorted.sort();
+        return sorted;
+    }
+
+    /// Territory name(s) the running user belongs to (User_Territory__c) --
+    /// shown on the Accounts page so a rep sees at a glance which territory
+    /// they're in right after logging in. Purely a "here's where I am" label;
+    /// the account list itself is already scoped to the rep's territory by
+    /// sharing (AccountTerritoryShareSync), not by this value.
+    @AuraEnabled(cacheable=true)
+    public static List<String> getMyTerritoryNames() {
+        Set<String> names = new Set<String>();
+        for (User_Territory__c ut : [
+            SELECT Territory__r.Name
+            FROM User_Territory__c
+            WHERE User__c = :UserInfo.getUserId() AND Territory__c != null
+            WITH USER_MODE
+        ]) {
+            names.add(ut.Territory__r.Name);
+        }
+        List<String> sorted = new List<String>(names);
+        sorted.sort();
+        return sorted;
     }
 
     @AuraEnabled(cacheable=true)
@@ -536,12 +623,9 @@ public with sharing class SciagenAccountController {
         return picklistValues(Sciagen_Account__c.HCO_Type__c.getDescribe());
     }
 
-    /// Speciality__c (HCO) is a distinct field/picklist from Specialty__c (HCP) —
-    /// same spelling difference the object itself uses — so this is a separate
-    /// method from getSpecialtyOptions() above, not a typo/duplicate of it.
     @AuraEnabled(cacheable=true)
-    public static List<String> getHCOSpecialityOptions() {
-        return picklistValues(Sciagen_Account__c.Speciality__c.getDescribe());
+    public static List<String> getSegmentationOptions() {
+        return picklistValues(Segmentation__c.Classification__c.getDescribe());
     }
 
     @AuraEnabled(cacheable=true)
@@ -549,9 +633,11 @@ public with sharing class SciagenAccountController {
         return picklistValues(Sciagen_Account__c.HCP_Type__c.getDescribe());
     }
 
+    // HCO's own free-text-picklist ("Speciality__c") is a distinct field from an HCP's
+    // "Specialty__c" — see HCO_CREATE_FIELDS/HCP_CREATE_FIELDS in accountBrowser.js.
     @AuraEnabled(cacheable=true)
-    public static List<String> getSegmentationOptions() {
-        return picklistValues(Segmentation__c.Classification__c.getDescribe());
+    public static List<String> getHCOSpecialtyOptions() {
+        return picklistValues(Sciagen_Account__c.Speciality__c.getDescribe());
     }
 
     private static List<String> picklistValues(Schema.DescribeFieldResult describe) {
@@ -564,66 +650,77 @@ public with sharing class SciagenAccountController {
         return values;
     }
 
+    // MARK: - New Account Request (KAM gate)
+
+    // KAM profiles have full CRUD on Sciagen_Account__c (needed for editing accounts
+    // already in their territory), but creating a brand-new HCP/HCO straight from the
+    // web should still go through the same DCR governance gate the iPad app enforces —
+    // see DataChangeRequestApprovalHandler. accountBrowser.js swaps its "New" button for
+    // "New Request" based on this flag.
+    @AuraEnabled(cacheable=true)
+    public static Boolean isKeyAccountManager() {
+        List<User> me = [SELECT Profile.Name FROM User WHERE Id = :UserInfo.getUserId() WITH USER_MODE LIMIT 1];
+        return !me.isEmpty() && me[0].Profile.Name == 'Key Account Manager';
+    }
+
+    /**
+     * Submits a "New HCP"/"New HCO" Data_Change_Request__c instead of creating the
+     * Sciagen_Account__c directly — the fields map must use the same keys
+     * DataChangeRequestApprovalHandler.buildHCP/buildHCO read (prefix/firstName/
+     * lastName/specialty/hcpType/email/phone/degree1 for HCP; name/type/speciality/
+     * city/state/pincode/phone for HCO), so the account it auto-creates on approval
+     * comes out right. relatedHCOId is required for a New HCP request — the approval
+     * handler can't create the Affiliation__c without it.
+     */
+    @AuraEnabled
+    public static Id submitNewAccountRequest(String acctType, Map<String, String> fields, Id relatedHCOId) {
+        if (acctType != 'HCP' && acctType != 'HCO') {
+            throw new AuraHandledException('Type must be HCP or HCO.');
+        }
+        if (acctType == 'HCP' && relatedHCOId == null) {
+            throw new AuraHandledException('Select the HCO this HCP is affiliated with.');
+        }
+
+        String subjectName = acctType == 'HCO'
+            ? (fields.get('name') != null ? fields.get('name').trim() : null)
+            : joinNonBlank(new List<String>{ fields.get('prefix'), fields.get('firstName'), fields.get('lastName') });
+        if (String.isBlank(subjectName)) {
+            throw new AuraHandledException('Name is required.');
+        }
+
+        Data_Change_Request__c dcr = new Data_Change_Request__c(
+            Type__c = acctType == 'HCO' ? 'New HCO' : 'New HCP',
+            Subject_Name__c = subjectName.left(255),
+            Fields_Payload__c = JSON.serialize(fields),
+            Status__c = 'Pending Approval',
+            Submitted_By__c = UserInfo.getUserId(),
+            Submitted_At__c = Datetime.now(),
+            Related_HCO__c = acctType == 'HCP' ? relatedHCOId : null
+        );
+        Database.insert(dcr, AccessLevel.USER_MODE);
+        return dcr.Id;
+    }
+
+    private static String joinNonBlank(List<String> parts) {
+        List<String> out = new List<String>();
+        for (String p : parts) {
+            if (String.isNotBlank(p)) out.add(p.trim());
+        }
+        return String.join(out, ' ');
+    }
+
     // MARK: - Saved Views
 
-    /// Looks up Business Admin-owned Saved_Filter__c rows regardless of the
-    /// running user's own record-level sharing. Deliberately `without
-    /// sharing` (this object's actual configured org-wide default is more
-    /// restrictive than "everyone can read everyone's" — record ownership
-    /// otherwise hides another user's row entirely) and deliberately *not*
-    /// `WITH USER_MODE`: empirically, USER_MODE re-applies that same
-    /// ownership-based visibility check even inside a `without sharing`
-    /// context, silently dropping the very rows this lookup exists to cross
-    /// into — confirmed directly (a test asserting a non-admin can see an
-    /// admin's shared view only passed once USER_MODE was removed here).
-    /// Object/field CRUD is still safe to skip for this one query: every
-    /// permission set already grants broad Read on Saved_Filter__c and its
-    /// fields, and this only ever returns Business-Admin-owned rows, never a
-    /// user's own private data. Kept as its own tiny class rather than
-    /// changing SciagenAccountController's own `with sharing` declaration,
-    /// which stays exactly as restrictive as before for everything else in
-    /// this file.
-    private without sharing class BusinessAdminSavedViewLookup {
-        List<Saved_Filter__c> run(Id excludingOwnerId) {
-            return [
-                SELECT Id, View_Name__c, Filter_JSON__c, Sort_Field__c, Sort_Ascending__c, Layout__c, Is_Default__c
-                FROM Saved_Filter__c
-                WHERE Owner.Profile.Name = 'Business Admin' AND OwnerId != :excludingOwnerId
-            ];
-        }
-    }
-
-    /// Own-rows and Business-Admin-rows come from two separate queries (see
-    /// getSavedViews), so a single ORDER BY can't span both — sorted here
-    /// instead once they're merged.
-    private class ByViewName implements Comparator<Saved_Filter__c> {
-        public Integer compare(Saved_Filter__c a, Saved_Filter__c b) {
-            if (a.View_Name__c == b.View_Name__c) return 0;
-            return a.View_Name__c > b.View_Name__c ? 1 : -1;
-        }
-    }
-
-    /// A rep's own saved views, plus every view a Business Admin has created
-    /// — Business Admin-authored views are org-shared reference views (e.g.
-    /// a standard territory or specialty cut everyone should use), so they're
-    /// visible to any user, not locked to just the admin who made them. A
-    /// non-admin's own saved views stay private to them, same as before —
-    /// only the Business Admin lookup above bypasses normal record sharing;
-    /// this method's own query (the user's own rows) stays fully sharing-
-    /// enforced, same as it always was.
     @AuraEnabled(cacheable=true)
     public static List<SavedViewItem> getSavedViews() {
-        List<Saved_Filter__c> rows = [
+        List<SavedViewItem> results = new List<SavedViewItem>();
+        for (Saved_Filter__c f : [
             SELECT Id, View_Name__c, Filter_JSON__c, Sort_Field__c, Sort_Ascending__c, Layout__c, Is_Default__c
             FROM Saved_Filter__c
             WHERE OwnerId = :UserInfo.getUserId()
             WITH USER_MODE
-        ];
-        rows.addAll(new BusinessAdminSavedViewLookup().run(UserInfo.getUserId()));
-        rows.sort(new ByViewName());
-
-        List<SavedViewItem> results = new List<SavedViewItem>();
-        for (Saved_Filter__c f : rows) {
+            ORDER BY View_Name__c
+        ]) {
             SavedViewItem item = new SavedViewItem();
             item.id = f.Id;
             item.viewName = f.View_Name__c;
@@ -816,6 +913,37 @@ public with sharing class SciagenAccountController {
         detail.parentAccountId = acc.Parent_Account__c;
         detail.parentAccountName = acc.Parent_Account__r != null ? acc.Parent_Account__r.Name : null;
 
+        // Acaroid targeting card. Read in its own query so an account page still loads for a user
+        // who has no access to the Acaroid fields (the card then shows no data).
+        detail.acaroid = new AcaroidInfo();
+        detail.acaroid.brandName = AcaroidConfig.load().brandName;
+        try {
+            List<Sciagen_Account__c> ar = [
+                SELECT Acaroid_Tier__c, Acaroid_Potential_Score__c, Acaroid_Admin_Readiness_Status__c, Acaroid_HCO_Last_Scored_Date__c,
+                       Acaroid_Target_Tier__c, Acaroid_Score_Total__c, Acaroid_Segment__c, Acaroid_Can_Administer_SCIT__c,
+                       Acaroid_Recommended_Calls_Month__c, Acaroid_HCP_Last_Scored_Date__c
+                FROM Sciagen_Account__c WHERE Id = :accountId WITH USER_MODE LIMIT 1
+            ];
+            if (!ar.isEmpty()) {
+                Sciagen_Account__c x = ar[0];
+                if (acc.Type__c == 'HCO') {
+                    detail.acaroid.tier = x.Acaroid_Tier__c;
+                    detail.acaroid.score = x.Acaroid_Potential_Score__c;
+                    detail.acaroid.readinessStatus = x.Acaroid_Admin_Readiness_Status__c;
+                    detail.acaroid.lastScoredDate = x.Acaroid_HCO_Last_Scored_Date__c == null ? null : x.Acaroid_HCO_Last_Scored_Date__c.format();
+                } else if (acc.Type__c == 'HCP') {
+                    detail.acaroid.tier = x.Acaroid_Target_Tier__c;
+                    detail.acaroid.score = x.Acaroid_Score_Total__c;
+                    detail.acaroid.segment = x.Acaroid_Segment__c;
+                    detail.acaroid.canAdminister = x.Acaroid_Can_Administer_SCIT__c;
+                    detail.acaroid.recommendedCallsMonth = x.Acaroid_Recommended_Calls_Month__c == null ? null : x.Acaroid_Recommended_Calls_Month__c.intValue();
+                    detail.acaroid.lastScoredDate = x.Acaroid_HCP_Last_Scored_Date__c == null ? null : x.Acaroid_HCP_Last_Scored_Date__c.format();
+                }
+            }
+        } catch (Exception e) {
+            // no access to the Acaroid fields: leave the card empty
+        }
+
         Map<Id, String> territoryByAccountId = territoryNamesByAccountId(new Set<Id>{ accountId });
         detail.territory = territoryByAccountId.get(accountId);
 
@@ -831,7 +959,6 @@ public with sharing class SciagenAccountController {
         ]) {
             Boolean thisIsHCP = aff.HCP__c == accountId;
             RelatedAccountItem item = new RelatedAccountItem();
-            item.affiliationId = aff.Id;
             item.accountId = thisIsHCP ? aff.HCO__c : aff.HCP__c;
             item.name = thisIsHCP ? aff.HCO__r.Name : aff.HCP__r.Name;
             item.type = thisIsHCP ? aff.HCO__r.Type__c : aff.HCP__r.Type__c;
@@ -853,7 +980,8 @@ public with sharing class SciagenAccountController {
 
         if (acc.Type__c == 'HCP') {
             Segmentation__c[] segs = [
-                SELECT Id, Classification__c, Tier__c, Priority__c, Potential__c, Is_KOL__c, Owner_Rep__c, Tags__c
+                SELECT Id, Classification__c, Tier__c, Priority__c, Potential__c, Is_KOL__c, Owner_Rep__c, Tags__c,
+                       Relationship__c, Adoption_Ladder__c, Prescription_Pattern__c, AIT_Preference__c, Behaviour_Segmentation__c, Customer_Profile__c
                 FROM Segmentation__c
                 WHERE HCP__c = :accountId
                 WITH USER_MODE
@@ -869,6 +997,12 @@ public with sharing class SciagenAccountController {
                 seg.tags = segs[0].Tags__c;
                 seg.potential = segs[0].Potential__c;
                 seg.isKOL = segs[0].Is_KOL__c;
+                seg.relationship = segs[0].Relationship__c;
+                seg.adoptionLadder = segs[0].Adoption_Ladder__c;
+                seg.prescriptionPattern = segs[0].Prescription_Pattern__c;
+                seg.aitPreference = segs[0].AIT_Preference__c;
+                seg.behaviourSegmentation = segs[0].Behaviour_Segmentation__c;
+                seg.customerProfile = segs[0].Customer_Profile__c;
                 detail.segmentation = seg;
             }
 
@@ -986,16 +1120,7 @@ public with sharing class SciagenAccountController {
 
         List<TimelineEntry> timelineEntries = new List<TimelineEntry>();
 
-        // Activity feed = real Call_Visit_Report__c rows PLUS completed
-        // Planned_Call__c rows that never got written up into one — a rep
-        // marking a call "Completed" in My Schedule only flips
-        // Planned_Call__c.Status__c, nothing auto-creates a Call_Visit_Report__c,
-        // so without this merge a completed call simply vanishes from both the
-        // upcoming list below (no longer 'Planned') and this Activity tab (no
-        // CVR ever existed). Both sources are collected here and sorted
-        // together so the merged list still reads newest-first.
-        List<CVREntry> cvrEntries = new List<CVREntry>();
-
+        detail.callVisitReports = new List<CVRItem>();
         for (Call_Visit_Report__c cvr : [
             SELECT Id, Visit_Date__c, Call_Type__c, Record_Status__c, Rep__c, Discussion_Summary__c
             FROM Call_Visit_Report__c
@@ -1011,8 +1136,12 @@ public with sharing class SciagenAccountController {
             item.status = cvr.Record_Status__c;
             item.rep = cvr.Rep__c;
             item.discussionSummary = cvr.Discussion_Summary__c;
-            item.isCVR = true;
-            cvrEntries.add(new CVREntry(cvr.Visit_Date__c, item));
+            detail.callVisitReports.add(item);
+            // Query is already ORDER BY Visit_Date__c DESC, so the first row with a
+            // date is the most recent visit — no separate MAX() query needed.
+            if (detail.lastVisit == null && item.visitDate != null) {
+                detail.lastVisit = item.visitDate;
+            }
 
             if (cvr.Visit_Date__c != null) {
                 TimelineItem tItem = new TimelineItem();
@@ -1021,38 +1150,6 @@ public with sharing class SciagenAccountController {
                 tItem.title = 'Call Visit' + (cvr.Call_Type__c != null ? ' — ' + cvr.Call_Type__c : '');
                 tItem.subtitle = cvr.Rep__c;
                 timelineEntries.add(new TimelineEntry(Datetime.newInstance(cvr.Visit_Date__c, Time.newInstance(0, 0, 0, 0)), tItem));
-            }
-        }
-
-        for (Planned_Call__c pc : [
-            SELECT Id, Call_DateTime__c, Call_Type__c
-            FROM Planned_Call__c
-            WHERE (HCP__c = :accountId OR HCO__c = :accountId) AND Status__c = 'Completed'
-            WITH USER_MODE
-            ORDER BY Call_DateTime__c DESC
-            LIMIT 50
-        ]) {
-            CVRItem item = new CVRItem();
-            item.id = pc.Id;
-            item.visitDate = pc.Call_DateTime__c != null ? pc.Call_DateTime__c.date().format() : null;
-            item.callType = pc.Call_Type__c;
-            item.status = 'Completed';
-            item.isCVR = false;
-            cvrEntries.add(new CVREntry(pc.Call_DateTime__c != null ? pc.Call_DateTime__c.date() : null, item));
-            // Deliberately NOT added to timelineEntries — the Timeline tab
-            // only shows still-upcoming Appointments (Status__c = 'Planned',
-            // below) and DCR/Email entries; completed calls belong on the
-            // Activity tab only, not duplicated here.
-        }
-
-        cvrEntries.sort();
-        detail.callVisitReports = new List<CVRItem>();
-        for (CVREntry entry : cvrEntries) {
-            detail.callVisitReports.add(entry.item);
-            // List is now sorted newest-first, so the first entry with a date
-            // is the most recent visit — no separate MAX() query needed.
-            if (detail.lastVisit == null && entry.item.visitDate != null) {
-                detail.lastVisit = entry.item.visitDate;
             }
         }
 
@@ -1084,9 +1181,9 @@ public with sharing class SciagenAccountController {
             }
         }
 
-        // Still-upcoming visits (My Schedule) — only 'Planned' status; once a
-        // call is marked 'Completed' it moves into the Activity merge above
-        // instead, so it doesn't show in both places.
+        // Upcoming/unfulfilled visits (My Schedule) — only 'Planned' status, so a
+        // completed one doesn't double up with the Call_Visit_Report__c entry
+        // above for the same visit once it's actually happened.
         for (Planned_Call__c pc : [
             SELECT Id, Call_DateTime__c, Call_Type__c, Status__c
             FROM Planned_Call__c
@@ -1265,130 +1362,79 @@ public with sharing class SciagenAccountController {
         return result;
     }
 
-    // MARK: - New Account via DCR (Key Account Manager only)
+    // MARK: - Edit existing Account via DCR (Key Account Manager only)
     //
-    // A Key Account Manager's "New" action in the web Accounts page is
-    // deliberately NOT a direct Sciagen_Account__c create (unlike a Zonal
-    // Manager/Admin's, which still uses the plain lightning-record-edit-form
-    // in accountBrowser.js) — it goes through the same Data_Change_Request__c
-    // governance gate the iPad app's NewAccountRequestView already uses, so a
-    // data steward reviews/approves it before it becomes real master data.
-    // isKeyAccountManager() is a hardcoded Role check, not a permission check,
-    // per explicit instruction — this is about who this specific workflow
-    // applies to, not a generalized "lacks create access" fallback.
+    // A Key Account Manager's Edit on the Account record page never writes to
+    // Sciagen_Account__c directly — it files an "Edit HCP"/"Edit HCO"
+    // Data_Change_Request__c carrying only the fields that actually changed as
+    // a {key: {current, requested}} payload, which
+    // DataChangeRequestApprovalHandler.applyEditForApprovedDcr applies on
+    // approval (same payload shape the iPad app's DCRView already files).
 
-    public class HCOOption {
-        @AuraEnabled public Id id;
-        @AuraEnabled public String name;
-        @AuraEnabled public String type;
-        @AuraEnabled public String city;
-    }
+    private static final Map<String, String> HCP_EDIT_KEYS = new Map<String, String>{
+        'Prefix__c' => 'prefix', 'First_Name__c' => 'firstName', 'Last_Name__c' => 'lastName',
+        'HCP_Type__c' => 'hcpType', 'Specialty__c' => 'specialty', 'Focus_Area__c' => 'focusArea',
+        'License_Number__c' => 'licenseNumber', 'Licensing_Body__c' => 'licensingBody',
+        'Billing_Street__c' => 'street', 'Billing_City__c' => 'city', 'Billing_State__c' => 'state',
+        'Billing_Postal_Code__c' => 'pincode', 'Billing_Country__c' => 'country',
+        'Phone__c' => 'phone', 'Email__c' => 'email', 'Primary_Country__c' => 'primaryCountry',
+        'Account_Code__c' => 'accountCode'
+    };
+    private static final Map<String, String> HCO_EDIT_KEYS = new Map<String, String>{
+        'Name' => 'name', 'HCO_Type__c' => 'type', 'Speciality__c' => 'speciality',
+        'Account_Code__c' => 'accountCode', 'Billing_Street__c' => 'street', 'Billing_City__c' => 'city',
+        'Billing_State__c' => 'state', 'Billing_Postal_Code__c' => 'pincode', 'Billing_Country__c' => 'country',
+        'Phone__c' => 'phone', 'Email__c' => 'email', 'Website__c' => 'website'
+    };
 
-    @AuraEnabled(cacheable=true)
-    public static Boolean isKeyAccountManager() {
-        List<User> matches = [
-            SELECT UserRole.Name FROM User WHERE Id = :UserInfo.getUserId() WITH USER_MODE LIMIT 1
-        ];
-        return !matches.isEmpty() && matches[0].UserRole != null && matches[0].UserRole.Name == 'Key Account Manager';
-    }
-
-    /// Every existing HCO, for the New HCP request's required-affiliation
-    /// picker — mirrors the iPad app's own approach (store.hcos, filtered
-    /// client-side by a search box) rather than a server-side search endpoint,
-    /// since the org's HCO count is small enough for that to be practical.
-    @AuraEnabled(cacheable=true)
-    public static List<HCOOption> getHCOOptionsForAffiliation() {
-        List<HCOOption> results = new List<HCOOption>();
-        for (Sciagen_Account__c hco : [
-            SELECT Id, Name, HCO_Type__c, Billing_City__c
-            FROM Sciagen_Account__c
-            WHERE Type__c = 'HCO'
-            WITH USER_MODE
-            ORDER BY Name
-            LIMIT 1000
-        ]) {
-            HCOOption opt = new HCOOption();
-            opt.id = hco.Id;
-            opt.name = hco.Name;
-            opt.type = hco.HCO_Type__c;
-            opt.city = hco.Billing_City__c;
-            results.add(opt);
-        }
-        return results;
-    }
-
-    /// Inserts a Data_Change_Request__c for a "New HCO"/"New HCP" ask — never
-    /// touches Sciagen_Account__c directly. `fields` uses the exact same key
-    /// vocabulary as the iPad app (name/type/speciality/city/state/pincode/phone
-    /// for HCO; prefix/firstName/lastName/specialty/hcpType/email/phone/degree1
-    /// for HCP, plus affiliationHCO for display) so DataChangeRequestApprovalHandler
-    /// already knows how to apply it on approval — see that class's buildHCO/buildHCP.
+    /// `requested` is keyed by Sciagen_Account__c field API name (as submitted
+    /// by the edit form). Returns the new DCR's Id.
     @AuraEnabled
-    public static Id submitAccountDcr(String type, Map<String, String> fields, Id relatedHCOId) {
+    public static Id submitEditDcr(Id accountId, Map<String, String> requested) {
         if (!isKeyAccountManager()) {
             throw new AuraHandledException('This request type is only available for Key Account Managers.');
         }
-        if (type != 'New HCO' && type != 'New HCP') {
-            throw new AuraHandledException('Unsupported request type.');
+        List<Sciagen_Account__c> found = [
+            SELECT Id, Name, Type__c FROM Sciagen_Account__c WHERE Id = :accountId WITH USER_MODE LIMIT 1
+        ];
+        if (found.isEmpty()) {
+            throw new AuraHandledException('Account not found.');
         }
-        if (type == 'New HCP' && relatedHCOId == null) {
-            throw new AuraHandledException('An HCP must be affiliated with an existing HCO.');
-        }
+        Sciagen_Account__c acc = found[0];
+        Boolean isHco = acc.Type__c == 'HCO';
+        Map<String, String> keyMap = isHco ? HCO_EDIT_KEYS : HCP_EDIT_KEYS;
 
-        String subjectName;
-        String summary;
-        if (type == 'New HCO') {
-            subjectName = fields.get('name');
-            summary = 'New HCO · ' + blankAsDash(fields.get('type')) + ' · ' +
-                blankAsDash(fields.get('city')) + ', ' + blankAsDash(fields.get('state'));
-        } else {
-            subjectName = String.join(new List<String>{
-                fields.get('prefix'), fields.get('firstName'), fields.get('lastName')
-            }, ' ').trim().replaceAll('\\s+', ' ');
-            summary = 'New HCP · ' + blankAsDash(fields.get('specialty')) +
-                ' · affiliated to ' + blankAsDash(fields.get('affiliationHCO'));
+        List<String> apiNames = new List<String>(keyMap.keySet());
+        Sciagen_Account__c current = Database.query(
+            'SELECT ' + String.join(apiNames, ',') + ' FROM Sciagen_Account__c WHERE Id = :accountId WITH USER_MODE'
+        );
+
+        Map<String, Object> payload = new Map<String, Object>();
+        List<String> changedLabels = new List<String>();
+        for (String api : apiNames) {
+            if (requested == null || !requested.containsKey(api)) continue;
+            String oldVal = current.get(api) == null ? '' : String.valueOf(current.get(api)).trim();
+            String newVal = requested.get(api) == null ? '' : requested.get(api).trim();
+            if (oldVal == newVal) continue;
+            payload.put(keyMap.get(api), new Map<String, Object>{ 'current' => oldVal, 'requested' => newVal });
+            changedLabels.add(keyMap.get(api));
         }
-        if (String.isBlank(subjectName)) {
-            throw new AuraHandledException('Name is required.');
+        if (payload.isEmpty()) {
+            throw new AuraHandledException('No changes to submit.');
         }
 
         Data_Change_Request__c dcr = new Data_Change_Request__c(
-            Type__c = type,
+            Type__c = isHco ? 'Edit HCO' : 'Edit HCP',
             Status__c = 'Pending Approval',
-            Subject_Name__c = subjectName.abbreviate(180),
-            Summary__c = summary,
-            Fields_Payload__c = JSON.serialize(fields),
+            Subject_Account__c = acc.Id,
+            Subject_Name__c = acc.Name,
+            Summary__c = ('Edit ' + acc.Type__c + ' · ' + acc.Name + ' · ' + String.join(changedLabels, ', ')).abbreviate(255),
+            Fields_Payload__c = JSON.serialize(payload),
             Submitted_By__c = UserInfo.getUserId(),
             Submitted_At__c = Datetime.now()
         );
-        if (type == 'New HCP') {
-            dcr.Related_HCO__c = relatedHCOId;
-        } else {
-            dcr.City__c = fields.get('city');
-            dcr.State__c = fields.get('state');
-            dcr.Pincode__c = fields.get('pincode');
-            dcr.Phone__c = fields.get('phone');
-            dcr.Full_Address__c = buildFullAddress(fields.get('city'), fields.get('state'), fields.get('pincode'));
-        }
         Database.insert(dcr, AccessLevel.USER_MODE);
         return dcr.Id;
     }
 
-    private static String blankAsDash(String s) {
-        return String.isBlank(s) ? '—' : s;
-    }
-
-    /// Mirrors SciagenAccountSyncService.buildFullAddress exactly (kept as its
-    /// own private copy rather than made public there, to not widen that
-    /// class's surface for a two-line helper).
-    private static String buildFullAddress(String city, String state, String pincode) {
-        List<String> parts = new List<String>();
-        if (String.isNotBlank(city)) parts.add(city);
-        if (String.isNotBlank(state)) parts.add(state);
-        String address = String.join(parts, ', ');
-        if (String.isNotBlank(pincode)) {
-            address = String.isNotBlank(address) ? (address + ' - ' + pincode) : pincode;
-        }
-        return String.isBlank(address) ? null : address;
-    }
 }

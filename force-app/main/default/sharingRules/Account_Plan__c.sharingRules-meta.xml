@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SharingRules xmlns="http://soap.sforce.com/2006/04/metadata">
+    <sharingCriteriaRules>
+        <fullName>KAM_Edit_All_Account_Plans</fullName>
+        <accessLevel>Edit</accessLevel>
+        <label>KAM Edit All Account Plans</label>
+        <sharedTo>
+            <roleAndSubordinatesInternal>Key_Account_Manager</roleAndSubordinatesInternal>
+        </sharedTo>
+        <criteriaItems>
+            <field>Plan_Title__c</field>
+            <operation>notEqual</operation>
+            <value>__none__</value>
+        </criteriaItems>
+        <includeRecordsOwnedByAll>true</includeRecordsOwnedByAll>
+    </sharingCriteriaRules>
+</SharingRules>
