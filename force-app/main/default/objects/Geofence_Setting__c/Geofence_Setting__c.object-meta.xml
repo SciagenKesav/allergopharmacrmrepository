@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customSettingsType>Hierarchy</customSettingsType>
+    <description>Geofence rules for rep check-in — the default radius around an HCO and whether a check-in outside it is blocked. A Hierarchy Custom Setting so an admin sets one org-wide default and can override it per-Profile or per-User from Setup with no app deploy. The iPad caches the resolved values so the rule is enforced offline.</description>
+    <label>Geofence Setting</label>
+    <visibility>Public</visibility>
+</CustomObject>

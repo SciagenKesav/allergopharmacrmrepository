@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Plan Deviation --></label>
+    <name>Plan_Deviation__c</name>
+    <picklistValues>
+        <masterLabel>Added after freeze</masterLabel>
+        <translation><!-- Added after freeze --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Cancelled</masterLabel>
+        <translation><!-- Cancelled --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Done on another day</masterLabel>
+        <translation><!-- Done on another day --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Rescheduled</masterLabel>
+        <translation><!-- Rescheduled --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

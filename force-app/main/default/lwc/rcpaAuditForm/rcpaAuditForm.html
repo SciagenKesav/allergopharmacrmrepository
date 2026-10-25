@@ -122,7 +122,7 @@
                         </div>
                     </template>
                     <div class="pob-add-row">
-                        <lightning-combobox label="SKU" variant="label-hidden" placeholder="Select SKU" value={pobSelectedSku} options={skuOptions} onchange={handlePobSkuChange} class="field"></lightning-combobox>
+                        <lightning-combobox label="SKU" variant="label-hidden" placeholder={skuPlaceholder} value={pobSelectedSku} options={skuOptions} onchange={handlePobSkuChange} class="field"></lightning-combobox>
                         <lightning-input type="number" label="Qty" variant="label-hidden" value={pobQty} oninput={handlePobQtyChange} onchange={handlePobQtyChange} min="1" class="qty-input"></lightning-input>
                         <lightning-button label="Add" variant="brand" onclick={handleAddPobLine} disabled={pobAddDisabled}></lightning-button>
                     </div>

@@ -181,10 +181,11 @@
     <tabs>standard-Case</tabs>
     <tabs>standard-Opportunity</tabs>
     <tabs>standard-Lead</tabs>
-    <tabs>Plan_Goal__c</tabs>
+    <tabs>standard-Knowledge</tabs>
+    <tabs>Monthly_Call_Plan__c</tabs>
     <workspaceConfig>
         <mappings>
-            <tab>Plan_Goal__c</tab>
+            <tab>Monthly_Call_Plan__c</tab>
         </mappings>
         <mappings>
             <tab>standard-Account</tab>
@@ -196,6 +197,9 @@
         <mappings>
             <fieldName>AccountId</fieldName>
             <tab>standard-Contact</tab>
+        </mappings>
+        <mappings>
+            <tab>standard-Knowledge</tab>
         </mappings>
         <mappings>
             <tab>standard-Lead</tab>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- AIT Preference --></label>
+    <name>AIT_Preference__c</name>
+    <picklistValues>
+        <masterLabel>Non-AIT User</masterLabel>
+        <translation><!-- Non-AIT User --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Non-Standardized AIT User</masterLabel>
+        <translation><!-- Non-Standardized AIT User --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Standardized &amp; Non-Standardized AIT User</masterLabel>
+        <translation><!-- Standardized &amp; Non-Standardized AIT User --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Standardized AIT User</masterLabel>
+        <translation><!-- Standardized AIT User --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

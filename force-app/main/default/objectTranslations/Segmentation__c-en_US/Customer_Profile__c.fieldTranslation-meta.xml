@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Customer Profile --></label>
+    <name>Customer_Profile__c</name>
+    <picklistValues>
+        <masterLabel>Allergist</masterLabel>
+        <translation><!-- Allergist --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>ENT Specialist</masterLabel>
+        <translation><!-- ENT Specialist --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Paediatrician</masterLabel>
+        <translation><!-- Paediatrician --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Pulmonologist</masterLabel>
+        <translation><!-- Pulmonologist --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

@@ -7,13 +7,13 @@
                 <identifier>c_accountDetail</identifier>
             </componentInstance>
         </itemInstances>
-        <name>main</name>
+        <name>header</name>
         <type>Region</type>
     </flexiPageRegions>
     <masterLabel>Sciagen Account Record Page</masterLabel>
     <sobjectType>Sciagen_Account__c</sobjectType>
     <template>
-        <name>flexipage:recordHomeSingleColNoHeaderTemplateDesktop</name>
+        <name>flexipage:recordHomeTemplateDesktop</name>
     </template>
     <type>RecordPage</type>
 </FlexiPage>

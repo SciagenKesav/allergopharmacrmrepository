@@ -64,6 +64,30 @@
     flex: 1;
 }
 
+/* From / To live on their own row, below Search/Status -- cramming five
+   controls into one 32rem-wide flex row (the old layout) squeezed each date
+   picker down to a sliver, with its label stacked above it rather than
+   beside it. label-inline (label to the left of the box) keeps each
+   label + input as one visual unit, same row, at a size that's actually
+   usable. */
+.date-filter-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.date-filter-row lightning-input {
+    /* lightning-input's own base style is a block element with no intrinsic
+       width, so it stretches to fill the flex row unless given one explicitly
+       -- without this, From and To each claimed the full row and stacked.
+       Deliberately narrower than the Status combobox (.filter-bar, 250px) --
+       a date field only ever holds a short dd/mm/yyyy value, so it doesn't
+       need nearly that much room. */
+    flex: 0 0 auto;
+    width: 13rem;
+}
+
 .empty-state {
     color: var(--brand-subtle);
     font-size: 0.9rem;
@@ -116,4 +140,40 @@
     padding: 0.15rem 0.55rem;
     border-radius: 0.75rem;
     flex-shrink: 0;
+}
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 10, 30, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9000;
+}
+
+.modal {
+    background: #ffffff;
+    border-radius: 0.5rem;
+    width: min(560px, 92vw);
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #eeeef2;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.modal-body {
+    padding: 1.25rem;
 }

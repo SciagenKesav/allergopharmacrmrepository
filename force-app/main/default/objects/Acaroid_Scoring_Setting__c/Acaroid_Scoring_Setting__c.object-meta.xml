@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customSettingsType>Hierarchy</customSettingsType>
+    <description>Tunable weights, tier thresholds, recommended call frequencies and the &quot;experienced physician&quot; specialty list used by AcaroidScoringService/AcaroidAffiliationService. Edit under Setup &gt; Custom Settings &gt; Acaroid Scoring Setting &gt; Manage &gt; (Org Default record) rather than changing Apex — a blank field falls back to the original spec value, so partial tuning is safe.</description>
+    <label>Acaroid Scoring Setting</label>
+    <visibility>Public</visibility>
+</CustomObject>

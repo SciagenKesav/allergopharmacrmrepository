@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- HCP AIT Readiness: SCIT-Attitude Points --></label>
+    <name>HCP_SCIT_Attitude_Points__c</name>
+</CustomFieldTranslation>

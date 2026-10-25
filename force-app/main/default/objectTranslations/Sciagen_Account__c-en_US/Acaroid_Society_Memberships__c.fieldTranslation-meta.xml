@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Society Memberships --></label>
+    <name>Acaroid_Society_Memberships__c</name>
+    <picklistValues>
+        <masterLabel>AOI</masterLabel>
+        <translation><!-- AOI --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>IADVL</masterLabel>
+        <translation><!-- IADVL --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>IAP Respiratory Chapter</masterLabel>
+        <translation><!-- IAP Respiratory Chapter --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>ICAAI</masterLabel>
+        <translation><!-- ICAAI --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Indian Chest Society</masterLabel>
+        <translation><!-- Indian Chest Society --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>NCCP</masterLabel>
+        <translation><!-- NCCP --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>None</masterLabel>
+        <translation><!-- None --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

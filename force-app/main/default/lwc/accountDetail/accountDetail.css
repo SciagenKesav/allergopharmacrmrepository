@@ -44,19 +44,6 @@
     font-size: 0.85rem;
 }
 
-.header-badges {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-    margin: 0.1rem 0 0.5rem;
-}
-
-.header-badges .pill {
-    margin-right: 0;
-    font-size: 0.7rem;
-    padding: 0.2rem 0.6rem;
-}
-
 .badge {
     display: inline-block;
     background: var(--brand-primary);
@@ -93,57 +80,63 @@
     justify-content: center;
 }
 
+.profile-summary-main {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+    min-width: 0;
+}
+
 .profile-summary-text {
     margin: 0;
     font-size: 0.9rem;
     color: var(--brand-ink);
 }
 
+/* Age/Experience at-a-glance stats — keeps the Profile Summary card from
+   reading as near-empty next to its denser neighbors (Contact,
+   Qualifications), and surfaces two facts a rep otherwise had to open Edit
+   or another card to see. */
+.profile-stat-row {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--brand-hairline);
+}
+
+.profile-stat {
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--brand-ink);
+}
+
+.profile-stat-label {
+    font-size: 0.7rem;
+    color: var(--brand-subtle);
+}
+
+.record-info-line {
+    margin: 1rem 0 0;
+    font-size: 0.75rem;
+    color: var(--brand-subtle);
+}
+
 .pill-primary {
     background: var(--brand-primary);
     color: #ffffff;
-    margin-left: 0.4rem;
 }
 
-/* padding was 0 — the clickable area was exactly the text's own tight
-   bounding box (a few px tall), easy to miss entirely on a real click/tap,
-   which read as "the edit form doesn't show up" rather than "I missed the
-   link". The extra padding enlarges the hit area without changing how big
-   the text itself looks. */
-.link-button {
-    border: none;
-    background: transparent;
-    color: var(--brand-primary);
-    font-size: 0.75rem;
-    font-weight: 600;
-    cursor: pointer;
-    padding: 0.35rem 0.5rem;
-    margin: -0.35rem 0 -0.35rem 0.1rem;
-}
-
-.link-button:hover {
-    text-decoration: underline;
-}
-
-.link-button:disabled {
-    color: var(--brand-subtle);
-    cursor: default;
-    text-decoration: none;
-}
-
-.nav-card {
-    padding-bottom: 1.1rem;
-}
-
-.nav-address {
-    font-size: 0.85rem;
-    color: var(--brand-ink);
-    margin: 0 0 0.75rem;
-}
-
-.nav-map {
-    height: 480px;
+.detail-map {
+    height: 220px;
     display: block;
+    margin-top: 0.9rem;
     border-radius: 0.5rem;
     overflow: hidden;
 }
@@ -197,12 +190,14 @@
     min-width: 0;
 }
 
-/* Profile and Engagement tabs: every section reads top-to-bottom as one
-   full-width card per row — a plain single-column SLDS-style page layout. */
-.profile-section-stack {
-    display: flex;
-    flex-direction: column;
+/* Cards flow into as many columns as the viewport allows, so a wide screen
+   fills with structured content instead of one narrow column framed by
+   empty space. */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 1rem;
+    align-items: start;
 }
 
 .card {
@@ -218,6 +213,172 @@
     align-items: center;
     gap: 0.65rem;
     margin-bottom: 1rem;
+}
+
+
+.card-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--brand-ink);
+}
+
+.detail-grid {
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-field {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    min-width: 0;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--brand-hairline);
+}
+
+.detail-field-wide {
+    grid-column: 1 / -1;
+}
+
+.detail-label {
+    flex: 0 0 11rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--brand-subtle);
+}
+
+.detail-value {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.9rem;
+    color: var(--brand-ink);
+    overflow-wrap: break-word;
+}
+
+.detail-value a {
+    color: var(--brand-primary);
+}
+
+.detail-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.detail-list li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--brand-hairline);
+    font-size: 0.85rem;
+}
+
+.detail-list li:last-child {
+    border-bottom: none;
+}
+
+.muted {
+    color: var(--brand-subtle);
+}
+
+.empty-tab {
+    color: var(--brand-subtle);
+    font-size: 0.85rem;
+    padding: 1rem 0;
+}
+
+/* Generic status/trend/kind/type pill — background & color set inline per
+   value via sciagenColors.js's pillStyle(), matching the iOS Chip component
+   (a ~13% tint fill with the same, opaque color as the text). */
+.pill {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.1rem 0.5rem;
+    border-radius: 0.75rem;
+    margin-right: 0.4rem;
+}
+
+.detail-list-sub {
+    margin-top: 0.2rem;
+    font-size: 0.8rem;
+    color: var(--brand-subtle);
+}
+
+.edit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.edit-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.error {
+    color: var(--brand-red);
+    background: #fdecea;
+    border-radius: 0.35rem;
+    padding: 0.5rem;
+    margin: 0.5rem 0;
+    font-size: 0.8rem;
+}
+/* Unassign from Territory confirm dialog */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 10, 30, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9000;
+}
+
+.modal {
+    background: #ffffff;
+    border-radius: 0.5rem;
+    width: min(640px, 92vw);
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+}
+
+.modal-small {
+    width: min(420px, 92vw);
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #eeeef2;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.modal-body {
+    padding: 1.25rem;
+}
+
+.modal-body p {
+    margin: 0 0 1rem 0;
+    font-size: 0.9rem;
+}
+
+/* Profile and Engagement tabs: every section reads top-to-bottom as one
+   full-width card per row — a plain single-column SLDS-style page layout. */
+.profile-section-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 /* Rounded, tinted icon chip — matches the iPad app's IconBadge (Theme.swift):
@@ -263,31 +424,6 @@
     --sds-c-icon-color-foreground-default: var(--brand-amber);
 }
 
-.card-header h3 {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--brand-ink);
-}
-
-/* Row list — matches the iPad app's DRow: a fixed-width uppercase label on
-   the left, the value filling the rest of the line, a hairline under every
-   row except the last. Replaces the old multi-column card-grid so Salesforce
-   and the iPad app read as the same information, laid out the same way. */
-.detail-grid {
-    display: flex;
-    flex-direction: column;
-}
-
-.detail-field {
-    display: flex;
-    align-items: baseline;
-    gap: 1rem;
-    min-width: 0;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid var(--brand-hairline);
-}
-
 .detail-grid > .detail-field:last-child {
     border-bottom: none;
 }
@@ -295,83 +431,6 @@
 .detail-field-wide {
     /* No longer a grid-span concern now .detail-grid is a single column —
        kept as a no-op selector so existing markup doesn't need to change. */
-}
-
-.detail-label {
-    flex: 0 0 11rem;
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-    color: var(--brand-subtle);
-}
-
-.detail-value {
-    flex: 1;
-    min-width: 0;
-    font-size: 0.9rem;
-    color: var(--brand-ink);
-    overflow-wrap: break-word;
-}
-
-.detail-value a {
-    color: var(--brand-primary);
-}
-
-.detail-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.detail-list li {
-    padding: 0.5rem 0;
-    border-bottom: 1px solid var(--brand-hairline);
-    font-size: 0.85rem;
-}
-
-.detail-list li:last-child {
-    border-bottom: none;
-}
-
-/* Only the Activity tab's real Call_Visit_Report__c rows are clickable (see
-   accountDetail.js's handleCvrRowClick / CVRItem.isCVR) — the Planned_Call__c
-   -sourced "Completed" rows merged into the same list have no CVR record to
-   open a view for, so they keep the default (non-interactive) cursor. */
-.detail-list li[data-is-cvr="true"] {
-    cursor: pointer;
-}
-
-.detail-list li[data-is-cvr="true"]:hover {
-    background: var(--brand-bg);
-}
-
-.muted {
-    color: var(--brand-subtle);
-}
-
-.empty-tab {
-    color: var(--brand-subtle);
-    font-size: 0.85rem;
-    padding: 1rem 0;
-}
-
-/* Generic status/trend/kind/type pill — background & color set inline per
-   value via sciagenColors.js's pillStyle(), matching the iOS Chip component
-   (a ~13% tint fill with the same, opaque color as the text). */
-.pill {
-    display: inline-block;
-    font-size: 0.65rem;
-    font-weight: 700;
-    padding: 0.1rem 0.5rem;
-    border-radius: 0.75rem;
-    margin-right: 0.4rem;
-}
-
-.detail-list-sub {
-    margin-top: 0.2rem;
-    font-size: 0.8rem;
-    color: var(--brand-subtle);
 }
 
 /* Hierarchy tab — vertical org-chart graph (node "pills" + relationship
@@ -384,6 +443,7 @@
     background-size: 18px 18px;
     border: 1px solid var(--brand-hairline);
     border-radius: 0.75rem;
+    line-height: 1.5;
     overflow: auto;
     padding: 1.5rem 1rem;
 }
@@ -521,77 +581,19 @@
     white-space: nowrap;
 }
 
-.edit-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 0.75rem;
+/* Acaroid's field labels (e.g. "Allergy Testing Behaviour",
+   "AR/Rhinoconj. Patients/Week") run longer than the rest of this object's
+   edit-grid fields -- a wider minimum column keeps a label-stacked
+   lightning-input-field to two lines of real words instead of wrapping
+   mid-word in the 220px column every other section uses. */
+.edit-grid-wide {
+    /* Two even columns, as on the source org's Acaroid card, however wide the page is. */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 2rem;
 }
 
-.edit-grid > lightning-input-field {
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid var(--brand-hairline);
-}
-
-.edit-actions {
-    display: flex;
-    gap: 0.5rem;
-    justify-content: flex-end;
-}
-
-/* MARK: - Key Account Manager "Delete" (unassign) confirmation modal */
-
-.modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(10, 10, 30, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9000;
-}
-
-.modal {
-    background: #ffffff;
-    border-radius: 0.5rem;
-    width: min(640px, 92vw);
-    max-height: 85vh;
-    overflow-y: auto;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
-}
-
-.modal-small {
-    width: min(420px, 92vw);
-}
-
-.modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid #eeeef2;
-}
-
-.modal-header h2 {
-    margin: 0;
-    font-size: 1.1rem;
-    color: var(--brand-ink);
-}
-
-.modal-body {
-    padding: 1.25rem;
-}
-
-.modal-body p {
-    margin: 0 0 1rem 0;
-    color: var(--brand-ink);
-    font-size: 0.9rem;
-}
-
-.error {
-    color: var(--brand-red);
-    background: #fdecea;
-    border-radius: 0.35rem;
-    padding: 0.5rem;
-    margin: 0.5rem 0;
-    font-size: 0.8rem;
+@media (max-width: 720px) {
+    .edit-grid-wide {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }

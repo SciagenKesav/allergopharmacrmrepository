@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Acaroid_Fridge_Power_Backup__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>UPS / generator on fridge circuit.</description>
+    <label>Fridge Power Backup</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

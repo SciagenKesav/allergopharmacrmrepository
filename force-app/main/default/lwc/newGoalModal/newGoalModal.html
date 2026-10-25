@@ -1,0 +1,74 @@
+<template>
+    <section class="modal-backdrop" onclick={handleClose}>
+        <div class="modal-panel" onclick={stopPropagation}>
+            <div class="modal-header">
+                <h3>New Goal</h3>
+                <p class="modal-subtitle">Under {planLabel}</p>
+                <button class="close-button" title="Close" onclick={handleClose}>&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <lightning-input
+                    label="Goal Title"
+                    required
+                    value={title}
+                    onchange={handleTitleChange}
+                    class="field"
+                ></lightning-input>
+
+                <lightning-input
+                    label="Metric"
+                    value={metric}
+                    placeholder="e.g. New Patient Starts"
+                    onchange={handleMetricChange}
+                    class="field"
+                ></lightning-input>
+
+                <div class="field-row">
+                    <lightning-input
+                        type="number"
+                        step="0.01"
+                        label="Target"
+                        value={target}
+                        onchange={handleTargetChange}
+                        class="field"
+                    ></lightning-input>
+                    <lightning-input
+                        type="number"
+                        step="0.01"
+                        label="Current"
+                        value={current}
+                        onchange={handleCurrentChange}
+                        class="field"
+                    ></lightning-input>
+                </div>
+
+                <lightning-input
+                    label="Unit"
+                    value={unit}
+                    placeholder="e.g. Patients, %"
+                    onchange={handleUnitChange}
+                    class="field"
+                ></lightning-input>
+
+                <lightning-input
+                    type="date"
+                    label="Due Date"
+                    value={dueDate}
+                    onchange={handleDueDateChange}
+                    class="field"
+                ></lightning-input>
+            </div>
+
+            <div class="modal-footer">
+                <lightning-button label="Cancel" onclick={handleClose}></lightning-button>
+                <lightning-button
+                    label="Save"
+                    variant="brand"
+                    disabled={isSaveDisabled}
+                    onclick={handleSave}
+                ></lightning-button>
+            </div>
+        </div>
+    </section>
+</template>

@@ -109,6 +109,42 @@ public without sharing class SegmentationTerritorySharingService {
             ));
         }
         if (!toDelete.isEmpty()) delete toDelete;
-        if (!toInsert.isEmpty()) insert toInsert;
+        insertDeferringCrossReferenceFailures(toInsert);
+    }
+
+    /**
+     * Inserts the given shares at SYSTEM_MODE; any that fail specifically with
+     * INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY are retried in a later transaction via
+     * DeferredShareInsertQueueable instead of failing the caller's DML. Any other failure
+     * still throws. Without this, a rep adding an HCP to their territory (Global Account Search)
+     * failed outright: the HCP's segmentation record isn't visible to the rep yet, so sharing it
+     * to them in the same transaction is rejected -- same pattern TerritorySharingService and
+     * DCRTerritorySharingService already use.
+     */
+    private static void insertDeferringCrossReferenceFailures(List<Segmentation__Share> toInsert) {
+        if (toInsert.isEmpty()) return;
+
+        Database.SaveResult[] results = Database.insert(toInsert, false, AccessLevel.SYSTEM_MODE);
+        List<SObject> deferred = new List<SObject>();
+        for (Integer i = 0; i < results.size(); i++) {
+            if (results[i].isSuccess()) continue;
+
+            Boolean isCrossReferenceTiming = false;
+            for (Database.Error err : results[i].getErrors()) {
+                if (err.getStatusCode() == StatusCode.INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY) {
+                    isCrossReferenceTiming = true;
+                }
+            }
+
+            if (isCrossReferenceTiming) {
+                deferred.add(toInsert[i]);
+            } else {
+                throw new DmlException(results[i].getErrors()[0].getMessage());
+            }
+        }
+
+        if (!deferred.isEmpty()) {
+            System.enqueueJob(new DeferredShareInsertQueueable(deferred));
+        }
     }
 }

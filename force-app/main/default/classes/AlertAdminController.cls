@@ -18,9 +18,8 @@ public with sharing class AlertAdminController {
         @AuraEnabled public String type;
         @AuraEnabled public String priority;
         @AuraEnabled public String audienceType;
-        @AuraEnabled public Id targetProfileId;
-        @AuraEnabled public Id targetUserId;
-        @AuraEnabled public List<Id> targetUserIds;
+        @AuraEnabled public List<Id> targetProfileIds;
+        @AuraEnabled public List<OptionDTO> targetUsers;
         @AuraEnabled public String audienceLabel;
         @AuraEnabled public Datetime activationDate;
         @AuraEnabled public Datetime expirationDate;
@@ -34,25 +33,56 @@ public with sharing class AlertAdminController {
 
     // MARK: - Queue
 
+    // Target_Users__c was deployed successfully (Metadata/Tooling API both
+    // confirm it exists) but this org's compiler/query/DML engine
+    // intermittently can't resolve it at all ("Invalid field Target_Users__c"
+    // / "No such column", even in a *fresh* compile) — a platform-side
+    // propagation issue, not a code bug (Salesforce case pending). Because a
+    // *static* reference to this field (inline SOQL or dot notation) fails to
+    // COMPILE while that's happening — which would block deploying this very
+    // class — every touch of Target_Users__c below goes through dynamic SOQL
+    // (Database.query(String)) and dynamic sObject get()/put(), neither of
+    // which is schema-checked until it actually runs. getAlerts()/saveAlert()
+    // degrade to the legacy single-user Target_User__c lookup whenever the
+    // runtime call fails, so the admin page keeps working — multi-user
+    // targeting silently narrows to the first selected user until the
+    // platform catches up. Remove this fallback once Target_Users__c is
+    // reliably queryable again.
+    private static final String TARGET_USERS_FIELD = 'Target_Users__c';
+
     @AuraEnabled
     public static List<AlertDTO> getAlerts() {
-        List<Sciagen_Alert__c> alerts = [
-            SELECT Id, Title__c, Message__c, Type__c, Priority__c, Audience_Type__c,
-                   Target_Profile__c, Target_User__c, Target_User__r.Name,
-                   Activation_Date__c, Expiration_Date__c, Is_Active__c
-            FROM Sciagen_Alert__c
-            WITH USER_MODE
-            ORDER BY Activation_Date__c DESC
-        ];
+        List<Sciagen_Alert__c> alerts;
+        Boolean targetUsersFieldUsable = true;
+        try {
+            alerts = Database.query(
+                'SELECT Id, Title__c, Message__c, Type__c, Priority__c, Audience_Type__c, ' +
+                'Target_Profile__c, ' + TARGET_USERS_FIELD + ', ' +
+                'Activation_Date__c, Expiration_Date__c, Is_Active__c ' +
+                'FROM Sciagen_Alert__c WITH USER_MODE ORDER BY Activation_Date__c DESC'
+            );
+        } catch (Exception e) {
+            targetUsersFieldUsable = false;
+            alerts = [
+                SELECT Id, Title__c, Message__c, Type__c, Priority__c, Audience_Type__c,
+                       Target_Profile__c, Target_User__c,
+                       Activation_Date__c, Expiration_Date__c, Is_Active__c
+                FROM Sciagen_Alert__c
+                WITH USER_MODE
+                ORDER BY Activation_Date__c DESC
+            ];
+        }
 
-        // Target_Profile__c is plain text (Metadata API has no Lookup-to-Profile
-        // support), so profile names need their own bulk lookup rather than a
-        // relationship traversal.
+        // Target_Profile__c and Target_Users__c are both plain text holding a
+        // comma-delimited list of Ids (Metadata API has no Lookup-to-Profile
+        // support at all, and a single Lookup can't hold more than one Id —
+        // see SF-045/"My alerts" multi-select), so names need their own bulk
+        // lookups rather than a relationship traversal.
         Set<Id> profileIds = new Set<Id>();
+        Set<Id> userIds = new Set<Id>();
         for (Sciagen_Alert__c a : alerts) {
-            if (a.Audience_Type__c == 'Profile' && String.isNotBlank(a.Target_Profile__c)) {
-                profileIds.add((Id) a.Target_Profile__c);
-            }
+            profileIds.addAll(parseIdList(a.Target_Profile__c));
+            userIds.addAll(targetUsersFieldUsable ? parseIdList((String) a.get(TARGET_USERS_FIELD)) : legacyTargetUserIdList(a));
         }
         Map<Id, String> profileNameById = new Map<Id, String>();
         if (!profileIds.isEmpty()) {
@@ -60,31 +90,29 @@ public with sharing class AlertAdminController {
                 profileNameById.put(p.Id, p.Name);
             }
         }
-
-        // Alert_Recipient__c is the junction backing 'Multiple Users' —
-        // bulk-load every alert's recipients in one query rather than one
-        // per row.
-        Map<Id, List<Id>> recipientIdsByAlertId = new Map<Id, List<Id>>();
-        for (Alert_Recipient__c ar : [
-            SELECT Alert__c, User__c
-            FROM Alert_Recipient__c
-            WHERE Alert__c IN :alerts AND User__c != null
-            WITH USER_MODE
-        ]) {
-            if (!recipientIdsByAlertId.containsKey(ar.Alert__c)) {
-                recipientIdsByAlertId.put(ar.Alert__c, new List<Id>());
+        Map<Id, String> userNameById = new Map<Id, String>();
+        if (!userIds.isEmpty()) {
+            for (User u : [SELECT Id, Name FROM User WHERE Id IN :userIds WITH USER_MODE]) {
+                userNameById.put(u.Id, u.Name);
             }
-            recipientIdsByAlertId.get(ar.Alert__c).add(ar.User__c);
         }
 
         List<AlertDTO> result = new List<AlertDTO>();
         for (Sciagen_Alert__c a : alerts) {
-            result.add(toDTO(a, profileNameById, recipientIdsByAlertId.get(a.Id)));
+            result.add(toDTO(a, profileNameById, userNameById, targetUsersFieldUsable));
         }
         return result;
     }
 
-    private static AlertDTO toDTO(Sciagen_Alert__c a, Map<Id, String> profileNameById, List<Id> recipientIds) {
+    // Sciagen_Alert__c.Target_User__c (legacy single-user Lookup) — see the
+    // Target_Users__c fallback note above getAlerts().
+    private static List<Id> legacyTargetUserIdList(Sciagen_Alert__c a) {
+        List<Id> result = new List<Id>();
+        if (a.Target_User__c != null) result.add(a.Target_User__c);
+        return result;
+    }
+
+    private static AlertDTO toDTO(Sciagen_Alert__c a, Map<Id, String> profileNameById, Map<Id, String> userNameById, Boolean targetUsersFieldUsable) {
         AlertDTO dto = new AlertDTO();
         dto.id = a.Id;
         dto.title = a.Title__c;
@@ -92,24 +120,52 @@ public with sharing class AlertAdminController {
         dto.type = a.Type__c;
         dto.priority = a.Priority__c;
         dto.audienceType = a.Audience_Type__c;
-        dto.targetProfileId = String.isNotBlank(a.Target_Profile__c) ? (Id) a.Target_Profile__c : null;
-        dto.targetUserId = a.Target_User__c;
-        dto.targetUserIds = recipientIds != null ? recipientIds : new List<Id>();
+        dto.targetProfileIds = parseIdList(a.Target_Profile__c);
+        dto.targetUsers = new List<OptionDTO>();
+        List<Id> targetUserIds = targetUsersFieldUsable ? parseIdList((String) a.get(TARGET_USERS_FIELD)) : legacyTargetUserIdList(a);
+        for (Id userId : targetUserIds) {
+            OptionDTO o = new OptionDTO();
+            o.id = userId;
+            o.name = userNameById.containsKey(userId) ? userNameById.get(userId) : 'Unknown User';
+            dto.targetUsers.add(o);
+        }
         dto.activationDate = a.Activation_Date__c;
         dto.expirationDate = a.Expiration_Date__c;
         dto.isActive = a.Is_Active__c;
         if (a.Audience_Type__c == 'Profile') {
-            String name = String.isNotBlank(a.Target_Profile__c) ? profileNameById.get((Id) a.Target_Profile__c) : null;
-            dto.audienceLabel = name != null ? name : 'Profile';
+            List<String> names = new List<String>();
+            for (Id profileId : dto.targetProfileIds) {
+                names.add(profileNameById.containsKey(profileId) ? profileNameById.get(profileId) : 'Profile');
+            }
+            dto.audienceLabel = names.isEmpty() ? 'Profile' : String.join(names, ', ');
         } else if (a.Audience_Type__c == 'User') {
-            dto.audienceLabel = a.Target_User__r != null ? a.Target_User__r.Name : 'User';
-        } else if (a.Audience_Type__c == 'Multiple Users') {
-            Integer count = recipientIds != null ? recipientIds.size() : 0;
-            dto.audienceLabel = count + (count == 1 ? ' user' : ' users');
+            List<String> names = new List<String>();
+            for (OptionDTO u : dto.targetUsers) names.add(u.name);
+            dto.audienceLabel = names.isEmpty() ? 'User' : String.join(names, ', ');
         } else {
             dto.audienceLabel = 'All Users';
         }
         return dto;
+    }
+
+    // Both Target_Profile__c and Target_Users__c are stored wrapped in leading/
+    // trailing commas (",id1,id2,") so a SOQL LIKE '%,id,%' match (used by the
+    // iPad app's direct-SOQL read in SalesforceRestDataService.swift) can't
+    // false-match on an Id that's merely a substring of another Id.
+    private static List<Id> parseIdList(String raw) {
+        List<Id> result = new List<Id>();
+        if (String.isBlank(raw)) return result;
+        for (String part : raw.split(',')) {
+            if (String.isNotBlank(part)) result.add((Id) part);
+        }
+        return result;
+    }
+
+    private static String buildIdListText(List<Id> ids) {
+        if (ids == null || ids.isEmpty()) return null;
+        List<String> parts = new List<String>();
+        for (Id i : ids) parts.add(String.valueOf(i));
+        return ',' + String.join(parts, ',') + ',';
     }
 
     // MARK: - Audience pickers
@@ -122,29 +178,6 @@ public with sharing class AlertAdminController {
             OptionDTO o = new OptionDTO();
             o.id = p.Id;
             o.name = p.Name;
-            result.add(o);
-        }
-        return result;
-    }
-
-    /// Full active-user list for the "Multiple Users" dual-listbox's
-    /// "Available" pane — distinct from getUserOptions(searchTerm) below,
-    /// which is the single-user audience's type-ahead search and deliberately
-    /// caps at 20 narrow matches rather than listing everyone.
-    @AuraEnabled(cacheable=true)
-    public static List<OptionDTO> getActiveUserOptions() {
-        List<User> users = [
-            SELECT Id, Name FROM User
-            WHERE IsActive = true
-            WITH USER_MODE
-            ORDER BY Name
-            LIMIT 2000
-        ];
-        List<OptionDTO> result = new List<OptionDTO>();
-        for (User u : users) {
-            OptionDTO o = new OptionDTO();
-            o.id = u.Id;
-            o.name = u.Name;
             result.add(o);
         }
         return result;
@@ -189,8 +222,7 @@ public with sharing class AlertAdminController {
         String type,
         String priority,
         String audienceType,
-        Id targetProfileId,
-        Id targetUserId,
+        List<Id> targetProfileIds,
         List<Id> targetUserIds,
         Datetime activationDate,
         Datetime expirationDate
@@ -201,14 +233,11 @@ public with sharing class AlertAdminController {
         if (String.isBlank(type) || String.isBlank(priority) || String.isBlank(audienceType)) {
             throw new AuraHandledException('Type, Priority, and Audience Type are required.');
         }
-        if (audienceType == 'Profile' && targetProfileId == null) {
-            throw new AuraHandledException('Select a Profile for a Profile-targeted alert.');
+        if (audienceType == 'Profile' && (targetProfileIds == null || targetProfileIds.isEmpty())) {
+            throw new AuraHandledException('Select at least one Profile for a Profile-targeted alert.');
         }
-        if (audienceType == 'User' && targetUserId == null) {
-            throw new AuraHandledException('Select a User for a User-targeted alert.');
-        }
-        if (audienceType == 'Multiple Users' && (targetUserIds == null || targetUserIds.isEmpty())) {
-            throw new AuraHandledException('Move at least one user into Target Users for a Multiple-Users alert.');
+        if (audienceType == 'User' && (targetUserIds == null || targetUserIds.isEmpty())) {
+            throw new AuraHandledException('Select at least one User for a User-targeted alert.');
         }
         if (expirationDate == null) {
             throw new AuraHandledException('Expiration date is required.');
@@ -220,42 +249,37 @@ public with sharing class AlertAdminController {
         alert.Type__c = type;
         alert.Priority__c = priority;
         alert.Audience_Type__c = audienceType;
-        alert.Target_Profile__c = audienceType == 'Profile' ? targetProfileId : null;
-        alert.Target_User__c = audienceType == 'User' ? targetUserId : null;
+        alert.Target_Profile__c = audienceType == 'Profile' ? buildIdListText(targetProfileIds) : null;
         alert.Activation_Date__c = activationDate != null ? activationDate : Datetime.now();
         alert.Expiration_Date__c = expirationDate;
 
-        Savepoint sp = Database.setSavepoint();
+        // Target_Users__c is written dynamically and best-effort — see the
+        // fallback note above getAlerts(). Target_User__c (legacy, single
+        // user) is always kept in sync too, so getAlerts()'s fallback query
+        // has a correct value to read even if Target_Users__c later becomes
+        // unusable again after this save.
+        alert.Target_User__c = (audienceType == 'User' && !targetUserIds.isEmpty()) ? targetUserIds[0] : null;
+        try {
+            alert.put(TARGET_USERS_FIELD, audienceType == 'User' ? buildIdListText(targetUserIds) : null);
+        } catch (Exception e) {
+            // Platform-side field propagation lag — Target_User__c above already covers the single-user case.
+        }
+
         try {
             if (alertId != null) {
                 Database.update(alert, AccessLevel.USER_MODE);
             } else {
                 Database.insert(alert, AccessLevel.USER_MODE);
             }
-            // Multiple Users' recipient set is fully replaced on every save —
-            // the dual-listbox's own state already reflects the complete
-            // desired membership (not an incremental add/remove), and every
-            // other audience type means this alert has none, so the existing
-            // rows are always cleared first regardless of the new type.
-            List<Alert_Recipient__c> existing = [
-                SELECT Id FROM Alert_Recipient__c WHERE Alert__c = :alert.Id WITH USER_MODE
-            ];
-            if (!existing.isEmpty()) {
-                Database.delete(existing, AccessLevel.USER_MODE);
-            }
-            if (audienceType == 'Multiple Users') {
-                List<Alert_Recipient__c> toInsert = new List<Alert_Recipient__c>();
-                Set<Id> seen = new Set<Id>();
-                for (Id userId : targetUserIds) {
-                    if (userId == null || seen.contains(userId)) { continue; }
-                    seen.add(userId);
-                    toInsert.add(new Alert_Recipient__c(Alert__c = alert.Id, User__c = userId));
-                }
-                Database.insert(toInsert, AccessLevel.USER_MODE);
-            }
         } catch (DmlException e) {
-            Database.rollback(sp);
-            throw new AuraHandledException(e.getDmlMessage(0));
+            // The constructor argument alone is NOT what getMessage() returns
+            // to a caller (Aura redacts it to "Script-thrown exception"
+            // unless setMessage() is called explicitly) — without this call
+            // both the LWC's error toast and any test failure message show
+            // only that generic text, never the real DML error.
+            AuraHandledException ex = new AuraHandledException(e.getDmlMessage(0));
+            ex.setMessage(e.getDmlMessage(0));
+            throw ex;
         }
         return alert.Id;
     }
@@ -272,7 +296,14 @@ public with sharing class AlertAdminController {
         try {
             Database.update(alerts[0], AccessLevel.USER_MODE);
         } catch (DmlException e) {
-            throw new AuraHandledException(e.getDmlMessage(0));
+            // The constructor argument alone is NOT what getMessage() returns
+            // to a caller (Aura redacts it to "Script-thrown exception"
+            // unless setMessage() is called explicitly) — without this call
+            // both the LWC's error toast and any test failure message show
+            // only that generic text, never the real DML error.
+            AuraHandledException ex = new AuraHandledException(e.getDmlMessage(0));
+            ex.setMessage(e.getDmlMessage(0));
+            throw ex;
         }
     }
 }

@@ -2,7 +2,7 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Verified__c</fullName>
     <defaultValue>false</defaultValue>
-    <description>Set true by the app the moment the rep enters the matching, unexpired one-time code -- alongside setting Status__c to Used, this stops the same code from unlocking a second wipe later.</description>
+    <description>Set true by DeviceResetVerifyApi (POST /sciagen/v1/device-reset/verify) when the rep enters the matching, unexpired one-time code -- alongside setting Status__c to Used, this stops the same code from unlocking a second wipe later. Not writable by reps.</description>
     <label>Verified</label>
     <trackTrending>false</trackTrending>
     <type>Checkbox</type>

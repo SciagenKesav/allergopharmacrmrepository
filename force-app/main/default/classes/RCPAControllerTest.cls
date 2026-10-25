@@ -123,19 +123,22 @@ private class RCPAControllerTest {
     }
 
     @isTest
-    static void testGetTerritoryOptionsReturnsAllTerritories() {
+    static void testGetTerritoryOptionsReturnsAllTerritoriesForAViewAllDataUser() {
+        // Delegates straight to SciagenAccountController.getTerritoryOptions(), which has its
+        // own dedicated coverage (including the non-admin/hierarchy-scoped case) in
+        // SciagenAccountControllerTest — this just confirms the delegation still works.
         Test.startTest();
         List<String> options = RCPAController.getTerritoryOptions();
         Test.stopTest();
 
-        System.assertEquals(1, options.size());
+        System.assertEquals(1, options.size(), 'The default test running user has view-all-data access, so sees every territory unfiltered');
         System.assertEquals('North Delhi', options[0]);
     }
 
     @isTest
     static void testGetSKUCatalogReturnsOnlyActiveSKUsLabeledWithSKUCode() {
         insert new List<Product__c>{
-            new Product__c(Name = 'Emrok 200mg Strip', Product_Code__c = 'RCPA-TEST-ACTIVE', SKU__c = 'BB', Level__c = 'SKU', Active__c = true),
+            new Product__c(Name = 'Emrok 200mg Strip', Product_Code__c = 'RCPA-TEST-ACTIVE', SKU__c = 'BB', Level__c = 'SKU', Active__c = true, Parent_Molecule__c = 'Emrok Molecule'),
             new Product__c(Name = 'Discontinued SKU', Product_Code__c = 'RCPA-TEST-INACTIVE', Level__c = 'SKU', Active__c = false),
             new Product__c(Name = 'Emrok', Product_Code__c = 'RCPA-TEST-MOLECULE', Level__c = 'Molecule', Active__c = true)
         };
@@ -146,5 +149,33 @@ private class RCPAControllerTest {
 
         System.assertEquals(1, options.size(), 'Expected only the active SKU-level product');
         System.assertEquals('Emrok 200mg Strip-BB', options[0].name, 'Display name must be SKUCode__c (Name & "-" & SKU__c), not the plain Name');
+        System.assertEquals('Emrok Molecule', options[0].molecule, 'Each SKU must carry its molecule so the POB picker can filter by the audited molecules');
+    }
+
+    @isTest
+    static void testCreateAuditDefaultsToTheRepsOwnPrimaryTerritory() {
+        Sciagen_Account__c chemist = [SELECT Id FROM Sciagen_Account__c WHERE Name = 'Verify Chemist'];
+        Territory__c territory = [SELECT Id FROM Territory__c WHERE Name = 'North Delhi'];
+        insert new User_Territory__c(User__c = UserInfo.getUserId(), Territory__c = territory.Id, Is_Primary__c = true);
+
+        Test.startTest();
+        Id newId = RCPAController.createAudit(chemist.Id, null, String.valueOf(Date.today()));
+        Test.stopTest();
+
+        RCPA_Audit__c created = [SELECT Chemist__c, Territory__c, Status__c, Rep__c FROM RCPA_Audit__c WHERE Id = :newId];
+        System.assertEquals(chemist.Id, created.Chemist__c);
+        System.assertEquals(territory.Id, created.Territory__c, 'No territory was picked, so it should default to the rep\'s own primary territory');
+        System.assertEquals('Draft', created.Status__c);
+        System.assertEquals(UserInfo.getName(), created.Rep__c);
+    }
+
+    @isTest
+    static void testCreateAuditRequiresAChemist() {
+        try {
+            RCPAController.createAudit(null, null, String.valueOf(Date.today()));
+            System.assert(false, 'Expected a blank chemist to be rejected');
+        } catch (AuraHandledException e) {
+            System.assert(e.getMessage().contains('chemist'), 'Got: ' + e.getMessage());
+        }
     }
 }

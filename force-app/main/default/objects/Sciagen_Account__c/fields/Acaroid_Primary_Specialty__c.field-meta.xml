@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Acaroid_Primary_Specialty__c</fullName>
+    <description>GP and Dermatologist default to Referrer segment.</description>
+    <label>Acaroid Primary Specialty</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Allergist / Clinical Immunologist</fullName>
+                <default>false</default>
+                <label>Allergist / Clinical Immunologist</label>
+            </value>
+            <value>
+                <fullName>Pulmonologist / Chest Physician</fullName>
+                <default>false</default>
+                <label>Pulmonologist / Chest Physician</label>
+            </value>
+            <value>
+                <fullName>Paediatric Pulmonologist</fullName>
+                <default>false</default>
+                <label>Paediatric Pulmonologist</label>
+            </value>
+            <value>
+                <fullName>Paediatrician</fullName>
+                <default>false</default>
+                <label>Paediatrician</label>
+            </value>
+            <value>
+                <fullName>ENT Surgeon</fullName>
+                <default>false</default>
+                <label>ENT Surgeon</label>
+            </value>
+            <value>
+                <fullName>Dermatologist</fullName>
+                <default>false</default>
+                <label>Dermatologist</label>
+            </value>
+            <value>
+                <fullName>Consulting Physician</fullName>
+                <default>false</default>
+                <label>Consulting Physician</label>
+            </value>
+            <value>
+                <fullName>General Practitioner</fullName>
+                <default>false</default>
+                <label>General Practitioner</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

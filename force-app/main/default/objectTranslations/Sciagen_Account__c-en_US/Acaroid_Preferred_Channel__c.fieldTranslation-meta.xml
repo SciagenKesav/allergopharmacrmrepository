@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Preferred Channel --></label>
+    <name>Acaroid_Preferred_Channel__c</name>
+    <picklistValues>
+        <masterLabel>CME</masterLabel>
+        <translation><!-- CME --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Email</masterLabel>
+        <translation><!-- Email --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>F2F</masterLabel>
+        <translation><!-- F2F --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Remote detailing</masterLabel>
+        <translation><!-- Remote detailing --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>WhatsApp</masterLabel>
+        <translation><!-- WhatsApp --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

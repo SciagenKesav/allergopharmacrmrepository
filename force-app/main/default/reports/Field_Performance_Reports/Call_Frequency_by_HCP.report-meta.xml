@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <aggregates>
+        <calculatedFormula>(Planned_Call__c.Status__c:UNIQUE/Sciagen_Account__c.Name:UNIQUE)</calculatedFormula>
+        <datatype>percent</datatype>
+        <developerName>FORMULA1</developerName>
+        <isActive>true</isActive>
+        <isCrossBlock>false</isCrossBlock>
+        <masterLabel>Call Frequency</masterLabel>
+        <scale>2</scale>
+    </aggregates>
+    <columns>
+        <field>Sciagen_Account__c.PlannedCalls__r$Call_DateTime__c</field>
+    </columns>
+    <columns>
+        <field>Sciagen_Account__c.PlannedCalls__r$Call_Type__c</field>
+    </columns>
+    <columns>
+        <field>Sciagen_Account__c.PlannedCalls__r$Status__c</field>
+    </columns>
+    <description>Real call plans in the period, grouped by HCP -- row count per HCP = call frequency. Pair with &quot;HCP Counts by Segmentation Tier&quot; on the Dashboard for a tier view (Custom Report Types can&apos;t join two sibling children in one report).</description>
+    <filter>
+        <criteriaItems>
+            <column>Sciagen_Account__c.PlannedCalls__r$Is_Event__c</column>
+            <columnToColumn>false</columnToColumn>
+            <isUnlocked>false</isUnlocked>
+            <operator>equals</operator>
+            <value>0</value>
+        </criteriaItems>
+        <criteriaItems>
+            <column>Sciagen_Account__c.PlannedCalls__r$Status__c</column>
+            <columnToColumn>false</columnToColumn>
+            <isUnlocked>false</isUnlocked>
+            <operator>notEqual</operator>
+            <value>Cancelled</value>
+        </criteriaItems>
+        <criteriaItems>
+            <column>Sciagen_Account__c.PlannedCalls__r$Origin__c</column>
+            <columnToColumn>false</columnToColumn>
+            <isUnlocked>false</isUnlocked>
+            <operator>notEqual</operator>
+            <value>Call log</value>
+        </criteriaItems>
+    </filter>
+    <format>Summary</format>
+    <groupingsDown>
+        <dateGranularity>Day</dateGranularity>
+        <field>Sciagen_Account__c$Name</field>
+        <sortOrder>Desc</sortOrder>
+    </groupingsDown>
+    <name>Call Frequency by HCP</name>
+    <params>
+        <name>co</name>
+        <value>1</value>
+    </params>
+    <reportType>HCPs_with_Planned_Calls__c</reportType>
+    <scope>organization</scope>
+    <showDetails>true</showDetails>
+    <showGrandTotal>true</showGrandTotal>
+    <showSubTotals>true</showSubTotals>
+    <timeFrameFilter>
+        <dateColumn>Sciagen_Account__c.PlannedCalls__r$Call_DateTime__c</dateColumn>
+        <interval>INTERVAL_CURRENT</interval>
+    </timeFrameFilter>
+</Report>

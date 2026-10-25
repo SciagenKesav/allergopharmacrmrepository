@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Original_Call_DateTime__c</fullName>
+    <description>When the rep first planned this call. Set once and never changed, because Call Date/Time is overwritten with the actual time when the call is completed. Planned vs Actual reporting reads this.</description>
+    <label>Original Planned Date/Time</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>DateTime</type>
+</CustomField>

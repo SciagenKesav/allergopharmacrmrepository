@@ -1,5 +1,4 @@
 import { LightningElement, api } from 'lwc';
-import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { BRAND, pillStyle } from 'c/sciagenColors';
 
 const STATUS_COLOR = { Open: BRAND.subtle, 'In Progress': BRAND.primary, Postponed: BRAND.amber, Completed: BRAND.accent };
@@ -10,6 +9,7 @@ export default class AccountPlanStrategiesTab extends LightningElement {
     @api planName;
 
     showNewActionItemModal = false;
+    showNewStrategyModal = false;
 
     get strategies() {
         return (this.workspace?.strategies || []).map((s) => ({
@@ -62,37 +62,16 @@ export default class AccountPlanStrategiesTab extends LightningElement {
         this.dispatchEvent(new CustomEvent('actionitemcreated'));
     }
 
-    // MARK: - New Strategy (Plan_Strategy__c had no create UI anywhere —
-    // this tab only ever displayed strategies synced in from the iPad app)
-
-    showNewStrategyForm = false;
-    isSavingStrategy = false;
-
     handleAddStrategy() {
-        this.showNewStrategyForm = true;
+        this.showNewStrategyModal = true;
     }
 
-    handleCancelStrategy() {
-        this.showNewStrategyForm = false;
+    handleCloseStrategyModal() {
+        this.showNewStrategyModal = false;
     }
 
-    handleStrategySubmit() {
-        this.isSavingStrategy = true;
-    }
-
-    handleStrategySaveSuccess() {
-        this.isSavingStrategy = false;
-        this.showNewStrategyForm = false;
-        this.dispatchEvent(new ShowToastEvent({ title: 'Added', message: 'Strategy added to this Account Plan.', variant: 'success' }));
+    handleStrategyCreated() {
+        this.showNewStrategyModal = false;
         this.dispatchEvent(new CustomEvent('strategycreated'));
-    }
-
-    handleStrategySaveError(event) {
-        this.isSavingStrategy = false;
-        this.dispatchEvent(new ShowToastEvent({
-            title: 'Couldn’t add strategy',
-            message: event.detail?.detail || event.detail?.message || 'Check the highlighted fields and try again.',
-            variant: 'error',
-        }));
     }
 }

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- KOL Tier --></label>
+    <name>Acaroid_KOL_Tier__c</name>
+    <picklistValues>
+        <masterLabel>Local</masterLabel>
+        <translation><!-- Local --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>National</masterLabel>
+        <translation><!-- National --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>None</masterLabel>
+        <translation><!-- None --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Regional</masterLabel>
+        <translation><!-- Regional --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

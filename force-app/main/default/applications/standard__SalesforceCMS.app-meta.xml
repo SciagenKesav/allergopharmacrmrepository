@@ -8,20 +8,24 @@
     <label>Salesforce CMS</label>
     <navType>Console</navType>
     <tabs>standard-CmsAuthorHome</tabs>
-    <tabs>standard-CmsChannel</tabs>
     <tabs>standard-CmsWorkspaces</tabs>
     <tabs>standard-CmsExperiences</tabs>
-    <tabs>Plan_Goal__c</tabs>
+    <tabs>standard-CmsChannel</tabs>
+    <tabs>standard-CmsContentTaxonomy</tabs>
+    <tabs>Monthly_Call_Plan__c</tabs>
     <uiType>Lightning</uiType>
     <workspaceConfig>
         <mappings>
-            <tab>Plan_Goal__c</tab>
+            <tab>Monthly_Call_Plan__c</tab>
         </mappings>
         <mappings>
             <tab>standard-CmsAuthorHome</tab>
         </mappings>
         <mappings>
             <tab>standard-CmsChannel</tab>
+        </mappings>
+        <mappings>
+            <tab>standard-CmsContentTaxonomy</tab>
         </mappings>
         <mappings>
             <tab>standard-CmsExperiences</tab>

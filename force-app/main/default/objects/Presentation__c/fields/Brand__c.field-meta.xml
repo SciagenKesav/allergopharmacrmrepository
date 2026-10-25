@@ -6,6 +6,7 @@
     <trackTrending>false</trackTrending>
     <type>Picklist</type>
     <valueSet>
+        <restricted>true</restricted>
         <valueSetDefinition>
             <sorted>false</sorted>
             <value>
@@ -27,6 +28,48 @@
                 <fullName>NOVO-HELISEN DEPOT</fullName>
                 <default>false</default>
                 <label>NOVO-HELISEN DEPOT</label>
+            </value>
+            <value>
+                <fullName>BioNX</fullName>
+                <default>false</default>
+                <isActive>false</isActive>
+                <label>BioNX</label>
+            </value>
+            <value>
+                <fullName>Cardiace</fullName>
+                <default>false</default>
+                <isActive>false</isActive>
+                <label>Cardiace</label>
+            </value>
+            <value>
+                <fullName>Emrok</fullName>
+                <default>false</default>
+                <isActive>false</isActive>
+                <label>Emrok</label>
+            </value>
+            <value>
+                <fullName>Glaritus</fullName>
+                <default>false</default>
+                <isActive>false</isActive>
+                <label>Glaritus</label>
+            </value>
+            <value>
+                <fullName>Miqnaf</fullName>
+                <default>false</default>
+                <isActive>false</isActive>
+                <label>Miqnaf</label>
+            </value>
+            <value>
+                <fullName>Neutraline</fullName>
+                <default>false</default>
+                <isActive>false</isActive>
+                <label>Neutraline</label>
+            </value>
+            <value>
+                <fullName>Other</fullName>
+                <default>false</default>
+                <isActive>false</isActive>
+                <label>Other</label>
             </value>
         </valueSetDefinition>
     </valueSet>

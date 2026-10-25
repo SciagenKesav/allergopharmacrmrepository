@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Phase --></label>
+    <name>Phase__c</name>
+    <picklistValues>
+        <masterLabel>Not Applicable</masterLabel>
+        <translation><!-- Not Applicable --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Phase I</masterLabel>
+        <translation><!-- Phase I --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Phase II</masterLabel>
+        <translation><!-- Phase II --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Phase III</masterLabel>
+        <translation><!-- Phase III --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Phase IV</masterLabel>
+        <translation><!-- Phase IV --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

@@ -1,0 +1,174 @@
+<template>
+    <div class="page">
+        <div class="page-head">
+            <div>
+                <h2>Plan vs Actual</h2>
+                <p class="sub">What each rep planned for the month against the calls they reported. Managers see their team; head office sees every rep.</p>
+            </div>
+            <div class="head-actions">
+                <lightning-button label="Refresh" icon-name="utility:refresh" onclick={refresh} disabled={loading}></lightning-button>
+                <lightning-button label="Export CSV" icon-name="utility:download" onclick={exportCsv} disabled={exportDisabled}></lightning-button>
+            </div>
+        </div>
+
+        <div class="filters">
+            <lightning-combobox label="Month" value={month} options={monthOptions} onchange={handleMonth}></lightning-combobox>
+            <lightning-combobox label="Territory" value={territoryId} options={territoryOptions} onchange={handleTerritory}></lightning-combobox>
+            <lightning-combobox label="Rep" value={repId} options={repOptions} onchange={handleRep}></lightning-combobox>
+        </div>
+
+        <template if:true={error}>
+            <div class="slds-notify slds-notify_alert slds-alert_error" role="alert">{error}</div>
+        </template>
+        <template if:true={ov.truncated}>
+            <div class="slds-notify slds-notify_alert slds-alert_warning" role="alert">There are too many records to show in full. Choose a territory or a rep to see complete numbers.</div>
+        </template>
+        <template if:true={loading}>
+            <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+        </template>
+
+        <template if:true={hasPlans}>
+            <div class="hero">
+                <div class="hero-main">
+                    <div class="hero-num">{achievementText}</div>
+                    <div class="hero-label">Plan achievement</div>
+                </div>
+                <div class="hero-detail">
+                    <div>{achievedText}</div>
+                    <div class="muted">{onDayText}</div>
+                    <div class="muted">{asOfText}</div>
+                </div>
+            </div>
+        </template>
+
+        <div class="tiles">
+            <div class="tile"><div class="tile-num">{ov.planned}</div><div class="tile-label">Planned calls</div></div>
+            <div class="tile t-good"><div class="tile-num">{ov.onPlan}</div><div class="tile-label">Done as planned</div></div>
+            <div class="tile t-warn"><div class="tile-num">{ov.otherDay}</div><div class="tile-label">Done on another day</div></div>
+            <div class="tile t-bad"><div class="tile-num">{ov.missed}</div><div class="tile-label">Missed</div></div>
+            <div class="tile"><div class="tile-num">{ov.cancelled}</div><div class="tile-label">Cancelled</div></div>
+            <div class="tile t-info"><div class="tile-num">{ov.unplanned}</div><div class="tile-label">Unplanned calls</div><div class="tile-note">{unplannedNote}</div></div>
+        </div>
+        <p class="footnote">{footnote}</p>
+
+        <template if:true={hasDays}>
+            <div class="section">
+                <div class="section-head">
+                    <h3>Planned and reported by day</h3>
+                    <div class="legend"><span class="key k-plan"></span>Planned <span class="key k-act"></span>Reported</div>
+                </div>
+                <div class="chart" role="img" aria-label="Planned and reported calls for each day of the month">
+                    <template for:each={dayBars} for:item="d">
+                        <div key={d.day} class="day" title={d.title}>
+                            <div class="bars">
+                                <div class="bar b-plan" style={d.planStyle}></div>
+                                <div class="bar b-act" style={d.actStyle}></div>
+                            </div>
+                            <div class="day-label">{d.day}</div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </template>
+
+        <div class="section">
+            <div class="section-head"><h3>By rep</h3><span class="muted">Lowest achievement first</span></div>
+            <template if:true={hasReps}>
+                <div class="table-wrap">
+                    <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                        <thead>
+                            <tr class="slds-line-height_reset">
+                                <th scope="col">Rep</th>
+                                <th scope="col" class="num">Planned</th>
+                                <th scope="col" class="num">As planned</th>
+                                <th scope="col" class="num">Other day</th>
+                                <th scope="col" class="num">Missed</th>
+                                <th scope="col" class="num">Leave</th>
+                                <th scope="col" class="num">Cancelled</th>
+                                <th scope="col" class="num">Unplanned</th>
+                                <th scope="col" class="ach">Achievement</th>
+                                <th scope="col"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={repRows} for:item="r">
+                                <tr key={r.userId}>
+                                    <td>
+                                        <div class="rname">{r.name}</div>
+                                        <div class="rdetail">{r.territoryText}</div>
+                                    </td>
+                                    <td class="num">{r.planned}</td>
+                                    <td class="num">{r.onPlan}</td>
+                                    <td class="num">{r.otherDay}</td>
+                                    <td class={r.missedClass}>{r.missed}</td>
+                                    <td class="num">{r.excused}</td>
+                                    <td class="num">{r.cancelled}</td>
+                                    <td class="num">{r.unplanned}</td>
+                                    <td class="ach">
+                                        <div class="ach-row">
+                                            <div class="ach-track"><div class={r.barClass} style={r.barStyle}></div></div>
+                                            <span class="ach-text">{r.achievementText}</span>
+                                        </div>
+                                        <template if:true={r.hasDrafts}><div class="rdetail">{r.drafts} in draft, not submitted</div></template>
+                                    </td>
+                                    <td class="act"><lightning-button label="View calls" data-id={r.userId} onclick={viewRep}></lightning-button></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </template>
+            <template if:false={hasReps}>
+                <p class="empty">No planned or reported calls for this month and selection.</p>
+            </template>
+        </div>
+
+        <div class="section">
+            <div class="section-head">
+                <h3>Call by call</h3>
+                <span class="muted">{itemsCountText}</span>
+            </div>
+            <div class="chips" role="group" aria-label="Show calls">
+                <template for:each={chips} for:item="c">
+                    <button key={c.value} type="button" class={c.className} data-value={c.value} onclick={handleChip}>{c.label}</button>
+                </template>
+            </div>
+            <template if:true={hasItems}>
+                <div class="table-wrap">
+                    <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                        <thead>
+                            <tr class="slds-line-height_reset">
+                                <th scope="col">Rep</th>
+                                <th scope="col">HCP</th>
+                                <th scope="col">Planned</th>
+                                <th scope="col">Reported</th>
+                                <th scope="col">Difference</th>
+                                <th scope="col">Outcome</th>
+                                <th scope="col">Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={itemRows} for:item="i">
+                                <tr key={i.key}>
+                                    <td>{i.repName}</td>
+                                    <td>
+                                        <div class="rname">{i.hcpName}</div>
+                                        <div class="rdetail">{i.hcoName}</div>
+                                    </td>
+                                    <td>{i.plannedText}</td>
+                                    <td>{i.actualText}</td>
+                                    <td>{i.gapText}</td>
+                                    <td><span class={i.badgeClass}>{i.outcome}</span></td>
+                                    <td class="notes">{i.notes}</td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </template>
+            <template if:false={hasItems}>
+                <p class="empty">{emptyItemsText}</p>
+            </template>
+        </div>
+    </div>
+</template>

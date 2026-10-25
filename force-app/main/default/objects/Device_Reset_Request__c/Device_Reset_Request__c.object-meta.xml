@@ -146,7 +146,6 @@
     <description>A rep&apos;s request to wipe local app data on their iPad (Profile &gt; Reset Local Data). Requires the rep&apos;s manager to approve via Salesforce&apos;s own Approval Process before a one-time code is generated and handed to the rep (by phone or email) -- the app only proceeds with the wipe once that code is entered correctly. Private sharing: a rep can only see their own requests; the approver sees it via the approval process&apos;s temporary access grant.</description>
     <enableActivities>false</enableActivities>
     <enableBulkApi>true</enableBulkApi>
-    <enableFeeds>false</enableFeeds>
     <enableHistory>false</enableHistory>
     <enableLicensing>false</enableLicensing>
     <enableReports>false</enableReports>

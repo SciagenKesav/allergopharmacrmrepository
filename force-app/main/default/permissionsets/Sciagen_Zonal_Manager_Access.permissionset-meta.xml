@@ -1,43 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
-    <label>Sciagen Zonal Manager Access</label>
-    <description>Above-KAM tier: DCR governance — reviewing/approving every rep's Data Change Request (not just owned records), plus the DCR Review tab. A rep's own Create/Read/Edit still comes from SciagenCrm/Sciagen_Mobile_App_Access.</description>
-    <hasActivationRequired>false</hasActivationRequired>
-    <objectPermissions>
-        <allowCreate>true</allowCreate>
-        <allowDelete>true</allowDelete>
-        <allowEdit>true</allowEdit>
-        <allowRead>true</allowRead>
-        <modifyAllRecords>true</modifyAllRecords>
-        <object>Data_Change_Request__c</object>
-        <viewAllFields>false</viewAllFields>
-        <viewAllRecords>true</viewAllRecords>
-    </objectPermissions>
-    <!-- Forward-looking: lets a Business Unit Head approve an "Unassign HCP"/
-         "Unassign HCO" DCR (DataChangeRequestApprovalHandler.applyUnassignForApprovedDcr
-         deletes Account_Territory__c under AccessLevel.USER_MODE) even if they
-         aren't System Administrator profile — Vivek Narang, the only Business
-         Unit Head today, already has this via his Admin profile regardless. -->
-    <objectPermissions>
-        <allowCreate>true</allowCreate>
-        <allowDelete>true</allowDelete>
-        <allowEdit>true</allowEdit>
-        <allowRead>true</allowRead>
-        <modifyAllRecords>true</modifyAllRecords>
-        <object>Account_Territory__c</object>
-        <viewAllFields>true</viewAllFields>
-        <viewAllRecords>true</viewAllRecords>
-    </objectPermissions>
-    <objectPermissions>
-        <allowCreate>true</allowCreate>
-        <allowDelete>true</allowDelete>
-        <allowEdit>true</allowEdit>
-        <allowRead>true</allowRead>
-        <modifyAllRecords>true</modifyAllRecords>
-        <object>DCR_Comment__c</object>
-        <viewAllFields>false</viewAllFields>
-        <viewAllRecords>true</viewAllRecords>
-    </objectPermissions>
+    <description>Above-KAM tier: DCR governance — reviewing/approving every rep&apos;s Data Change Request (not just owned records), plus the DCR Review tab. A rep&apos;s own Create/Read/Edit still comes from SciagenCrm/Sciagen_Mobile_App_Access.</description>
     <fieldPermissions>
         <editable>true</editable>
         <field>Data_Change_Request__c.City__c</field>
@@ -103,21 +66,28 @@
         <field>Data_Change_Request__c.Summary__c</field>
         <readable>true</readable>
     </fieldPermissions>
-    <fieldPermissions>
-        <editable>true</editable>
-        <field>DCR_Comment__c.Author__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
-    <fieldPermissions>
-        <editable>true</editable>
-        <field>DCR_Comment__c.Body__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
-    <fieldPermissions>
-        <editable>false</editable>
-        <field>Data_Change_Request__c.Comment_Count__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>Sciagen Zonal Manager Access</label>
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>true</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>true</modifyAllRecords>
+        <object>Account_Territory__c</object>
+        <viewAllFields>true</viewAllFields>
+        <viewAllRecords>true</viewAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>true</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>true</modifyAllRecords>
+        <object>Data_Change_Request__c</object>
+        <viewAllFields>false</viewAllFields>
+        <viewAllRecords>true</viewAllRecords>
+    </objectPermissions>
     <tabSettings>
         <tab>DCR_Review_Page</tab>
         <visibility>Visible</visibility>

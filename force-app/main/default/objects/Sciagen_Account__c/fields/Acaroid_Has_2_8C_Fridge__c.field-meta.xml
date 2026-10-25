@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Acaroid_Has_2_8C_Fridge__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>MUST-HAVE. Product: store 2-8C, do not freeze.</description>
+    <label>2-8C Pharma Refrigerator</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

@@ -150,14 +150,18 @@ private class DataChangeRequestApprovalHandlerTest {
     }
 
     @isTest
-    static void approvingEditHCP_withDiffPayload_appliesRequestedValuesToExistingAccount() {
+    static void approvingEditHCP_withDiffPayload_appliesTheRequestedValueToTheAccount() {
+        // Regression test for a real production bug: an approved Edit HCP/HCO showed
+        // Status = Approved but the Account's actual field value never changed, because
+        // approval never wrote it anywhere — a steward had to separately, manually
+        // replicate the edit by hand, and nothing enforced that they did.
         Sciagen_Account__c hcp = new Sciagen_Account__c(
-            Name = 'Dr. Edit Target', Type__c = 'HCP', First_Name__c = 'Edit', Last_Name__c = 'Target', Phone__c = '9110000001'
+            Name = 'Dr. Edit Target', Type__c = 'HCP', First_Name__c = 'Edit', Last_Name__c = 'Target', Phone__c = '111'
         );
         insert hcp;
 
         Map<String, Object> diff = new Map<String, Object>{
-            'phone' => new Map<String, Object>{ 'current' => '9110000001', 'requested' => '9110000002' }
+            'phone' => new Map<String, Object>{ 'current' => '111', 'requested' => '222' }
         };
         Data_Change_Request__c dcr = new Data_Change_Request__c(
             Type__c = 'Edit HCP',
@@ -165,7 +169,7 @@ private class DataChangeRequestApprovalHandlerTest {
             Subject_Name__c = 'Dr. Edit Target',
             Subject_Account__c = hcp.Id,
             Fields_Payload__c = JSON.serialize(diff),
-            Summary__c = '• Phone: 9110000001 → 9110000002',
+            Summary__c = '• Phone: 111 → 222',
             Submitted_By__c = UserInfo.getUserId(),
             Submitted_At__c = Datetime.now()
         );
@@ -177,31 +181,28 @@ private class DataChangeRequestApprovalHandlerTest {
         Test.stopTest();
 
         Sciagen_Account__c reloaded = [SELECT Phone__c FROM Sciagen_Account__c WHERE Id = :hcp.Id];
-        System.assertEquals('9110000002', reloaded.Phone__c, 'Approving an Edit HCP should write the requested value onto the existing Account');
+        System.assertEquals('222', reloaded.Phone__c, 'Approving the edit must write the requested value onto the Account');
         System.assertEquals(0, [SELECT COUNT() FROM Sciagen_Account__c WHERE Name = 'Dr. Edit Target' AND Id != :hcp.Id],
             'Approving an edit must never create a second Account');
     }
 
     @isTest
-    static void approvingEditHCO_withDiffPayload_appliesRequestedValuesToExistingAccount() {
-        Sciagen_Account__c hco = new Sciagen_Account__c(
-            Name = 'Old Clinic Name', Type__c = 'HCO', Billing_City__c = 'Old City'
+    static void approvingEditHCP_renamesFromPartialNameFields() {
+        // Only lastName changed — prefix/firstName aren't in the diff at all — so the
+        // rebuilt Name must still incorporate the Account's EXISTING prefix/firstName,
+        // not just the one field that was actually edited.
+        Sciagen_Account__c hcp = new Sciagen_Account__c(
+            Name = 'Dr. Edit Old', Type__c = 'HCP', Prefix__c = 'Dr.', First_Name__c = 'Edit', Last_Name__c = 'Old'
         );
-        insert hco;
+        insert hcp;
 
         Map<String, Object> diff = new Map<String, Object>{
-            'name' => new Map<String, Object>{ 'current' => 'Old Clinic Name', 'requested' => 'New Clinic Name' },
-            'city' => new Map<String, Object>{ 'current' => 'Old City', 'requested' => 'New City' }
+            'lastName' => new Map<String, Object>{ 'current' => 'Old', 'requested' => 'New' }
         };
         Data_Change_Request__c dcr = new Data_Change_Request__c(
-            Type__c = 'Edit HCO',
-            Status__c = 'Pending Approval',
-            Subject_Name__c = 'Old Clinic Name',
-            Subject_Account__c = hco.Id,
-            Fields_Payload__c = JSON.serialize(diff),
-            Summary__c = '• Name: Old Clinic Name → New Clinic Name',
-            Submitted_By__c = UserInfo.getUserId(),
-            Submitted_At__c = Datetime.now()
+            Type__c = 'Edit HCP', Status__c = 'Pending Approval', Subject_Name__c = 'Dr. Edit Old',
+            Subject_Account__c = hcp.Id, Fields_Payload__c = JSON.serialize(diff),
+            Submitted_By__c = UserInfo.getUserId(), Submitted_At__c = Datetime.now()
         );
         insert dcr;
 
@@ -210,35 +211,24 @@ private class DataChangeRequestApprovalHandlerTest {
         update dcr;
         Test.stopTest();
 
-        Sciagen_Account__c reloaded = [SELECT Name, Billing_City__c FROM Sciagen_Account__c WHERE Id = :hco.Id];
-        System.assertEquals('New Clinic Name', reloaded.Name);
-        System.assertEquals('New City', reloaded.Billing_City__c);
+        Sciagen_Account__c reloaded = [SELECT Name, Last_Name__c FROM Sciagen_Account__c WHERE Id = :hcp.Id];
+        System.assertEquals('New', reloaded.Last_Name__c);
+        System.assertEquals('Dr. Edit New', reloaded.Name, 'Name must be rebuilt from the existing prefix/firstName plus the new lastName');
     }
 
     @isTest
-    static void approvingEditHCP_withAffiliationChange_repointsPrimaryAffiliation() {
-        Sciagen_Account__c oldHCO = new Sciagen_Account__c(Name = 'Old Affiliated HCO', Type__c = 'HCO');
-        Sciagen_Account__c newHCO = new Sciagen_Account__c(Name = 'New Affiliated HCO', Type__c = 'HCO');
-        insert new List<Sciagen_Account__c>{ oldHCO, newHCO };
-
-        Sciagen_Account__c hcp = new Sciagen_Account__c(
-            Name = 'Dr. Affiliation Target', Type__c = 'HCP', First_Name__c = 'Affiliation', Last_Name__c = 'Target'
-        );
-        insert hcp;
-        insert new Affiliation__c(HCP__c = hcp.Id, HCO__c = oldHCO.Id, Is_Primary__c = true);
+    static void approvingEditHCO_withInvalidPicklistValue_leavesExistingValueInPlace() {
+        Sciagen_Account__c hco = new Sciagen_Account__c(Name = 'Test Edit HCO', Type__c = 'HCO', HCO_Type__c = 'Hospital');
+        insert hco;
 
         Map<String, Object> diff = new Map<String, Object>{
-            'affiliationHCO' => new Map<String, Object>{ 'current' => 'Old Affiliated HCO', 'requested' => 'New Affiliated HCO' }
+            'type' => new Map<String, Object>{ 'current' => 'Hospital', 'requested' => 'Not A Real Type' },
+            'phone' => new Map<String, Object>{ 'current' => '', 'requested' => '9998887777' }
         };
         Data_Change_Request__c dcr = new Data_Change_Request__c(
-            Type__c = 'Edit HCP',
-            Status__c = 'Pending Approval',
-            Subject_Name__c = 'Dr. Affiliation Target',
-            Subject_Account__c = hcp.Id,
-            Fields_Payload__c = JSON.serialize(diff),
-            Summary__c = '• Affiliation (HCO): Old Affiliated HCO → New Affiliated HCO',
-            Submitted_By__c = UserInfo.getUserId(),
-            Submitted_At__c = Datetime.now()
+            Type__c = 'Edit HCO', Status__c = 'Pending Approval', Subject_Name__c = 'Test Edit HCO',
+            Subject_Account__c = hco.Id, Fields_Payload__c = JSON.serialize(diff),
+            Submitted_By__c = UserInfo.getUserId(), Submitted_At__c = Datetime.now()
         );
         insert dcr;
 
@@ -247,9 +237,234 @@ private class DataChangeRequestApprovalHandlerTest {
         update dcr;
         Test.stopTest();
 
-        List<Affiliation__c> affiliations = [SELECT HCO__c, Is_Primary__c FROM Affiliation__c WHERE HCP__c = :hcp.Id];
-        System.assertEquals(1, affiliations.size(), 'Should still have exactly one primary affiliation, re-pointed rather than duplicated');
-        System.assertEquals(newHCO.Id, affiliations[0].HCO__c);
-        System.assertEquals(true, affiliations[0].Is_Primary__c);
+        Sciagen_Account__c reloaded = [SELECT HCO_Type__c, Phone__c FROM Sciagen_Account__c WHERE Id = :hco.Id];
+        System.assertEquals('Hospital', reloaded.HCO_Type__c, 'An unrecognized picklist value must be skipped, not blank the existing one out');
+        System.assertEquals('9998887777', reloaded.Phone__c, 'A plain text field in the same diff must still apply');
+    }
+
+    @isTest
+    static void approvingEditHCP_withAffiliationHCOChange_repointsTheAffiliation() {
+        Sciagen_Account__c oldHco = new Sciagen_Account__c(Name = 'Old Affiliated HCO', Type__c = 'HCO');
+        Sciagen_Account__c newHco = new Sciagen_Account__c(Name = 'New Affiliated HCO', Type__c = 'HCO');
+        insert new List<Sciagen_Account__c>{ oldHco, newHco };
+        Sciagen_Account__c hcp = new Sciagen_Account__c(Name = 'Dr. Affiliation Change', Type__c = 'HCP');
+        insert hcp;
+        insert new Affiliation__c(HCP__c = hcp.Id, HCO__c = oldHco.Id);
+
+        Map<String, Object> diff = new Map<String, Object>{
+            'affiliationHCO' => new Map<String, Object>{ 'current' => oldHco.Id, 'requested' => newHco.Id }
+        };
+        Data_Change_Request__c dcr = new Data_Change_Request__c(
+            Type__c = 'Edit HCP', Status__c = 'Pending Approval', Subject_Name__c = 'Dr. Affiliation Change',
+            Subject_Account__c = hcp.Id, Fields_Payload__c = JSON.serialize(diff),
+            Submitted_By__c = UserInfo.getUserId(), Submitted_At__c = Datetime.now()
+        );
+        insert dcr;
+
+        Test.startTest();
+        dcr.Status__c = 'Approved';
+        update dcr;
+        Test.stopTest();
+
+        List<Affiliation__c> affiliations = [SELECT HCO__c FROM Affiliation__c WHERE HCP__c = :hcp.Id];
+        System.assertEquals(1, affiliations.size(), 'The existing Affiliation must be updated in place, not duplicated');
+        System.assertEquals(newHco.Id, affiliations[0].HCO__c);
+    }
+
+    @isTest
+    static void approvingNewHCP_assignsTheHCOsTerritoryAndOwnsItToTheSubmitter() {
+        // Regression test for a real production bug: a newly-approved Account had zero
+        // Account_Territory__c rows and was owned by whichever admin clicked Approve —
+        // Private OWD made it invisible to the rep who'd actually submitted the request,
+        // which is exactly what "the change isn't reflecting" looked like for them.
+        Sciagen_Account__c hco = new Sciagen_Account__c(Name = 'Territory-Linked HCO', Type__c = 'HCO');
+        insert hco;
+
+        // Admin profile deliberately, not Standard User: this test only proves the
+        // *ownership* fix (the actual bug) and that the pre-existing
+        // AccountTerritoryAutoAssign trigger picks up correctly once OwnerId is right —
+        // it deliberately does not also exercise the resulting Manual-share grant
+        // (covered instead by approvingNewHCP_asNonAdminApprover_doesNotThrowOnShareGrant
+        // below, plus TerritorySharingServiceTest/DCRTerritorySharingServiceTest).
+        // An admin owner here sidesteps TerritorySharingService's own
+        // PermissionsViewAllData=false filter, which used to be load-bearing: granting a
+        // brand-new Share from deep inside this trigger's nested DML chain threw
+        // INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY for any real (non-admin) approving
+        // user — a genuine production bug (Salesforce's *Share DML enforces the running
+        // user's access to the parent record, which `without sharing` doesn't cover, and
+        // the parent Account here was inserted earlier in the same transaction). Fixed by
+        // running that DML at AccessLevel.SYSTEM_MODE in TerritorySharingService /
+        // DCRTerritorySharingService / RCPAAuditTerritorySharingService.
+        Territory__c territory = new Territory__c(Name = 'Test Approval Territory', Territory_Code__c = 'TAT', Type__c = 'Territory');
+        insert territory;
+        Profile adminProfile = [SELECT Id FROM Profile WHERE Name = 'System Administrator' LIMIT 1];
+        User rep = testUser('ApprovalOwner', 'Rep', adminProfile.Id);
+        System.runAs(new User(Id = UserInfo.getUserId())) {
+            insert rep;
+            insert new User_Territory__c(User__c = rep.Id, Territory__c = territory.Id, Is_Primary__c = true);
+        }
+
+        Map<String, String> fields = new Map<String, String>{ 'firstName' => 'Territory', 'lastName' => 'Test' };
+        Data_Change_Request__c dcr = new Data_Change_Request__c(
+            Type__c = 'New HCP', Status__c = 'Pending Approval', Subject_Name__c = 'Dr. Territory Test',
+            Related_HCO__c = hco.Id, Fields_Payload__c = JSON.serialize(fields),
+            Submitted_By__c = rep.Id, Submitted_At__c = Datetime.now()
+        );
+        insert dcr;
+
+        Test.startTest();
+        dcr.Status__c = 'Approved';
+        update dcr;
+        Test.stopTest();
+
+        dcr = [SELECT Subject_Account__c FROM Data_Change_Request__c WHERE Id = :dcr.Id];
+        Sciagen_Account__c acc = [SELECT OwnerId FROM Sciagen_Account__c WHERE Id = :dcr.Subject_Account__c];
+        System.assertEquals(rep.Id, acc.OwnerId, 'The submitter, not the approving steward, should own the new Account');
+
+        List<Account_Territory__c> links = [SELECT Territory__c FROM Account_Territory__c WHERE Account__c = :acc.Id];
+        System.assertEquals(1, links.size(), 'The pre-existing AccountTerritoryAutoAssign trigger should now fire correctly against the real owner');
+        System.assertEquals(territory.Id, links[0].Territory__c);
+    }
+
+    @isTest
+    static void approvingNewHCO_alsoOwnedBySubmitter_getsTheirTerritoryTheSameWay() {
+        Territory__c territory = new Territory__c(Name = 'Test Submitter Territory', Territory_Code__c = 'TST', Type__c = 'Territory');
+        insert territory;
+        Profile adminProfile = [SELECT Id FROM Profile WHERE Name = 'System Administrator' LIMIT 1];
+        User rep = testUser('SubmitterTerritory', 'Rep', adminProfile.Id);
+        System.runAs(new User(Id = UserInfo.getUserId())) {
+            insert rep;
+            insert new User_Territory__c(User__c = rep.Id, Territory__c = territory.Id, Is_Primary__c = true);
+        }
+
+        Map<String, String> fields = new Map<String, String>{ 'name' => 'Brand New Clinic' };
+        Data_Change_Request__c dcr = new Data_Change_Request__c(
+            Type__c = 'New HCO', Status__c = 'Pending Approval', Subject_Name__c = 'Brand New Clinic',
+            Fields_Payload__c = JSON.serialize(fields),
+            Submitted_By__c = rep.Id, Submitted_At__c = Datetime.now()
+        );
+        insert dcr;
+
+        Test.startTest();
+        dcr.Status__c = 'Approved';
+        update dcr;
+        Test.stopTest();
+
+        dcr = [SELECT Subject_Account__c FROM Data_Change_Request__c WHERE Id = :dcr.Id];
+        List<Account_Territory__c> links = [SELECT Territory__c FROM Account_Territory__c WHERE Account__c = :dcr.Subject_Account__c];
+        System.assertEquals(1, links.size(), 'A New HCO gets the same owner-driven auto-assignment as a New HCP');
+        System.assertEquals(territory.Id, links[0].Territory__c);
+    }
+
+    /**
+     * Reproduces the real production bug: a non-admin approver (a Manager, same as any
+     * real KAM/steward) approving a "New HCP" DCR whose submitter is assigned to a
+     * territory that the approver is ALSO assigned to. That overlap is exactly what makes
+     * TerritorySharingService attempt to grant the approver a Manual share on the
+     * brand-new Sciagen_Account__c from inside the same nested trigger chain the approval
+     * itself runs in — the scenario that used to throw
+     * INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY before the AccessLevel.SYSTEM_MODE fix.
+     */
+    @isTest
+    static void approvingNewHCP_asNonAdminApprover_doesNotThrowOnShareGrant() {
+        Sciagen_Account__c hco = new Sciagen_Account__c(Name = 'Share Grant Test HCO', Type__c = 'HCO');
+        insert hco;
+
+        Territory__c territory = new Territory__c(Name = 'Share Grant Territory', Territory_Code__c = 'SGT', Type__c = 'Territory');
+        insert territory;
+        // Links the HCO to the territory so DCRTerritorySharingService can derive DCR
+        // sharing for the approver through Related_HCO__c -> Territory -> User_Territory__c
+        // — the same path that makes a real DCR visible/actionable to a KAM in production.
+        insert new Account_Territory__c(Name = 'Test Link', Account__c = hco.Id, Territory__c = territory.Id);
+
+        Profile managerProfile = [SELECT Id FROM Profile WHERE Name = 'Manager' LIMIT 1];
+        User submitter = testUser('ShareGrant', 'Submitter', managerProfile.Id);
+        User approver = testUser('ShareGrant', 'Approver', managerProfile.Id);
+        System.runAs(new User(Id = UserInfo.getUserId())) {
+            insert new List<User>{ submitter, approver };
+            insert new List<User_Territory__c>{
+                new User_Territory__c(User__c = submitter.Id, Territory__c = territory.Id, Is_Primary__c = true),
+                new User_Territory__c(User__c = approver.Id, Territory__c = territory.Id, Is_Primary__c = true)
+            };
+            insert new PermissionSetAssignment(AssigneeId = approver.Id, PermissionSetId = [
+                SELECT Id FROM PermissionSet WHERE Name = 'Sciagen_Data_Steward' LIMIT 1
+            ].Id);
+        }
+
+        Map<String, String> fields = new Map<String, String>{ 'firstName' => 'Share', 'lastName' => 'Grant' };
+        Data_Change_Request__c dcr = new Data_Change_Request__c(
+            Type__c = 'New HCP', Status__c = 'Pending Approval', Subject_Name__c = 'Dr. Share Grant',
+            Related_HCO__c = hco.Id, Fields_Payload__c = JSON.serialize(fields),
+            Submitted_By__c = submitter.Id, Submitted_At__c = Datetime.now()
+        );
+        insert dcr;
+
+        System.runAs(approver) {
+            Test.startTest();
+            DCRReviewController.approveDCR(dcr.Id, null);
+            Test.stopTest();
+        }
+
+        dcr = [SELECT Status__c, Subject_Account__c FROM Data_Change_Request__c WHERE Id = :dcr.Id];
+        System.assertEquals('Approved', dcr.Status__c);
+
+        List<Sciagen_Account__Share> shares = [
+            SELECT UserOrGroupId FROM Sciagen_Account__Share
+            WHERE ParentId = :dcr.Subject_Account__c AND RowCause = 'Manual'
+        ];
+        Set<Id> sharedWith = new Set<Id>();
+        for (Sciagen_Account__Share s : shares) sharedWith.add(s.UserOrGroupId);
+        System.assert(sharedWith.contains(approver.Id), 'The approver, sharing the submitter\'s territory, should have been granted a Manual share on the new account');
+    }
+
+    private static User testUser(String firstName, String lastName, Id profileId) {
+        String uniq = firstName.toLowerCase() + '.' + lastName.toLowerCase() + '.' + Datetime.now().getTime();
+        return new User(
+            FirstName = firstName, LastName = lastName,
+            Email = uniq + '@sciagen.invalid', Username = uniq + '@sciagen.invalid',
+            Alias = firstName.left(1).toLowerCase() + lastName.left(4).toLowerCase(),
+            TimeZoneSidKey = 'Asia/Kolkata', LocaleSidKey = 'en_IN',
+            EmailEncodingKey = 'UTF-8', LanguageLocaleKey = 'en_US', ProfileId = profileId
+        );
+    }
+
+    @isTest
+    static void repWithoutStewardPermissionCannotApproveOwnRequest() {
+        Profile prof = [SELECT Id FROM Profile WHERE Name = 'Standard Platform User' LIMIT 1];
+        User rep = new User(
+            Alias = 'dcrrep', Email = 'dcr.rep@example.com', EmailEncodingKey = 'UTF-8',
+            LastName = 'Rep', LanguageLocaleKey = 'en_US', LocaleSidKey = 'en_IN', ProfileId = prof.Id,
+            TimeZoneSidKey = 'Asia/Kolkata', Username = 'dcr.rep.' + System.currentTimeMillis() + '@example.com'
+        );
+        // Setup-object DML (User, PermissionSetAssignment) runs in its own
+        // runAs block so it can't collide with the DCR insert below (MIXED_DML).
+        System.runAs(new User(Id = UserInfo.getUserId())) {
+            insert rep;
+            insert new PermissionSetAssignment(
+                AssigneeId = rep.Id,
+                PermissionSetId = [SELECT Id FROM PermissionSet WHERE Name = 'SciagenCrm' LIMIT 1].Id
+            );
+        }
+        Data_Change_Request__c dcr = new Data_Change_Request__c(
+            Type__c = 'New HCO', Status__c = 'Pending Approval', Subject_Name__c = 'Self Approved Clinic',
+            Fields_Payload__c = '{}', Submitted_By__c = rep.Id, Submitted_At__c = Datetime.now(), OwnerId = rep.Id
+        );
+        insert dcr;
+
+        Test.startTest();
+        String error;
+        System.runAs(rep) {
+            try {
+                update new Data_Change_Request__c(Id = dcr.Id, Status__c = 'Approved');
+            } catch (DmlException e) {
+                error = e.getMessage();
+            }
+        }
+        Test.stopTest();
+
+        System.assertNotEquals(null, error, 'A rep must not be able to approve a data change request');
+        System.assert(error.contains('Only a data steward'), error);
+        System.assertEquals('Pending Approval', [SELECT Status__c FROM Data_Change_Request__c WHERE Id = :dcr.Id].Status__c);
+        System.assertEquals(0, [SELECT COUNT() FROM Sciagen_Account__c WHERE Name = 'Self Approved Clinic']);
     }
 }

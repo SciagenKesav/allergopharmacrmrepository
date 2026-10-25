@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSetGroup xmlns="http://soap.sforce.com/2006/04/metadata">
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>GeneralUsers</label>
+    <permissionSets>force__CallCoachingUserPsl</permissionSets>
+    <permissionSets>force__EasyProductWithPriceUser</permissionSets>
+    <permissionSets>force__SalesEngagementBasicUser</permissionSets>
+    <permissionSets>force__ServiceLightningKnowledgeManager</permissionSets>
+    <permissionSets>force__StarterMarketingAppOverview</permissionSets>
+    <status>Updated</status>
+</PermissionSetGroup>

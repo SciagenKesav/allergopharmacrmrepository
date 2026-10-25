@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Preference --></label>
+    <name>Preference__c</name>
+    <picklistValues>
+        <masterLabel>Avoid</masterLabel>
+        <translation><!-- Avoid --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Best</masterLabel>
+        <translation><!-- Best --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Good</masterLabel>
+        <translation><!-- Good --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

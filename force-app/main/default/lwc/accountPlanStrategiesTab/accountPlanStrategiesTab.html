@@ -8,30 +8,6 @@
             </div>
         </div>
 
-        <template if:true={showNewStrategyForm}>
-            <div class="strategy-card">
-                <lightning-record-edit-form
-                    object-api-name="Plan_Strategy__c"
-                    onsubmit={handleStrategySubmit}
-                    onsuccess={handleStrategySaveSuccess}
-                    onerror={handleStrategySaveError}
-                >
-                    <lightning-input-field class="slds-hide" field-name="Plan__c" value={recordId}></lightning-input-field>
-                    <div class="edit-grid">
-                        <lightning-input-field field-name="Strategy_Name__c"></lightning-input-field>
-                        <lightning-input-field field-name="Share_With__c"></lightning-input-field>
-                    </div>
-                    <div class="edit-grid-wide">
-                        <lightning-input-field field-name="Detail__c"></lightning-input-field>
-                    </div>
-                    <div class="edit-actions">
-                        <lightning-button label="Cancel" onclick={handleCancelStrategy} disabled={isSavingStrategy}></lightning-button>
-                        <lightning-button variant="brand" type="submit" label="Save" disabled={isSavingStrategy}></lightning-button>
-                    </div>
-                </lightning-record-edit-form>
-            </div>
-        </template>
-
         <template if:true={hasStrategies}>
             <template for:each={strategies} for:item="s">
                 <div class="strategy-card" key={s.id}>
@@ -115,6 +91,15 @@
                 onclose={handleCloseModal}
                 oncreated={handleActionItemCreated}
             ></c-new-action-item-modal>
+        </template>
+
+        <template if:true={showNewStrategyModal}>
+            <c-new-strategy-modal
+                plan-id={recordId}
+                plan-name={planName}
+                onclose={handleCloseStrategyModal}
+                oncreated={handleStrategyCreated}
+            ></c-new-strategy-modal>
         </template>
     </div>
 </template>

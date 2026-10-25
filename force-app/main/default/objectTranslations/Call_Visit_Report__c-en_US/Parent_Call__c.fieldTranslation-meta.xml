@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <help><!-- The group call this individual attendee call belongs to. Edit the group call; this call follows it. --></help>
+    <label><!-- Parent Call --></label>
+    <name>Parent_Call__c</name>
+    <relationshipLabel><!-- Group Attendee Calls --></relationshipLabel>
+</CustomFieldTranslation>

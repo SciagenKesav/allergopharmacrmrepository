@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Awaiting --></label>
+    <name>Awaiting__c</name>
+    <picklistValues>
+        <masterLabel>Nobody</masterLabel>
+        <translation><!-- Nobody --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Requester</masterLabel>
+        <translation><!-- Requester --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Support</masterLabel>
+        <translation><!-- Support --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

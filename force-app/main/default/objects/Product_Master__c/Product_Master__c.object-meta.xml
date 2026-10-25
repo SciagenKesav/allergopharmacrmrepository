@@ -146,7 +146,6 @@
     <description>Master catalog of products, imported from the Product Master reference file (brand, molecule, therapy area, sampling limits, and lifecycle dates).</description>
     <enableActivities>false</enableActivities>
     <enableBulkApi>true</enableBulkApi>
-    <enableFeeds>false</enableFeeds>
     <enableHistory>false</enableHistory>
     <enableLicensing>false</enableLicensing>
     <enableReports>true</enableReports>

@@ -146,7 +146,6 @@
     <description>Audit trail of every HCP/HCO merge: who merged which record into which, the field-by-field decisions, what child records moved, and a snapshot of the losing record so the merge can be undone.</description>
     <enableActivities>false</enableActivities>
     <enableBulkApi>true</enableBulkApi>
-    <enableFeeds>false</enableFeeds>
     <enableHistory>false</enableHistory>
     <enableLicensing>false</enableLicensing>
     <enableReports>false</enableReports>

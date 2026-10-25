@@ -28,6 +28,9 @@
                 <template if:true={hasRejectionReason}>
                     <div class="rejection-reason">Rejection reason: {record.rejectionReason}</div>
                 </template>
+                <template if:true={hasApprovalComment}>
+                    <div class="approval-comment">Approval comment: {record.approvalComment}</div>
+                </template>
             </div>
 
             <template if:true={hasSummary}>
@@ -84,10 +87,21 @@
 
             <template if:true={isPending}>
                 <div class="actions">
-                    <template if:false={isRejecting}>
+                    <template if:true={isIdle}>
                         <div class="action-row">
                             <lightning-button variant="destructive" label="Reject" onclick={handleShowReject} disabled={isSaving}></lightning-button>
-                            <lightning-button variant="brand" label="Approve" onclick={handleApprove} disabled={isSaving}></lightning-button>
+                            <lightning-button variant="brand" label="Approve" onclick={handleShowApprove} disabled={isSaving}></lightning-button>
+                        </div>
+                    </template>
+                    <template if:true={isApproving}>
+                        <lightning-textarea
+                            label="Approval comment (optional)"
+                            value={approvalCommentInput}
+                            onchange={handleApprovalCommentChange}
+                        ></lightning-textarea>
+                        <div class="reject-actions">
+                            <lightning-button label="Cancel" onclick={handleCancelApprove} disabled={isSaving}></lightning-button>
+                            <lightning-button variant="brand" label="Confirm Approve" onclick={handleConfirmApprove} disabled={isSaving}></lightning-button>
                         </div>
                     </template>
                     <template if:true={isRejecting}>
@@ -103,46 +117,6 @@
                     </template>
                 </div>
             </template>
-
-            <div class="section comment-section">
-                <h4>Comments</h4>
-                <template if:true={isLoadingComments}>
-                    <lightning-spinner alternative-text="Loading comments" size="x-small"></lightning-spinner>
-                </template>
-                <template if:true={hasComments}>
-                    <div class="comment-thread">
-                        <template for:each={comments} for:item="c">
-                            <div key={c.id} class={c.cssClass}>
-                                <div class="comment-meta">
-                                    <span class="comment-role">{c.authorRole}</span>
-                                    <template if:true={c.authorName}> &middot; {c.authorName}</template>
-                                    <template if:true={c.createdAt}> &middot; {c.createdAt}</template>
-                                </div>
-                                <div class="comment-body">{c.body}</div>
-                            </div>
-                        </template>
-                    </div>
-                </template>
-                <template if:false={hasComments}>
-                    <template if:false={isLoadingComments}>
-                        <p class="no-comments">No comments yet.</p>
-                    </template>
-                </template>
-                <div class="reply-composer">
-                    <lightning-textarea
-                        label="Reply as Business Admin"
-                        value={replyInput}
-                        onchange={handleReplyChange}
-                    ></lightning-textarea>
-                    <lightning-button
-                        variant="brand"
-                        label="Send Reply"
-                        onclick={handleSendReply}
-                        disabled={isReplying}
-                        class="reply-send"
-                    ></lightning-button>
-                </div>
-            </div>
         </template>
     </div>
 </template>

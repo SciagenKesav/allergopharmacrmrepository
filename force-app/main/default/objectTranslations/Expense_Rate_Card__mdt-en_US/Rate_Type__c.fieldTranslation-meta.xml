@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Rate Type --></label>
+    <name>Rate_Type__c</name>
+    <picklistValues>
+        <masterLabel>Station Allowance</masterLabel>
+        <translation><!-- Station Allowance --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Travel Rate</masterLabel>
+        <translation><!-- Travel Rate --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

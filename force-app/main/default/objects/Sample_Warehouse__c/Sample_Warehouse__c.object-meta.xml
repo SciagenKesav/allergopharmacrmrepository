@@ -146,7 +146,6 @@
     <description>A place sample stock is held: central warehouse, regional depot or a rep&apos;s storage.</description>
     <enableActivities>false</enableActivities>
     <enableBulkApi>true</enableBulkApi>
-    <enableFeeds>false</enableFeeds>
     <enableHistory>false</enableHistory>
     <enableLicensing>false</enableLicensing>
     <enableReports>true</enableReports>

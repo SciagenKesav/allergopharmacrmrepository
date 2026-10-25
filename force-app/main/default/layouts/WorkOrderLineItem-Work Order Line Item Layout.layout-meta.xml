@@ -82,28 +82,14 @@
         <layoutColumns/>
         <style>CustomLinks</style>
     </layoutSections>
-    <relatedLists>
-        <fields>Name</fields>
-        <fields>ExecutionOrder</fields>
-        <relatedList>NewWorkPlans</relatedList>
-    </relatedLists>
-    <relatedLists>
-        <fields>Name</fields>
-        <fields>Status</fields>
-        <fields>ExecutionOrder</fields>
-        <relatedList>NewWorkSteps</relatedList>
-    </relatedLists>
-    <relatedLists>
-        <fields>Name</fields>
-        <fields>ExecutionOrder</fields>
-        <relatedList>WorkPlans</relatedList>
-    </relatedLists>
-    <relatedLists>
-        <fields>Name</fields>
-        <fields>Status</fields>
-        <fields>ExecutionOrder</fields>
-        <relatedList>WorkSteps</relatedList>
-    </relatedLists>
+    <quickActionList>
+        <quickActionListItems>
+            <quickActionName>FeedItem.MobileSmartActions</quickActionName>
+        </quickActionListItems>
+        <quickActionListItems>
+            <quickActionName>FeedItem.ContentNote</quickActionName>
+        </quickActionListItems>
+    </quickActionList>
     <relatedLists>
         <fields>TASK.SUBJECT</fields>
         <fields>TASK.WHO_NAME</fields>
@@ -130,24 +116,12 @@
         <relatedList>RelatedFileList</relatedList>
     </relatedLists>
     <relatedLists>
+        <relatedList>RelatedContentNoteList</relatedList>
+    </relatedLists>
+    <relatedLists>
         <fields>Name</fields>
         <fields>Asset</fields>
         <relatedList>ChildWorkOrderLineItems</relatedList>
-    </relatedLists>
-    <relatedLists>
-        <fields>Name</fields>
-        <fields>Contact</fields>
-        <fields>Account</fields>
-        <fields>Status</fields>
-        <fields>SchedStartTime</fields>
-        <fields>SchedEndTime</fields>
-        <fields>EarliestStartTime</fields>
-        <relatedList>ServiceAppointments</relatedList>
-    </relatedLists>
-    <relatedLists>
-        <fields>Skill</fields>
-        <fields>SkillLevel</fields>
-        <relatedList>SkillRequirements</relatedList>
     </relatedLists>
     <showEmailCheckbox>false</showEmailCheckbox>
     <showHighlightsPanel>false</showHighlightsPanel>

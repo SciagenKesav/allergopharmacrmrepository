@@ -4,26 +4,18 @@
             <div class="pane-header">
                 <c-sciagen-logo size="small"></c-sciagen-logo>
                 <h2>Accounts</h2>
-                <template if:true={isKAM}>
-                    <lightning-button-menu
-                        class="new-button"
-                        variant="brand"
-                        label="New Request"
-                        menu-alignment="right"
-                    >
-                        <lightning-menu-item value="HCO" label="New HCO" data-type="HCO" onclick={handleOpenNewRequest}></lightning-menu-item>
-                        <lightning-menu-item value="HCP" label="New HCP" data-type="HCP" onclick={handleOpenNewRequest}></lightning-menu-item>
-                    </lightning-button-menu>
-                </template>
-                <template if:true={isNotKAM}>
-                    <lightning-button
-                        class="new-button"
-                        variant="brand"
-                        label="New"
-                        icon-name="utility:add"
-                        onclick={handleOpenCreate}
-                    ></lightning-button>
-                </template>
+                <lightning-button
+                    class="new-button"
+                    variant="brand"
+                    label={newButtonLabel}
+                    icon-name="utility:add"
+                    onclick={handleOpenCreate}
+                ></lightning-button>
+            </div>
+
+            <div class="my-territory-row" title="The territory(ies) you belong to">
+                <lightning-icon icon-name="utility:location" size="xx-small"></lightning-icon>
+                <span>{myTerritoryLabel}</span>
             </div>
 
             <div class="saved-view-row">
@@ -56,51 +48,13 @@
             </lightning-button-group>
 
             <div class="filter-row">
-                <!-- Own-territory-only users (everyone except a System Administrator —
-                     see canSeeAllTerritories) keep the plain combobox; Apex already
-                     limits its options to just their own territory(ies). -->
-                <template if:true={isNotAdminTerritoryView}>
-                    <lightning-combobox
-                        label="Territory"
-                        variant="label-hidden"
-                        value={territoryFilter}
-                        options={territoryOptions}
-                        onchange={handleTerritoryFilterChange}
-                    ></lightning-combobox>
-                </template>
-                <!-- System Administrator: searchable picker over every territory,
-                     showing just the first 2 (alphabetical) as a lightweight preview
-                     until they start typing — the plain combobox would otherwise list
-                     every territory in the org. -->
-                <template if:true={canSeeAllTerritories}>
-                    <div class="territory-search">
-                        <lightning-input
-                            type="search"
-                            label="Territory"
-                            variant="label-hidden"
-                            placeholder={territorySearchPlaceholder}
-                            value={territorySearchTerm}
-                            onchange={handleTerritorySearchChange}
-                            onfocus={handleTerritorySearchFocus}
-                            onblur={handleTerritorySearchBlur}
-                        ></lightning-input>
-                        <template if:true={hasTerritoryFilterSelected}>
-                            <div class="territory-selected">
-                                <span>{territoryFilter}</span>
-                                <lightning-button-icon icon-name="utility:close" alternative-text="Clear territory filter" size="small" onclick={handleClearTerritorySearch}></lightning-button-icon>
-                            </div>
-                        </template>
-                        <template if:true={isTerritorySearchFocused}>
-                            <div class="territory-pick-list">
-                                <template for:each={filteredTerritorySearchOptions} for:item="t">
-                                    <div key={t.value} class="territory-pick-row" data-value={t.value} onclick={handleSelectTerritorySearch}>
-                                        {t.label}
-                                    </div>
-                                </template>
-                            </div>
-                        </template>
-                    </div>
-                </template>
+                <lightning-combobox
+                    label="Territory"
+                    variant="label-hidden"
+                    value={territoryFilter}
+                    options={territoryOptions}
+                    onchange={handleTerritoryFilterChange}
+                ></lightning-combobox>
                 <lightning-combobox
                     label="Segmentation"
                     variant="label-hidden"
@@ -204,10 +158,9 @@
         </div>
 
         <div class="main-pane">
-            <!-- View controls live at the top of the results themselves
-                 (not the filter sidebar) so they're visible immediately,
-                 the same place a standard Salesforce list view puts its own
-                 view-switcher and "Select Fields to Display". -->
+            <!-- View switcher + "Add Column" sit at the top of the results (like a standard list view's
+                 view controls). Add Column lists every field; a tick = currently displayed, in list and
+                 table view alike. -->
             <div class="results-toolbar">
                 <div class="view-mode-toggle">
                     <lightning-button-icon
@@ -232,29 +185,36 @@
                         onclick={handleShowMapView}
                     ></lightning-button-icon>
                 </div>
-                <!-- "Add Column" — same idea as standard Salesforce list
-                     views' "Select Fields to Display": pick extra fields to
-                     show, applies to both List and Table view (see
-                     accountBrowser.js's selectedColumnKeys). -->
-                <lightning-button-menu
-                    label="Add Column"
-                    icon-name="utility:add"
-                    menu-alignment="right"
-                    class="add-column-menu"
-                >
-                    <template for:each={addColumnOptions} for:item="col">
-                        <lightning-menu-item
-                            key={col.key}
-                            value={col.key}
-                            label={col.label}
-                            data-key={col.key}
-                            onclick={handleToggleColumn}
-                            checked={col.isSelected}
-                            type="checkbox"
-                            class={col.rowClass}
-                        ></lightning-menu-item>
+                <div class="add-column">
+                    <button type="button" class="add-column-button" aria-haspopup="true" aria-expanded={isColumnMenuOpen} onclick={handleToggleColumnMenu}>
+                        <span>Add Column</span>
+                        <lightning-icon icon-name="utility:down" size="xx-small" class="add-column-caret"></lightning-icon>
+                    </button>
+                    <template if:true={isColumnMenuOpen}>
+                        <div class="column-menu-backdrop" onclick={handleCloseColumnMenu}></div>
+                        <div class="column-menu" role="menu">
+                            <div class="column-menu-head">
+                                <span>Fields to display ({visibleColumnCount})</span>
+                                <button type="button" class="column-reset" onclick={handleResetColumns}>Reset</button>
+                            </div>
+                            <ul class="column-menu-list">
+                                <template for:each={columnOptions} for:item="col">
+                                    <li key={col.key} class={col.rowClass} role="menuitemcheckbox" aria-checked={col.isSelected} data-key={col.key} onclick={handleToggleColumn}>
+                                        <span class="column-check">
+                                            <template if:true={col.isSelected}>
+                                                <lightning-icon icon-name="utility:check" size="x-small"></lightning-icon>
+                                            </template>
+                                        </span>
+                                        <span class="column-label">{col.label}</span>
+                                        <template if:true={col.isLocked}>
+                                            <span class="column-note">always shown</span>
+                                        </template>
+                                    </li>
+                                </template>
+                            </ul>
+                        </div>
                     </template>
-                </lightning-button-menu>
+                </div>
             </div>
 
             <template if:true={isMapView}>
@@ -264,11 +224,10 @@
                         selected-marker-value={selectedId}
                         onmarkerselect={handleMarkerSelect}
                         list-view="hidden"
-                        zoom-level="6"
                     ></lightning-map>
                 </template>
                 <template if:false={hasMapMarkers}>
-                    <div class="empty-detail">No accounts in the current view have location data.</div>
+                    <div class="empty-detail">No accounts in the current view have a location (coordinates or city) to plot.</div>
                 </template>
             </template>
 
@@ -291,25 +250,30 @@
                                         </div>
                                         <div class="result-body">
                                             <div class="result-top">
-                                                <span class="pill" style={row.typeStyle}>{row.type}</span>
+                                                <template if:true={row.showType}>
+                                                    <span class="pill" style={row.typeStyle}>{row.type}</span>
+                                                </template>
                                                 <div class="result-name">{row.name}</div>
-                                                <template if:true={row.isKOL}>
+                                                <template if:true={row.showKol}>
                                                     <lightning-icon icon-name="utility:favorite" size="xx-small" title="KOL"></lightning-icon>
                                                 </template>
-                                                <template if:true={row.isEmergingExpert}>
+                                                <template if:true={row.showEmerging}>
                                                     <lightning-icon icon-name="utility:trending" size="xx-small" title="Emerging Expert"></lightning-icon>
                                                 </template>
                                             </div>
-                                            <div class="result-meta">{row.subtitle}<template if:true={row.city}> &middot; {row.city}</template></div>
-                                            <template if:true={row.territory}>
-                                                <div class="result-territory">{row.territory}</div>
+                                            <template if:true={row.showSubtitle}>
+                                                <div class="result-meta">{row.subtitle}<template if:true={row.showCity}> &middot; {row.city}</template></div>
                                             </template>
-                                            <template if:true={hasExtraFieldLinesOnRows}>
-                                                <div class="extra-fields">
-                                                    <template for:each={row.extraFieldLines} for:item="f">
-                                                        <span key={f.key} class="extra-field-chip">{f.label}: {f.value}</span>
-                                                    </template>
-                                                </div>
+                                            <template if:false={row.showSubtitle}>
+                                                <template if:true={row.showCity}>
+                                                    <div class="result-meta">{row.city}</div>
+                                                </template>
+                                            </template>
+                                            <template for:each={row.extraFields} for:item="f">
+                                                <div key={f.key} class="result-extra"><span class="result-extra-label">{f.label}:</span> {f.value}</div>
+                                            </template>
+                                            <template if:true={row.showTerritory}>
+                                                <div class="result-territory">{row.territory}</div>
                                             </template>
                                         </div>
                                         <lightning-icon class="drill-icon" icon-name="utility:chevronright" size="xx-small"></lightning-icon>
@@ -330,6 +294,7 @@
                             <lightning-button-icon icon-name="utility:chevronleft" alternative-text="Previous page" disabled={cannotGoPrevPage} onclick={handlePrevPage}></lightning-button-icon>
                             <span class="page-label">{pageLabel}</span>
                             <lightning-button-icon icon-name="utility:chevronright" alternative-text="Next page" disabled={cannotGoNextPage} onclick={handleNextPage}></lightning-button-icon>
+                            <lightning-combobox class="page-size" name="pageSize" label="Records per page" variant="label-hidden" dropdown-alignment="bottom-left" value={pageSizeValue} options={pageSizeOptions} onchange={handlePageSizeChange}></lightning-combobox>
                         </div>
                     </template>
                     <template if:false={hasResults}>
@@ -345,6 +310,7 @@
                 <template if:false={isSearching}>
                     <template if:true={hasResults}>
                         <div class="table-wrap">
+                          <div class="table-inner" style={tableInnerStyle}>
                             <lightning-datatable
                                 key-field="id"
                                 data={tableRows}
@@ -355,11 +321,13 @@
                                 onrowaction={handleTableRowAction}
                                 hide-checkbox-column
                             ></lightning-datatable>
+                          </div>
                         </div>
                         <div class="pagination-row">
                             <lightning-button-icon icon-name="utility:chevronleft" alternative-text="Previous page" disabled={cannotGoPrevPage} onclick={handlePrevPage}></lightning-button-icon>
                             <span class="page-label">{pageLabel}</span>
                             <lightning-button-icon icon-name="utility:chevronright" alternative-text="Next page" disabled={cannotGoNextPage} onclick={handleNextPage}></lightning-button-icon>
+                            <lightning-combobox class="page-size" name="pageSize" label="Records per page" variant="label-hidden" dropdown-alignment="bottom-left" value={pageSizeValue} options={pageSizeOptions} onchange={handlePageSizeChange}></lightning-combobox>
                         </div>
                     </template>
                     <template if:false={hasResults}>
@@ -397,20 +365,6 @@
                                 <lightning-input-field key={fieldName} field-name={fieldName}></lightning-input-field>
                             </template>
                         </div>
-
-                        <div class="slds-section slds-is-open">
-                            <h3 class="slds-section__title slds-theme_shade">
-                                <span class="slds-truncate slds-p-horizontal_small" title="Address">Address</span>
-                            </h3>
-                            <div class="slds-section__content">
-                                <div class="edit-grid">
-                                    <template for:each={addressFields} for:item="fieldName">
-                                        <lightning-input-field key={fieldName} field-name={fieldName}></lightning-input-field>
-                                    </template>
-                                </div>
-                            </div>
-                        </div>
-
                         <div class="edit-actions">
                             <lightning-button label="Cancel" onclick={handleCloseCreate}></lightning-button>
                             <lightning-button variant="brand" type="submit" label="Create"></lightning-button>
@@ -421,92 +375,70 @@
         </section>
     </template>
 
-    <!-- Key Account Manager "New Request" (DCR) — separate from the isCreating
-         modal above, which stays exactly as-is for every other profile. -->
-    <template if:true={isRequestingDcr}>
+    <template if:true={isRequesting}>
         <section class="modal-backdrop">
-            <div class="modal" role="dialog" aria-modal="true" aria-label={dcrModalTitle}>
+            <div class="modal" role="dialog" aria-modal="true" aria-label="New Request">
                 <div class="modal-header">
-                    <h2>{dcrModalTitle}</h2>
-                    <lightning-button-icon icon-name="utility:close" alternative-text="Close" onclick={handleCloseDcr}></lightning-button-icon>
+                    <h2>New Request</h2>
+                    <lightning-button-icon icon-name="utility:close" alternative-text="Close" onclick={handleCloseRequest}></lightning-button-icon>
                 </div>
                 <div class="modal-body">
-                    <div class="dcr-banner">
-                        Submitted through the DCR workflow and routed for review and approval before it becomes a real Account — same as the iPad app.
-                    </div>
-
-                    <template if:true={isRequestingHCO}>
-                        <div class="edit-grid">
-                            <lightning-input label="HCO Name" value={dcrHcoName} data-field="dcrHcoName" onchange={handleDcrFieldChange} required></lightning-input>
-                            <lightning-combobox label="Type" value={dcrHcoType} options={hcoTypeOptions} data-field="dcrHcoType" onchange={handleDcrFieldChange}></lightning-combobox>
-                            <lightning-combobox label="Speciality" value={dcrHcoSpeciality} options={hcoSpecialityOptions} data-field="dcrHcoSpeciality" onchange={handleDcrFieldChange}></lightning-combobox>
-                            <lightning-input label="Phone" value={dcrPhone} data-field="dcrPhone" onchange={handleDcrFieldChange}></lightning-input>
-                        </div>
-                        <div class="slds-section slds-is-open">
-                            <h3 class="slds-section__title slds-theme_shade">
-                                <span class="slds-truncate slds-p-horizontal_small" title="Address">Address</span>
-                            </h3>
-                            <div class="slds-section__content">
-                                <div class="edit-grid">
-                                    <lightning-input label="City" value={dcrCity} data-field="dcrCity" onchange={handleDcrFieldChange} required></lightning-input>
-                                    <lightning-input label="State" value={dcrState} data-field="dcrState" onchange={handleDcrFieldChange}></lightning-input>
-                                    <lightning-input label="Pincode" value={dcrPincode} data-field="dcrPincode" onchange={handleDcrFieldChange}></lightning-input>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
+                    <p class="request-hint">
+                        Submits a Data Change Request for review — the account is created once a steward approves it.
+                    </p>
+                    <lightning-combobox
+                        label="Type"
+                        value={requestType}
+                        options={newAccountTypeOptions}
+                        onchange={handleRequestTypeChange}
+                        class="type-picker"
+                    ></lightning-combobox>
 
                     <template if:true={isRequestingHCP}>
-                        <template if:true={hasNoHCOsYet}>
-                            <div class="dcr-rule-block">
-                                <p>No HCOs exist yet. An HCP must be affiliated with an HCO, so you must request the HCO first.</p>
-                                <lightning-button label="Request New HCO first" icon-name="utility:add" onclick={handleSwitchToNewHCO}></lightning-button>
-                            </div>
-                        </template>
-                        <template if:false={hasNoHCOsYet}>
-                            <div class="slds-section slds-is-open">
-                                <h3 class="slds-section__title slds-theme_shade">
-                                    <span class="slds-truncate slds-p-horizontal_small" title="Required Affiliation (HCO)">Required Affiliation (HCO)</span>
-                                </h3>
-                                <div class="slds-section__content">
-                                    <p class="dcr-hint">An HCP must be affiliated with an existing HCO.</p>
-                                    <lightning-input type="search" label="Search HCO" variant="label-hidden" placeholder="Search HCO by name or city" value={dcrHcoSearch} onchange={handleDcrHcoSearchChange}></lightning-input>
-                                    <template if:true={selectedDcrHco}>
-                                        <div class="dcr-selected-hco">
-                                            <span>{selectedDcrHco.name} &middot; {selectedDcrHco.type} &middot; {selectedDcrHco.city}</span>
-                                            <lightning-button-icon icon-name="utility:close" alternative-text="Clear" size="small" onclick={handleClearDcrHco}></lightning-button-icon>
-                                        </div>
-                                    </template>
-                                    <div class="dcr-hco-pick-list">
-                                        <template for:each={filteredDcrHcoOptions} for:item="hco">
-                                            <div key={hco.id}
-                                                 class="dcr-hco-pick-row"
-                                                 data-id={hco.id}
-                                                 onclick={handleSelectDcrHco}>
-                                                <span>{hco.name}</span>
-                                                <span class="dcr-hco-pick-sub">{hco.type} &middot; {hco.city}</span>
-                                            </div>
-                                        </template>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="edit-grid">
-                                <lightning-combobox label="Prefix" value={dcrPrefix} options={dcrPrefixOptions} data-field="dcrPrefix" onchange={handleDcrFieldChange}></lightning-combobox>
-                                <lightning-input label="First Name" value={dcrFirstName} data-field="dcrFirstName" onchange={handleDcrFieldChange} required></lightning-input>
-                                <lightning-input label="Last Name" value={dcrLastName} data-field="dcrLastName" onchange={handleDcrFieldChange} required></lightning-input>
-                                <lightning-combobox label="Specialty" value={dcrSpecialty} options={specialtyOptions} data-field="dcrSpecialty" onchange={handleDcrFieldChange}></lightning-combobox>
-                                <lightning-input label="Degree" value={dcrDegree} data-field="dcrDegree" onchange={handleDcrFieldChange}></lightning-input>
-                                <lightning-combobox label="HCP Type" value={dcrHcpType} options={hcpTypeOptionsList} data-field="dcrHcpType" onchange={handleDcrFieldChange}></lightning-combobox>
-                                <lightning-input label="Email" value={dcrEmail} data-field="dcrEmail" onchange={handleDcrFieldChange}></lightning-input>
-                                <lightning-input label="Phone" value={dcrPhone} data-field="dcrPhone" onchange={handleDcrFieldChange}></lightning-input>
-                            </div>
-                        </template>
+                        <lightning-record-picker
+                            label="Affiliated HCO"
+                            placeholder="Search hospitals, pharmacies…"
+                            object-api-name="Sciagen_Account__c"
+                            filter={hcoFilter}
+                            onchange={handleRelatedHCOChange}
+                            required
+                        ></lightning-record-picker>
                     </template>
 
+                    <div class="edit-grid">
+                        <template for:each={requestFieldRows} for:item="field">
+                            <template if:true={field.isPicklist}>
+                                <lightning-combobox
+                                    key={field.key}
+                                    label={field.label}
+                                    value={field.value}
+                                    options={field.options}
+                                    data-field={field.key}
+                                    required={field.required}
+                                    onchange={handleRequestFieldChange}
+                                ></lightning-combobox>
+                            </template>
+                            <template if:true={field.isText}>
+                                <lightning-input
+                                    key={field.key}
+                                    label={field.label}
+                                    type={field.type}
+                                    value={field.value}
+                                    data-field={field.key}
+                                    required={field.required}
+                                    onchange={handleRequestFieldChange}
+                                ></lightning-input>
+                            </template>
+                        </template>
+                    </div>
                     <div class="edit-actions">
-                        <lightning-button label="Cancel" onclick={handleCloseDcr}></lightning-button>
-                        <lightning-button variant="brand" label="Submit" disabled={isSubmitDcrDisabled} onclick={handleSubmitDcr}></lightning-button>
+                        <lightning-button label="Cancel" onclick={handleCloseRequest}></lightning-button>
+                        <lightning-button
+                            variant="brand"
+                            label="Submit Request"
+                            onclick={handleSubmitRequest}
+                            disabled={submitRequestDisabled}
+                        ></lightning-button>
                     </div>
                 </div>
             </div>

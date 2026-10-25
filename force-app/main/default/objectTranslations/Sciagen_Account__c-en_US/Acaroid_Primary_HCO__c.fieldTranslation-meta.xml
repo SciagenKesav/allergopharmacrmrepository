@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Acaroid Primary HCO --></label>
+    <name>Acaroid_Primary_HCO__c</name>
+    <relationshipLabel><!-- Acaroid Primary HCPs --></relationshipLabel>
+</CustomFieldTranslation>

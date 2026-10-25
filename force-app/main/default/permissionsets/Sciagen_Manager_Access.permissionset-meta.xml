@@ -10,6 +10,11 @@
     </classAccesses>
     <description>Grants managers and admins access to Device Reset Requests including the OTP__c one-time code field, the deviceResetAdmin LWC console, and approval process actions.</description>
     <fieldPermissions>
+        <editable>false</editable>
+        <field>Device_Reset_Request__c.Attempts__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
         <editable>true</editable>
         <field>Device_Reset_Request__c.Manager__c</field>
         <readable>true</readable>

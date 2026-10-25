@@ -14,6 +14,8 @@ export default class ClmPresentationViewer extends LightningElement {
     detail;
     isLoading = false;
     expandedHtmlSlideId;
+    currentIndex = 0;
+    showEndState = false;
 
     connectedCallback() {
         this.loadDetail();
@@ -24,6 +26,8 @@ export default class ClmPresentationViewer extends LightningElement {
             return;
         }
         this.isLoading = true;
+        this.currentIndex = 0;
+        this.showEndState = false;
         try {
             this.detail = await getPresentationDetail({ presentationId: this.presentationId });
         } catch (e) {
@@ -51,6 +55,57 @@ export default class ClmPresentationViewer extends LightningElement {
 
     get hasSlides() {
         return this.slideRows.length > 0;
+    }
+
+    // MARK: - Slide-by-slide navigation
+
+    get isShowingSlide() {
+        return this.hasSlides && !this.showEndState;
+    }
+
+    get currentSlide() {
+        return this.slideRows[this.currentIndex];
+    }
+
+    get slidePositionLabel() {
+        return `Slide ${this.currentIndex + 1} of ${this.slideRows.length}`;
+    }
+
+    get isFirstSlide() {
+        return this.currentIndex === 0;
+    }
+
+    get isLastSlide() {
+        return this.currentIndex === this.slideRows.length - 1;
+    }
+
+    get nextButtonLabel() {
+        return this.isLastSlide ? 'Finish' : 'Next';
+    }
+
+    handlePrevSlide() {
+        if (this.showEndState) {
+            this.showEndState = false;
+            return;
+        }
+        if (this.currentIndex > 0) {
+            this.currentIndex -= 1;
+            this.expandedHtmlSlideId = undefined;
+        }
+    }
+
+    handleNextSlide() {
+        if (this.isLastSlide) {
+            this.showEndState = true;
+            return;
+        }
+        this.currentIndex += 1;
+        this.expandedHtmlSlideId = undefined;
+    }
+
+    handleRestart() {
+        this.currentIndex = 0;
+        this.showEndState = false;
     }
 
     handlePreview(event) {

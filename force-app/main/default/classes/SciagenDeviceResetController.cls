@@ -58,72 +58,38 @@ global with sharing class SciagenDeviceResetController {
 
     /** Verifies the one-time code the rep entered in the app.
      * Request body: { "requestId": "a0B...", "otp": "482910" }
-     * Response: { "success": true } on match + unexpired,
-     *           { "success": false, "reason": "..." } on mismatch/expired/already-used.
-     * On success: marks Verified__c = true and Status__c = 'Used' so the same
-     * code can't unlock a second wipe.
+     * Response: { "success": true } on match,
+     *           { "success": false, "reason": "..." } otherwise.
+     * Kept for older app builds only: it delegates to DeviceResetVerifyApi.check
+     * (POST /sciagen/v1/device-reset/verify), so the same ownership, expiry,
+     * 5-attempt lockout and constant-time compare apply here too.
      */
     @HttpPost
     global static void verifyOTP() {
         RestResponse res = RestContext.response;
         res.addHeader('Content-Type', 'application/json');
+        String requestId;
+        String enteredOTP;
         try {
             Map<String, Object> body = (Map<String, Object>) JSON.deserializeUntyped(
                 RestContext.request.requestBody.toString()
             );
-            String requestId = (String) body.get('requestId');
-            String enteredOTP  = (String) body.get('otp');
-
-            if (String.isBlank(requestId) || String.isBlank(enteredOTP)) {
-                res.statusCode = 400;
-                res.responseBody = Blob.valueOf('{"success":false,"reason":"requestId and otp are required"}');
-                return;
-            }
-
-            Id userId = UserInfo.getUserId();
-            String soql2 = 'SELECT Id, OTP__c, OTP_Expires__c, Status__c, Verified__c'
-                         + ' FROM Device_Reset_Request__c'
-                         + ' WHERE Id = :requestId AND OwnerId = :userId LIMIT 1';
-            List<Device_Reset_Request__c> requests = Database.queryWithBinds(
-                soql2,
-                new Map<String, Object>{ 'requestId' => (Id) requestId, 'userId' => userId },
-                AccessLevel.USER_MODE
-            );
-
-            if (requests.isEmpty()) {
-                res.statusCode = 404;
-                res.responseBody = Blob.valueOf('{"success":false,"reason":"Request not found"}');
-                return;
-            }
-
-            Device_Reset_Request__c r = requests[0];
-
-            if (r.Verified__c || r.Status__c == 'Used') {
-                res.statusCode = 200;
-                res.responseBody = Blob.valueOf('{"success":false,"reason":"Code already used"}');
-                return;
-            }
-            if (r.OTP_Expires__c == null || r.OTP_Expires__c < System.now()) {
-                res.statusCode = 200;
-                res.responseBody = Blob.valueOf('{"success":false,"reason":"Code expired — ask your manager to re-approve"}');
-                return;
-            }
-            if (r.OTP__c != enteredOTP.trim()) {
-                res.statusCode = 200;
-                res.responseBody = Blob.valueOf('{"success":false,"reason":"Incorrect code"}');
-                return;
-            }
-
-            // Code matches and is unexpired — mark used so it can't be reused.
-            r.Verified__c = true;
-            r.Status__c   = 'Used';
-            update r;
-
-            res.statusCode = 200;
-            res.responseBody = Blob.valueOf('{"success":true}');
+            requestId = (String) body.get('requestId');
+            enteredOTP  = (String) body.get('otp');
         } catch (Exception e) {
-            res.statusCode = 500;
-            res.responseBody = Blob.valueOf('{"success":false,"reason":' + JSON.serialize(e.getMessage()) + '}');
+            requestId = null;
         }
+        Id id;
+        try { id = String.isBlank(requestId) ? null : (Id) requestId.trim(); } catch (Exception e) { id = null; }
+        if (id == null || String.isBlank(enteredOTP) || id.getSObjectType() != Device_Reset_Request__c.SObjectType) {
+            res.statusCode = 400;
+            res.responseBody = Blob.valueOf('{"success":false,"reason":"requestId and otp are required"}');
+            return;
+        }
+        DeviceResetVerifyApi.Result r = DeviceResetVerifyApi.check(id, enteredOTP.trim());
+        res.statusCode = 200;
+        res.responseBody = Blob.valueOf(JSON.serialize(r.verified
+            ? new Map<String, Object>{ 'success' => true }
+            : new Map<String, Object>{ 'success' => false, 'reason' => r.message }));
     }
 }

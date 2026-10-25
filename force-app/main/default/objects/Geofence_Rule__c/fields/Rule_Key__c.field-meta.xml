@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Rule_Key__c</fullName>
+    <caseSensitive>false</caseSensitive>
+    <description>Scope plus target Id. Guarantees one rule per Territory and one per User.</description>
+    <externalId>true</externalId>
+    <label>Rule Key</label>
+    <length>60</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>true</unique>
+</CustomField>

@@ -55,6 +55,7 @@
 }
 
 .deck-card {
+    position: relative;
     background: #ffffff;
     border: 1px solid var(--brand-hairline);
     border-radius: 0.75rem;
@@ -65,6 +66,28 @@
 
 .deck-card:hover {
     border-color: var(--brand-primary);
+}
+
+.favorite-button {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    border: 1px solid var(--brand-hairline);
+    background: #ffffff;
+    color: var(--brand-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+}
+
+.favorite-button-active {
+    border-color: var(--brand-amber, #D97706);
+    color: var(--brand-amber, #D97706);
 }
 
 .deck-name {

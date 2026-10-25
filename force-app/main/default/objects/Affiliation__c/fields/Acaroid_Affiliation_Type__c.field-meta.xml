@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Acaroid_Affiliation_Type__c</fullName>
+    <label>Affiliation Type</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Head of Department</fullName>
+                <default>false</default>
+                <label>Head of Department</label>
+            </value>
+            <value>
+                <fullName>Consultant (full-time)</fullName>
+                <default>false</default>
+                <label>Consultant (full-time)</label>
+            </value>
+            <value>
+                <fullName>Visiting Consultant</fullName>
+                <default>false</default>
+                <label>Visiting Consultant</label>
+            </value>
+            <value>
+                <fullName>Own Clinic</fullName>
+                <default>false</default>
+                <label>Own Clinic</label>
+            </value>
+            <value>
+                <fullName>Referrer</fullName>
+                <default>false</default>
+                <label>Referrer</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

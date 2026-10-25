@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Max Sample Order Qty --></label>
+    <name>Max_Sample_Order_Qty__c</name>
+</CustomFieldTranslation>

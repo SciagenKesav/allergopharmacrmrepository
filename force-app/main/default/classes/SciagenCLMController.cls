@@ -19,6 +19,7 @@ public with sharing class SciagenCLMController {
         @AuraEnabled public String productName;
         @AuraEnabled public String version;
         @AuraEnabled public Integer slideCount;
+        @AuraEnabled public Boolean isFavorite;
     }
 
     public class SlideItem {
@@ -87,7 +88,10 @@ public with sharing class SciagenCLMController {
     /// Always hard-filters to Approved Promotional — the rep-facing library
     /// only ever shows content the CMS has actually cleared, matching
     /// CMSContentReceiver's own gate on what gets synced in the first place.
-    @AuraEnabled(cacheable=true)
+    // Not cacheable — favorite status is per-user and changes via
+    // toggleFavorite, so a cached result would show a stale star after a
+    // rep favorites/unfavorites a deck.
+    @AuraEnabled
     public static List<PresentationListItem> getPresentationLibrary(String searchTerm, String brand, Id productId) {
         List<String> whereClauses = new List<String>{ 'Approval_Status__c = \'Approved Promotional\'' };
         Map<String, Object> binds = new Map<String, Object>();
@@ -122,6 +126,16 @@ public with sharing class SciagenCLMController {
             slideCounts.put((Id) ar.get('pid'), (Integer) ar.get('cnt'));
         }
 
+        Set<Id> favoritedIds = new Set<Id>();
+        String currentUserId = UserInfo.getUserId();
+        for (Presentation_Favorite__c fav : [
+            SELECT Presentation__c FROM Presentation_Favorite__c
+            WHERE User_Id__c = :currentUserId AND Presentation__c IN :presoIds
+            WITH USER_MODE
+        ]) {
+            favoritedIds.add(fav.Presentation__c);
+        }
+
         List<PresentationListItem> results = new List<PresentationListItem>();
         for (Presentation__c p : presos) {
             PresentationListItem item = new PresentationListItem();
@@ -131,9 +145,29 @@ public with sharing class SciagenCLMController {
             item.productName = p.Product__c != null ? p.Product__r.Name : null;
             item.version = p.Version__c;
             item.slideCount = slideCounts.containsKey(p.Id) ? slideCounts.get(p.Id) : 0;
+            item.isFavorite = favoritedIds.contains(p.Id);
             results.add(item);
         }
         return results;
+    }
+
+    // MARK: - Favorites
+
+    @AuraEnabled
+    public static void toggleFavorite(Id presentationId, Boolean isFavorite) {
+        String currentUserId = UserInfo.getUserId();
+        List<Presentation_Favorite__c> existing = [
+            SELECT Id FROM Presentation_Favorite__c
+            WHERE Presentation__c = :presentationId AND User_Id__c = :currentUserId
+            WITH USER_MODE
+        ];
+        if (isFavorite) {
+            if (existing.isEmpty()) {
+                Database.insert(new Presentation_Favorite__c(Presentation__c = presentationId, User_Id__c = currentUserId), AccessLevel.USER_MODE);
+            }
+        } else if (!existing.isEmpty()) {
+            Database.delete(existing, AccessLevel.USER_MODE);
+        }
     }
 
     @AuraEnabled(cacheable=true)
@@ -163,8 +197,8 @@ public with sharing class SciagenCLMController {
             FROM Slide__c
             WHERE Presentation__c = :presentationId
             WITH USER_MODE
-            ORDER BY Slide_No__c 
-       ];
+            ORDER BY Slide_No__c
+        ];
 
         detail.slides = new List<SlideItem>();
         for (Slide__c s : slideRecords) {
@@ -278,7 +312,7 @@ public with sharing class SciagenCLMController {
         Presentation_Session__c session = new Presentation_Session__c(
             CVR__c = cvrId,
             Presentation__c = presentationId,
-            Brand__c = preso.Brand__c,
+            Brand__c = picklistValueOrNull(preso.Brand__c, Presentation_Session__c.Brand__c),
             Version__c = preso.Version__c,
             Start_Time__c = startTime,
             End_Time__c = endTime,
@@ -335,5 +369,18 @@ public with sharing class SciagenCLMController {
         result.sessionId = session.Id;
         result.keyMessagesCreated = keyMessages.size();
         return result;
+    }
+
+    /// Presentation__c.Brand__c and Presentation_Session__c.Brand__c are separate
+    /// restricted picklists that have drifted apart in the org, so copying the
+    /// deck's brand verbatim made every session insert fail. The brand is only
+    /// informational on the session, so an unmatched value is left blank.
+    @TestVisible
+    private static String picklistValueOrNull(String value, Schema.SObjectField field) {
+        if (String.isBlank(value)) return null;
+        for (Schema.PicklistEntry e : field.getDescribe().getPicklistValues()) {
+            if (e.isActive() && e.getValue().equalsIgnoreCase(value)) return e.getValue();
+        }
+        return null;
     }
 }

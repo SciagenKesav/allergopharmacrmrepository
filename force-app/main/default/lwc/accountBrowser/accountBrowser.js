@@ -1,18 +1,14 @@
 import { LightningElement, wire } from 'lwc';
+import USER_ID from '@salesforce/user/Id';
 import { refreshApex } from '@salesforce/apex';
 import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import searchAccounts from '@salesforce/apex/SciagenAccountController.searchAccounts';
 import getTerritoryOptions from '@salesforce/apex/SciagenAccountController.getTerritoryOptions';
-import canSeeAllTerritories from '@salesforce/apex/SciagenAccountController.canSeeAllTerritories';
+import getMyTerritoryNames from '@salesforce/apex/SciagenAccountController.getMyTerritoryNames';
 import getSpecialtyOptions from '@salesforce/apex/SciagenAccountController.getSpecialtyOptions';
 import getHCOTypeOptions from '@salesforce/apex/SciagenAccountController.getHCOTypeOptions';
-import getHCOSpecialityOptions from '@salesforce/apex/SciagenAccountController.getHCOSpecialityOptions';
-import getHCPTypeOptions from '@salesforce/apex/SciagenAccountController.getHCPTypeOptions';
 import getSegmentationOptions from '@salesforce/apex/SciagenAccountController.getSegmentationOptions';
-import isKeyAccountManager from '@salesforce/apex/SciagenAccountController.isKeyAccountManager';
-import getHCOOptionsForAffiliation from '@salesforce/apex/SciagenAccountController.getHCOOptionsForAffiliation';
-import submitAccountDcr from '@salesforce/apex/SciagenAccountController.submitAccountDcr';
 import getSavedViews from '@salesforce/apex/SciagenAccountController.getSavedViews';
 import saveView from '@salesforce/apex/SciagenAccountController.saveView';
 import deleteSavedView from '@salesforce/apex/SciagenAccountController.deleteSavedView';
@@ -20,7 +16,10 @@ import getCustomLists from '@salesforce/apex/SciagenAccountController.getCustomL
 import createCustomList from '@salesforce/apex/SciagenAccountController.createCustomList';
 import addAccountsToList from '@salesforce/apex/SciagenAccountController.addAccountsToList';
 import getCustomListMemberIds from '@salesforce/apex/SciagenScheduleController.getCustomListMemberIds';
-import USER_ID from '@salesforce/user/Id';
+import isKeyAccountManager from '@salesforce/apex/SciagenAccountController.isKeyAccountManager';
+import getHCPTypeOptions from '@salesforce/apex/SciagenAccountController.getHCPTypeOptions';
+import getHCOSpecialtyOptions from '@salesforce/apex/SciagenAccountController.getHCOSpecialtyOptions';
+import submitNewAccountRequest from '@salesforce/apex/SciagenAccountController.submitNewAccountRequest';
 import { pillStyle, BRAND } from 'c/sciagenColors';
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -31,19 +30,54 @@ const SORT_FIELD_OPTIONS = [
     { label: 'Territory', value: 'Territory' },
 ];
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE_OPTIONS = [20, 30, 40];
+const DEFAULT_PAGE_SIZE = 20;
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+// AccountSummary only carries the full Name (no separate first/last name), and
+// most HCP names are stored as "Dr. <name>" -- indexing on the raw first
+// character collapsed nearly every HCP under "D", which is why the A-Z rail
+// looked broken (everything but a few HCOs was disabled). Strip the common
+// title prefixes before computing the sort/jump letter.
+const NAME_TITLE_PREFIX = /^(dr|mr|mrs|ms|prof)\.?\s+/i;
+function sortableNameKey(name) {
+    return (name || '').trim().replace(NAME_TITLE_PREFIX, '');
+}
 
-// Always shown, same as a standard Salesforce list view's fixed columns.
-const BASE_TABLE_COLUMNS = [
-    { label: 'Name', fieldName: 'name', type: 'text', sortable: true, wrapText: false },
-    { label: 'Type', fieldName: 'type', type: 'text', initialWidth: 90 },
-    { label: 'Details', fieldName: 'subtitle', type: 'text', wrapText: false },
-    { label: 'City', fieldName: 'city', type: 'text', sortable: true, initialWidth: 140 },
-    { label: 'Territory', fieldName: 'territory', type: 'text', sortable: true, initialWidth: 140 },
-    { label: 'KOL', fieldName: 'isKOL', type: 'boolean', initialWidth: 70 },
-    { label: 'Emerging', fieldName: 'isEmergingExpert', type: 'boolean', initialWidth: 90 },
+// Every field the Accounts page can show, in list and table view alike. `isDefault` = shown out of
+// the box; the rest are switched on/off from the "Add Column" menu (a tick = currently displayed).
+// `key` is also the property read from the row (SciagenAccountController.AccountSummary) and the id
+// stored in the rep's saved column choice. Name can never be removed.
+const COLUMN_CATALOG = [
+    { key: 'name', label: 'Name', type: 'text', sortable: true, wrapText: false, initialWidth: 220, locked: true, isDefault: true },
+    { key: 'type', label: 'Type', type: 'text', initialWidth: 90, isDefault: true },
+    { key: 'subtitle', label: 'Details', type: 'text', wrapText: false, initialWidth: 240, isDefault: true },
+    { key: 'city', label: 'City', type: 'text', sortable: true, initialWidth: 140, isDefault: true },
+    { key: 'territory', label: 'Territory', type: 'text', sortable: true, initialWidth: 140, isDefault: true },
+    { key: 'isKOL', label: 'KOL', type: 'boolean', initialWidth: 70, isDefault: true },
+    { key: 'isEmergingExpert', label: 'Emerging', type: 'boolean', initialWidth: 90, isDefault: true },
+    { key: 'specialty', label: 'Specialty', type: 'text', initialWidth: 150 },
+    { key: 'subType', label: 'Sub Type', type: 'text', initialWidth: 130 },
+    { key: 'phone', label: 'Phone', type: 'phone', initialWidth: 140 },
+    { key: 'email', label: 'Email', type: 'email', initialWidth: 190 },
+    { key: 'accountCode', label: 'Account Code', type: 'text', initialWidth: 130 },
+    { key: 'website', label: 'Website', type: 'url', initialWidth: 170 },
+    { key: 'focusArea', label: 'Focus Area', type: 'text', initialWidth: 150 },
+    { key: 'licenseNumber', label: 'License Number', type: 'text', initialWidth: 150 },
+    { key: 'licensingBody', label: 'Licensing Body', type: 'text', initialWidth: 170 },
+    { key: 'licenseStatus', label: 'License Status', type: 'text', initialWidth: 140 },
+    { key: 'licenseExpiry', label: 'License Expiry', type: 'date-local', initialWidth: 140 },
+    { key: 'councilRegNumber', label: 'Council Reg. Number', type: 'text', initialWidth: 170 },
+    { key: 'reachFlag', label: 'Reach', type: 'text', initialWidth: 110 },
+    { key: 'lastVisit', label: 'Last Visit', type: 'date-local', initialWidth: 130 },
+    { key: 'experienceYears', label: 'Experience (Yrs)', type: 'text', initialWidth: 140 },
+    { key: 'graduationYear', label: 'Graduation Year', type: 'text', initialWidth: 140 },
+    { key: 'street', label: 'Street', type: 'text', initialWidth: 180 },
+    { key: 'state', label: 'State', type: 'text', initialWidth: 120 },
+    { key: 'postalCode', label: 'Postal Code', type: 'text', initialWidth: 120 },
+    { key: 'country', label: 'Country', type: 'text', initialWidth: 120 },
 ];
+const COLUMN_BY_KEY = Object.fromEntries(COLUMN_CATALOG.map((c) => [c.key, c]));
+const DEFAULT_COLUMN_KEYS = COLUMN_CATALOG.filter((c) => c.isDefault).map((c) => c.key);
 
 const ACTION_COLUMN = {
     type: 'button-icon',
@@ -51,28 +85,13 @@ const ACTION_COLUMN = {
     initialWidth: 44,
 };
 
-// Optional columns the rep can add via "Add Column" — the datatable/list-view
-// analog of standard Salesforce list views' "Select Fields to Display".
-// `key` doubles as the AccountSummary field this reads from
-// (SciagenAccountController.searchAccounts) and as the persisted-selection
-// id in localStorage.
-const EXTRA_COLUMNS = [
-    { key: 'specialty', label: 'Specialty', fieldName: 'specialty', type: 'text', initialWidth: 150 },
-    { key: 'subType', label: 'Sub Type', fieldName: 'subType', type: 'text', initialWidth: 130 },
-    { key: 'phone', label: 'Phone', fieldName: 'phone', type: 'phone', initialWidth: 140 },
-    { key: 'email', label: 'Email', fieldName: 'email', type: 'email', initialWidth: 180 },
-    { key: 'accountCode', label: 'Account Code', fieldName: 'accountCode', type: 'text', initialWidth: 130 },
-    { key: 'website', label: 'Website', fieldName: 'website', type: 'url', initialWidth: 160 },
-    { key: 'focusArea', label: 'Focus Area', fieldName: 'focusArea', type: 'text', initialWidth: 150 },
-    { key: 'licenseNumber', label: 'License Number', fieldName: 'licenseNumber', type: 'text', initialWidth: 150 },
-];
+// Per rep, per browser (localStorage does not sync across devices). Scoped by user id so a shared
+// machine doesn't mix one rep's column choices into another's.
+const COLUMN_PREF_KEY = `sciagen-account-browser-visible-columns-${USER_ID}`;
 
-const EXTRA_COLUMNS_BY_KEY = Object.fromEntries(EXTRA_COLUMNS.map((c) => [c.key, c]));
+// Fields already drawn by the list card itself; every other ticked field is listed as "Label: value".
+const LIST_CARD_BUILT_IN = new Set(['name', 'type', 'subtitle', 'city', 'territory', 'isKOL', 'isEmergingExpert']);
 
-// Per-user, per-browser (localStorage doesn't sync across devices — see the
-// "Add Column" doc comment on handleToggleColumn) — scoped by USER_ID so a
-// shared/kiosk machine doesn't mix one rep's column choices into another's.
-const COLUMN_PREF_KEY = `sciagen-account-browser-columns-${USER_ID}`;
 
 // datatable fieldName -> the app's own sortField vocabulary (matches SORT_FIELD_OPTIONS)
 const TABLE_SORT_FIELD_MAP = { name: 'Name', city: 'City', territory: 'Territory' };
@@ -85,26 +104,39 @@ const NEW_ACCOUNT_TYPE_OPTIONS = [
 const HCP_CREATE_FIELDS = [
     'Name', 'Prefix__c', 'First_Name__c', 'Last_Name__c', 'Primary_Country__c', 'HCP_Type__c', 'Specialty__c',
     'Focus_Area__c', 'License_Number__c', 'Licensing_Body__c', 'Phone__c', 'Email__c', 'Account_Code__c',
-    'Website__c', 'Graduation_Year__c', 'Degree_1__c', 'Degree_2__c', 'Degree_3__c', 'Degree_4__c',
 ];
 const HCO_CREATE_FIELDS = [
-    'Name', 'HCO_Type__c', 'Speciality__c', 'Website__c', 'Phone__c', 'Email__c', 'Account_Code__c',
-];
-// Rendered as their own SLDS section below the main grid (see the "Address"
-// slds-section in the template) rather than mixed in with everything else —
-// same 5 fields for both HCP and HCO, so this is one shared list rather than
-// per-type like the arrays above. HCO_CREATE_FIELDS used to carry these
-// inline; HCP_CREATE_FIELDS never had them at all.
-const ADDRESS_FIELDS = [
-    'Billing_Street__c', 'Billing_City__c', 'Billing_State__c', 'Billing_Postal_Code__c', 'Billing_Country__c',
+    'Name', 'HCO_Type__c', 'Speciality__c', 'Billing_Street__c', 'Billing_City__c', 'Billing_State__c',
+    'Billing_Country__c', 'Billing_Postal_Code__c', 'Website__c', 'Phone__c', 'Email__c', 'Account_Code__c',
 ];
 
-// MARK: - Key Account Manager "New Request" (DCR) — mirrors the iPad app's
-// NewAccountRequestView field set/defaults exactly (Views/DCRView.swift),
-// since a Key Account Manager's request is reviewed against the same
-// DataChangeRequestApprovalHandler either way, regardless of which client
-// submitted it.
-const DCR_PREFIX_OPTIONS = ['Dr.', 'Prof.', 'Mr.', 'Ms.'];
+// The "New Request" (DCR) form a KAM sees instead of the direct-create modal above —
+// deliberately a narrower field set than HCP_CREATE_FIELDS/HCO_CREATE_FIELDS: these are
+// exactly the keys DataChangeRequestApprovalHandler.buildHCP/buildHCO read out of
+// Fields_Payload__c to build the Account once a steward approves the request. A field
+// with no key here (Focus_Area__c, License_Number__c, Website__c, ...) simply isn't part
+// of the DCR payload — a steward fills it in on the Account after approval.
+const HCP_REQUEST_FIELDS = [
+    { key: 'prefix', label: 'Prefix', type: 'text' },
+    { key: 'firstName', label: 'First Name', type: 'text', required: true },
+    { key: 'lastName', label: 'Last Name', type: 'text', required: true },
+    { key: 'hcpType', label: 'HCP Type', type: 'picklist', optionsProp: 'hcpTypeOptions' },
+    { key: 'specialty', label: 'Specialty', type: 'picklist', optionsProp: 'requestSpecialtyOptions' },
+    { key: 'degree1', label: 'Degree', type: 'text' },
+    { key: 'phone', label: 'Phone', type: 'text' },
+    { key: 'email', label: 'Email', type: 'email' },
+];
+const HCO_REQUEST_FIELDS = [
+    { key: 'name', label: 'Name', type: 'text', required: true },
+    { key: 'type', label: 'HCO Type', type: 'picklist', optionsProp: 'requestHcoTypeOptions' },
+    { key: 'speciality', label: 'Speciality', type: 'picklist', optionsProp: 'hcoSpecialtyOptions' },
+    { key: 'street', label: 'Street / Address', type: 'text' },
+    { key: 'city', label: 'City', type: 'text' },
+    { key: 'state', label: 'State', type: 'text' },
+    { key: 'pincode', label: 'Pincode', type: 'text' },
+    { key: 'country', label: 'Country', type: 'text' },
+    { key: 'phone', label: 'Phone', type: 'text' },
+];
 
 export default class AccountBrowser extends NavigationMixin(LightningElement) {
     // Core search state
@@ -127,58 +159,45 @@ export default class AccountBrowser extends NavigationMixin(LightningElement) {
     debounceTimer;
     viewMode = 'list'; // 'list' | 'table' | 'map'
     currentPage = 1;
+    pageSize = DEFAULT_PAGE_SIZE;
+    visibleColumnKeys = [...DEFAULT_COLUMN_KEYS];
+    isColumnMenuOpen = false;
     tableSortedBy = 'name';
     tableSortedDirection = 'asc';
-    selectedColumnKeys = [];
 
     isCreating = false;
     newAccountType = 'HCP';
     sortFieldOptions = SORT_FIELD_OPTIONS;
     newAccountTypeOptions = NEW_ACCOUNT_TYPE_OPTIONS;
 
-    territoryOptions = [{ label: 'All Territories', value: '' }];
+    // "New Request" (DCR) modal — shown instead of the direct-create modal for a KAM.
+    isKAM = false;
+    isRequesting = false;
+    isSubmittingRequest = false;
+    requestType = 'HCP';
+    requestFields = {};
+    relatedHCOId;
+    relatedHCOLabel = '';
+    hcpTypeOptions = [];
+    requestSpecialtyOptions = [];
+    requestHcoTypeOptions = [];
+    hcoSpecialtyOptions = [];
+
+    // KAM users don't get an "All Territories" choice -- getTerritoryOptions() already
+    // scopes the raw list to just their own (plus descendants for a manager), and offering
+    // "All" as a selectable value would just mean "don't narrow further than that baseline",
+    // which reads as if there's a broader org-wide view available when there isn't one.
+    // Everyone else (admins, managers) keeps the full picker with "All Territories" first.
+    rawTerritoryOptions = [];
+    myTerritoryNames = [];
+
+    get territoryOptions() {
+        const mapped = this.rawTerritoryOptions.map((t) => ({ label: t, value: t }));
+        return this.isKAM ? mapped : [{ label: 'All Territories', value: '' }, ...mapped];
+    }
     specialtyOptions = [{ label: 'All Specialties', value: '' }];
     hcoTypeOptions = [{ label: 'All HCO Types', value: '' }];
     segmentationOptions = [{ label: 'All Segments', value: '' }];
-
-    // Key Account Manager "New Request" (DCR) state — see the DCR_PREFIX_OPTIONS
-    // doc comment above. Kept entirely separate from the isCreating/newAccountType
-    // fields above, which stay exactly as-is for every other profile.
-    isKAM = false;
-
-    // Territory filter — a System Administrator (canSeeAllTerritories) gets a
-    // searchable picker over every territory (see filteredTerritorySearchOptions);
-    // everyone else keeps the plain combobox, now populated by Apex with only
-    // the territory(ies) they're actually assigned to — see getTerritoryOptions's
-    // doc comment. They were never meant to see, let alone filter by, another
-    // rep's territory.
-    canSeeAllTerritories = false;
-    territorySearchTerm = '';
-    isTerritorySearchFocused = false;
-
-    isRequestingDcr = false;
-    isSubmittingDcr = false;
-    dcrType = 'HCO'; // 'HCO' | 'HCP'
-    dcrPrefixOptions = DCR_PREFIX_OPTIONS.map((p) => ({ label: p, value: p }));
-    hcoSpecialityOptions = [];
-    hcpTypeOptionsList = [];
-    hcoAffiliationOptions = [];
-    dcrHcoName = '';
-    dcrHcoType = '';
-    dcrHcoSpeciality = '';
-    dcrCity = '';
-    dcrState = '';
-    dcrPincode = '';
-    dcrPhone = '';
-    dcrPrefix = 'Dr.';
-    dcrFirstName = '';
-    dcrLastName = '';
-    dcrSpecialty = '';
-    dcrHcpType = '';
-    dcrEmail = '';
-    dcrDegree = '';
-    dcrHcoSearch = '';
-    dcrSelectedHCOId = null;
 
     // Saved views
     savedViews = [];
@@ -198,30 +217,35 @@ export default class AccountBrowser extends NavigationMixin(LightningElement) {
     @wire(getTerritoryOptions)
     wiredTerritories({ data }) {
         if (data) {
-            // "All Territories" only makes sense as a reset option when there's
-            // more than one territory to choose from — a rep (or single-territory
-            // KAM) restricted to exactly one doesn't have anything to reset
-            // between, so the combobox just shows that one territory instead of
-            // a redundant "All Territories" alongside it. A System Administrator
-            // never sees this list at all (their searchable picker filters '' out
-            // regardless — see territoryNamesOnly), so this only affects the
-            // plain combobox everyone else gets.
-            // Sorted alphabetically here too (not just relying on getTerritoryOptions'
-            // own ORDER BY Name) so the Admin's search list is guaranteed A-Z
-            // regardless of how the data arrives.
-            const mapped = data.map((t) => ({ label: t, value: t })).sort((a, b) => a.label.localeCompare(b.label));
-            this.territoryOptions = mapped.length > 1 ? [{ label: 'All Territories', value: '' }, ...mapped] : mapped;
+            this.rawTerritoryOptions = data;
+            this.maybeAutoSelectTerritory();
         }
     }
 
-    @wire(canSeeAllTerritories)
-    wiredCanSeeAllTerritories({ data }) {
-        // No `else` clearing it — defaults to false (the safe, own-territory-only
-        // combobox), never fails open into the admin search view for someone
-        // this wasn't meant for.
-        if (data === true) {
-            this.canSeeAllTerritories = true;
+    // A KAM with exactly one territory has nothing to pick between -- apply it as the
+    // filter automatically instead of making them click a single-item dropdown. A KAM with
+    // several sees them all in the dropdown (handled by the territoryOptions getter above)
+    // and picks one explicitly; this only auto-applies the single-territory case. Called from
+    // both wire handlers below since isKAM and rawTerritoryOptions resolve independently.
+    maybeAutoSelectTerritory() {
+        if (this.isKAM && this.rawTerritoryOptions.length === 1 && !this.territoryFilter) {
+            this.territoryFilter = this.rawTerritoryOptions[0];
+            this.runSearch();
         }
+    }
+
+    @wire(getMyTerritoryNames)
+    wiredMyTerritories({ data }) {
+        if (data) {
+            this.myTerritoryNames = data;
+        }
+    }
+
+    // "Chandigarh", "Chandigarh, Delhi North", or a fallback for a user with
+    // no Territory__c assignment (e.g. a System Administrator) -- always
+    // something rather than a blank header.
+    get myTerritoryLabel() {
+        return this.myTerritoryNames.length ? this.myTerritoryNames.join(', ') : 'No territory assigned';
     }
 
     @wire(getSpecialtyOptions)
@@ -247,32 +271,37 @@ export default class AccountBrowser extends NavigationMixin(LightningElement) {
 
     @wire(isKeyAccountManager)
     wiredIsKAM({ data }) {
-        // Deliberately no `else` clearing it on error/undefined — defaults to
-        // false (the existing "New" direct-create button), never fails open
-        // into the DCR-gated flow for someone this wasn't meant for.
-        if (data === true) {
-            this.isKAM = true;
-        }
-    }
-
-    @wire(getHCOSpecialityOptions)
-    wiredHcoSpecialityOptions({ data }) {
-        if (data) {
-            this.hcoSpecialityOptions = data.map((s) => ({ label: s, value: s }));
+        if (data !== undefined) {
+            this.isKAM = !!data;
+            this.maybeAutoSelectTerritory();
         }
     }
 
     @wire(getHCPTypeOptions)
-    wiredHcpTypeOptions({ data }) {
+    wiredHcpTypes({ data }) {
         if (data) {
-            this.hcpTypeOptionsList = data.map((t) => ({ label: t, value: t }));
+            this.hcpTypeOptions = data.map((t) => ({ label: t, value: t }));
         }
     }
 
-    @wire(getHCOOptionsForAffiliation)
-    wiredHcoAffiliationOptions({ data }) {
+    @wire(getSpecialtyOptions)
+    wiredRequestSpecialties({ data }) {
         if (data) {
-            this.hcoAffiliationOptions = data;
+            this.requestSpecialtyOptions = data.map((s) => ({ label: s, value: s }));
+        }
+    }
+
+    @wire(getHCOTypeOptions)
+    wiredRequestHcoTypes({ data }) {
+        if (data) {
+            this.requestHcoTypeOptions = data.map((t) => ({ label: t, value: t }));
+        }
+    }
+
+    @wire(getHCOSpecialtyOptions)
+    wiredHcoSpecialties({ data }) {
+        if (data) {
+            this.hcoSpecialtyOptions = data.map((s) => ({ label: s, value: s }));
         }
     }
 
@@ -298,69 +327,6 @@ export default class AccountBrowser extends NavigationMixin(LightningElement) {
         this.runSearch();
     }
 
-    // MARK: - Add Column (table & list view field picker)
-
-    // Wrapped in try/catch — a private-browsing tab or a browser with site
-    // data blocked can make localStorage throw on either read or write, and
-    // "the rep's saved columns didn't load" should never become "the whole
-    // Accounts tab is broken".
-    loadColumnPreference() {
-        try {
-            const raw = window.localStorage.getItem(COLUMN_PREF_KEY);
-            const keys = raw ? JSON.parse(raw) : [];
-            this.selectedColumnKeys = Array.isArray(keys) ? keys.filter((k) => EXTRA_COLUMNS_BY_KEY[k]) : [];
-        } catch (e) {
-            this.selectedColumnKeys = [];
-        }
-    }
-
-    persistColumnPreference() {
-        try {
-            window.localStorage.setItem(COLUMN_PREF_KEY, JSON.stringify(this.selectedColumnKeys));
-        } catch (e) {
-            // Best-effort only — the picker still works for the rest of this
-            // session even if it can't be remembered for next time.
-        }
-    }
-
-    get addColumnOptions() {
-        return EXTRA_COLUMNS.map((c) => ({
-            ...c,
-            isSelected: this.selectedColumnKeys.includes(c.key),
-            rowClass: this.selectedColumnKeys.includes(c.key) ? 'column-option column-option-selected' : 'column-option',
-        }));
-    }
-
-    get hasSelectedColumns() {
-        return this.selectedColumnKeys.length > 0;
-    }
-
-    handleToggleColumn(event) {
-        const key = event.currentTarget.dataset.key;
-        if (!EXTRA_COLUMNS_BY_KEY[key]) return;
-        this.selectedColumnKeys = this.selectedColumnKeys.includes(key)
-            ? this.selectedColumnKeys.filter((k) => k !== key)
-            : [...this.selectedColumnKeys, key];
-        this.persistColumnPreference();
-    }
-
-    // Table view's actual lightning-datatable columns: the fixed base set,
-    // then whatever the rep has added (in the order they added them), then
-    // the row-open action — mirrors how a standard Salesforce list view
-    // appends chosen fields after its own fixed columns.
-    get tableColumns() {
-        const extra = this.selectedColumnKeys.map((k) => EXTRA_COLUMNS_BY_KEY[k]).filter(Boolean);
-        return [...BASE_TABLE_COLUMNS, ...extra, ACTION_COLUMN];
-    }
-
-    // List view's extra fields, pre-formatted as "Label: value" strings per
-    // row — same selection as the table view's columns, so a field the rep
-    // added is visible however they're currently browsing, not just in one
-    // of the two views.
-    get selectedExtraFieldDefs() {
-        return this.selectedColumnKeys.map((k) => EXTRA_COLUMNS_BY_KEY[k]).filter(Boolean);
-    }
-
     // MARK: - Filters
 
     handleSearchChange(event) {
@@ -370,68 +336,6 @@ export default class AccountBrowser extends NavigationMixin(LightningElement) {
 
     handleTerritoryFilterChange(event) {
         this.territoryFilter = event.detail.value;
-        this.runSearch();
-    }
-
-    // MARK: - Territory search (System Administrator only — see canSeeAllTerritories)
-
-    get territorySearchPlaceholder() {
-        return this.territoryFilter || 'All Territories';
-    }
-
-    get isNotAdminTerritoryView() {
-        return !this.canSeeAllTerritories;
-    }
-
-    get hasTerritoryFilterSelected() {
-        return this.territoryFilter !== '';
-    }
-
-    /// Excludes the synthetic "All Territories" (value: '') entry from the
-    /// searchable list — that's handled by the separate "Clear" affordance
-    /// instead, since a free-text search box has no natural row for it.
-    get territoryNamesOnly() {
-        return this.territoryOptions.filter((t) => t.value !== '');
-    }
-
-    /// Shows every territory in alphabetical order (getTerritoryOptions
-    /// already returns them sorted, A-Z by Name) — a System Administrator
-    /// should be able to see and pick from the full list right away, not
-    /// just a 2-row preview. Typing narrows it to actual matches, same as
-    /// the DCR HCO picker.
-    get filteredTerritorySearchOptions() {
-        const q = this.territorySearchTerm.trim().toLowerCase();
-        if (!q) {
-            return this.territoryNamesOnly;
-        }
-        return this.territoryNamesOnly.filter((t) => t.label.toLowerCase().includes(q));
-    }
-
-    handleTerritorySearchChange(event) {
-        this.territorySearchTerm = event.target.value;
-    }
-
-    handleTerritorySearchFocus() {
-        this.isTerritorySearchFocused = true;
-    }
-
-    // Delayed rather than immediate — a click on a dropdown row also blurs
-    // the search input, and without this delay the list would unmount
-    // before that click has a chance to register.
-    handleTerritorySearchBlur() {
-        setTimeout(() => { this.isTerritorySearchFocused = false; }, 150);
-    }
-
-    handleSelectTerritorySearch(event) {
-        this.territoryFilter = event.currentTarget.dataset.value;
-        this.territorySearchTerm = '';
-        this.isTerritorySearchFocused = false;
-        this.runSearch();
-    }
-
-    handleClearTerritorySearch() {
-        this.territoryFilter = '';
-        this.territorySearchTerm = '';
         this.runSearch();
     }
 
@@ -557,7 +461,27 @@ export default class AccountBrowser extends NavigationMixin(LightningElement) {
     // MARK: - Pagination
 
     get totalPages() {
-        return Math.max(1, Math.ceil((this.results || []).length / PAGE_SIZE));
+        return Math.max(1, Math.ceil((this.results || []).length / this.pageSize));
+    }
+
+    get pageSizeOptions() {
+        return PAGE_SIZE_OPTIONS.map((n) => ({ label: String(n), value: String(n) }));
+    }
+
+    get pageSizeValue() {
+        return String(this.pageSize);
+    }
+
+    /// Changing the page size keeps the first record that was on screen in view
+    /// (rather than dumping the rep back on page 1 or past the end).
+    handlePageSizeChange(event) {
+        const next = Number(event.detail.value);
+        if (!PAGE_SIZE_OPTIONS.includes(next) || next === this.pageSize) {
+            return;
+        }
+        const firstIndex = (this.currentPage - 1) * this.pageSize;
+        this.pageSize = next;
+        this.currentPage = Math.floor(firstIndex / next) + 1;
     }
 
     get pageLabel() {
@@ -592,7 +516,7 @@ export default class AccountBrowser extends NavigationMixin(LightningElement) {
 
     get alphabetKeys() {
         const available = new Set(
-            (this.results || []).map((r) => (r.name || '').trim().charAt(0).toUpperCase()).filter((c) => ALPHABET.includes(c))
+            (this.results || []).map((r) => sortableNameKey(r.name).charAt(0).toUpperCase()).filter((c) => ALPHABET.includes(c))
         );
         return ALPHABET.map((letter) => ({
             letter,
@@ -602,13 +526,44 @@ export default class AccountBrowser extends NavigationMixin(LightningElement) {
         }));
     }
 
+    // Jumping to a letter with 200+ possible rows across pages needs two
+    // things, not just the page number: if the target page isn't the current
+    // one, wait for that page to actually render (renderedCallback) before
+    // scrolling, otherwise the row doesn't exist in the DOM yet.
+    pendingScrollToId;
+
     handleAlphaJump(event) {
         const letter = event.currentTarget.dataset.letter;
-        const index = (this.results || []).findIndex((r) => (r.name || '').trim().toUpperCase().startsWith(letter));
+        const index = (this.results || []).findIndex((r) => sortableNameKey(r.name).toUpperCase().startsWith(letter));
         if (index === -1) {
             return;
         }
-        this.currentPage = Math.floor(index / PAGE_SIZE) + 1;
+        const targetId = this.results[index].id;
+        const targetPage = Math.floor(index / this.pageSize) + 1;
+        if (this.currentPage === targetPage) {
+            this.scrollToRow(targetId);
+        } else {
+            this.pendingScrollToId = targetId;
+            this.currentPage = targetPage;
+        }
+    }
+
+    renderedCallback() {
+        if (this.pendingScrollToId) {
+            const id = this.pendingScrollToId;
+            this.pendingScrollToId = null;
+            this.scrollToRow(id);
+        }
+    }
+
+    scrollToRow(id) {
+        const row = this.template.querySelector(`li[data-id="${id}"]`);
+        if (!row) {
+            return;
+        }
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        row.classList.add('alpha-jump-highlight');
+        window.setTimeout(() => row.classList.remove('alpha-jump-highlight'), 1600);
     }
 
     // Accounts is the parent (list) page; selecting a row drills down into the
@@ -656,10 +611,110 @@ export default class AccountBrowser extends NavigationMixin(LightningElement) {
         return (this.results || []).filter((r) => r.isEmergingExpert).length;
     }
 
+    // MARK: - Add Column (which fields the list and table view display)
+
+    // Wrapped in try/catch: private browsing or blocked site data can make localStorage throw, and
+    // "the saved columns didn't load" must never turn into "the Accounts tab is broken".
+    loadColumnPreference() {
+        try {
+            const raw = window.localStorage.getItem(COLUMN_PREF_KEY);
+            const keys = raw ? JSON.parse(raw) : null;
+            const valid = Array.isArray(keys) ? keys.filter((k) => COLUMN_BY_KEY[k]) : [];
+            if (valid.length > 0) {
+                // Name is always shown, and always first.
+                this.visibleColumnKeys = ['name', ...valid.filter((k) => k !== 'name')];
+            }
+        } catch (e) {
+            this.visibleColumnKeys = [...DEFAULT_COLUMN_KEYS];
+        }
+    }
+
+    persistColumnPreference() {
+        try {
+            window.localStorage.setItem(COLUMN_PREF_KEY, JSON.stringify(this.visibleColumnKeys));
+        } catch (e) {
+            // Best effort: the choice still applies for this session.
+        }
+    }
+
+    get columnOptions() {
+        const visible = new Set(this.visibleColumnKeys);
+        return COLUMN_CATALOG.map((c) => ({
+            key: c.key,
+            label: c.label,
+            isSelected: visible.has(c.key),
+            isLocked: !!c.locked,
+            rowClass: `column-option${visible.has(c.key) ? ' column-option-selected' : ''}${c.locked ? ' column-option-locked' : ''}`,
+        }));
+    }
+
+    get visibleColumnCount() {
+        return this.visibleColumnKeys.length;
+    }
+
+    handleToggleColumnMenu() {
+        this.isColumnMenuOpen = !this.isColumnMenuOpen;
+    }
+
+    handleCloseColumnMenu() {
+        this.isColumnMenuOpen = false;
+    }
+
+    handleToggleColumn(event) {
+        const key = event.currentTarget.dataset.key;
+        const column = COLUMN_BY_KEY[key];
+        if (!column || column.locked) {
+            return;
+        }
+        this.visibleColumnKeys = this.visibleColumnKeys.includes(key)
+            ? this.visibleColumnKeys.filter((k) => k !== key)
+            : [...this.visibleColumnKeys, key];
+        this.persistColumnPreference();
+    }
+
+    handleResetColumns() {
+        this.visibleColumnKeys = [...DEFAULT_COLUMN_KEYS];
+        this.persistColumnPreference();
+    }
+
+    // Table view: exactly the ticked fields, then the row-open action. Sorting stays available only
+    // on the columns the server can sort by (name / city / territory).
+    get tableColumns() {
+        const columns = this.visibleColumnKeys.map((k) => COLUMN_BY_KEY[k]).filter(Boolean).map((c) => {
+            const col = { label: c.label, fieldName: c.key, type: c.type };
+            if (c.sortable) col.sortable = true;
+            if (c.initialWidth) col.initialWidth = c.initialWidth;
+            if (c.wrapText === false) col.wrapText = false;
+            return col;
+        });
+        return [...columns, ACTION_COLUMN];
+    }
+
+    // Minimum table width = the sum of its column widths, so a wide selection scrolls sideways inside
+    // the results pane instead of squeezing every column (Name, Details) down to a few characters.
+    get tableInnerStyle() {
+        const total = this.tableColumns.reduce((sum, c) => sum + (c.initialWidth || 160), 0);
+        return `min-width: ${total}px;`;
+    }
+
+    // "Label: value" lines for the list card: every ticked field the card doesn't already draw itself.
+    listExtraFields(row) {
+        const out = [];
+        for (const key of this.visibleColumnKeys) {
+            if (LIST_CARD_BUILT_IN.has(key)) continue;
+            const c = COLUMN_BY_KEY[key];
+            const v = row[key];
+            if (!c || v === null || v === undefined || v === '') continue;
+            const value = c.type === 'date-local' ? new Date(`${v}T00:00:00`).toLocaleDateString() : String(v);
+            out.push({ key, label: c.label, value });
+        }
+        return out;
+    }
+
     get rows() {
-        const start = (this.currentPage - 1) * PAGE_SIZE;
-        const extraDefs = this.selectedExtraFieldDefs;
-        return (this.results || []).slice(start, start + PAGE_SIZE).map((r) => ({
+        const start = (this.currentPage - 1) * this.pageSize;
+        const shown = new Set(this.visibleColumnKeys);
+        return (this.results || []).slice(start, start + this.pageSize).map((r) => ({
             ...r,
             rowClass: r.id === this.selectedId ? 'result-row selected' : 'result-row',
             typeStyle: pillStyle(r.type === 'HCP' ? BRAND.primary : BRAND.violet),
@@ -670,17 +725,15 @@ export default class AccountBrowser extends NavigationMixin(LightningElement) {
             // so an HCO/HCP row reads instantly the way every other list in
             // the org already does.
             iconName: r.type === 'HCP' ? 'standard:contact' : 'standard:account',
-            // "Label: value" for each field the rep added via "Add Column" —
-            // same selection the table view uses, so list view shows it too
-            // rather than only ever being a table-view-only feature.
-            extraFieldLines: extraDefs
-                .map((def) => ({ key: def.key, label: def.label, value: r[def.fieldName] }))
-                .filter((f) => f.value != null && f.value !== ''),
+            // List card: each built-in element follows its tick, and ticked extras are listed under it.
+            showType: shown.has('type'),
+            showSubtitle: shown.has('subtitle'),
+            showCity: shown.has('city') && !!r.city,
+            showTerritory: shown.has('territory') && !!r.territory,
+            showKol: shown.has('isKOL') && !!r.isKOL,
+            showEmerging: shown.has('isEmergingExpert') && !!r.isEmergingExpert,
+            extraFields: this.listExtraFields(r),
         }));
-    }
-
-    get hasExtraFieldLinesOnRows() {
-        return this.selectedExtraFieldDefs.length > 0;
     }
 
     // MARK: - View modes (List / Table / Map)
@@ -750,15 +803,48 @@ export default class AccountBrowser extends NavigationMixin(LightningElement) {
         this.runSearch();
     }
 
+    // Map markers. An account with real coordinates gets its own exact pin. Accounts with no
+    // coordinates (nothing geocodes them unless a Google key is set in Geocoding_Config__mdt) are
+    // grouped by city/state/country into ONE marker per place, and lightning-map geocodes that address
+    // itself. Clicking a place marker lists that city's accounts (see handleMarkerSelect).
     get mapMarkers() {
-        return (this.results || [])
-            .filter((r) => r.latitude != null && r.longitude != null)
-            .map((r) => ({
-                location: { Latitude: r.latitude, Longitude: r.longitude },
-                title: r.name,
-                description: r.subtitle,
-                value: r.id,
-            }));
+        const exact = [];
+        const places = new Map();
+        for (const r of this.results || []) {
+            if (r.latitude != null && r.longitude != null) {
+                exact.push({
+                    location: { Latitude: r.latitude, Longitude: r.longitude },
+                    title: r.name,
+                    description: r.subtitle,
+                    value: r.id,
+                });
+            } else if (r.city || r.state) {
+                const key = [r.city || '', r.state || '', r.country || ''].join('|');
+                if (!places.has(key)) {
+                    places.set(key, { city: r.city || '', state: r.state || '', country: r.country || '', names: [] });
+                }
+                places.get(key).names.push(r.name);
+            }
+        }
+        const grouped = [...places.values()]
+            .sort((a, b) => b.names.length - a.names.length)
+            .map((p) => {
+                const label = [p.city, p.state].filter(Boolean).join(', ');
+                const shown = p.names.slice(0, 5).join(', ');
+                const more = p.names.length > 5 ? ` +${p.names.length - 5} more` : '';
+                const location = {};
+                if (p.city) location.City = p.city;
+                if (p.state) location.State = p.state;
+                if (p.country) location.Country = p.country;
+                return {
+                    location,
+                    title: `${label} — ${p.names.length} account${p.names.length === 1 ? '' : 's'}`,
+                    description: `${shown}${more}`,
+                    value: `place:${encodeURIComponent(p.city || p.state)}`,
+                };
+            });
+        // lightning-map geocodes addresses one by one, so keep the total reasonable.
+        return [...exact, ...grouped].slice(0, 100);
     }
 
     get hasMapMarkers() {
@@ -766,9 +852,16 @@ export default class AccountBrowser extends NavigationMixin(LightningElement) {
     }
 
     handleMarkerSelect(event) {
-        const accountId = event.detail.selectedMarkerValue;
-        this.selectedId = accountId;
-        this.navigateToAccount(accountId);
+        const value = event.detail.selectedMarkerValue;
+        if (typeof value === 'string' && value.startsWith('place:')) {
+            // A city marker: narrow the list to that city and show it.
+            this.cityFilter = decodeURIComponent(value.slice('place:'.length));
+            this.viewMode = 'list';
+            this.runSearch();
+            return;
+        }
+        this.selectedId = value;
+        this.navigateToAccount(value);
     }
 
     // MARK: - Saved views
@@ -973,11 +1066,22 @@ export default class AccountBrowser extends NavigationMixin(LightningElement) {
         return this.isCreatingHCP ? HCP_CREATE_FIELDS : HCO_CREATE_FIELDS;
     }
 
-    get addressFields() {
-        return ADDRESS_FIELDS;
+    // KAM profiles have full CRUD on Sciagen_Account__c, but a brand-new HCP/HCO from
+    // the web still goes through the same DCR governance gate the iPad app enforces —
+    // see SciagenAccountController.isKeyAccountManager's doc comment.
+    get newButtonLabel() {
+        return this.isKAM ? 'New Request' : 'New';
     }
 
     handleOpenCreate() {
+        if (this.isKAM) {
+            this.requestType = 'HCP';
+            this.requestFields = {};
+            this.relatedHCOId = undefined;
+            this.relatedHCOLabel = '';
+            this.isRequesting = true;
+            return;
+        }
         this.newAccountType = 'HCP';
         this.isCreating = true;
     }
@@ -1005,156 +1109,82 @@ export default class AccountBrowser extends NavigationMixin(LightningElement) {
         }));
     }
 
-    // MARK: - New Request (DCR) — Key Account Manager only
-
-    get isNotKAM() {
-        return !this.isKAM;
-    }
-
-    get isRequestingHCO() {
-        return this.dcrType === 'HCO';
-    }
-
-    get dcrModalTitle() {
-        return this.isRequestingHCO ? 'Request New HCO' : 'Request New HCP';
-    }
-
-    get filteredDcrHcoOptions() {
-        const q = (this.dcrHcoSearch || '').trim().toLowerCase();
-        const matches = !q
-            ? this.hcoAffiliationOptions
-            : this.hcoAffiliationOptions.filter((h) => `${h.name} ${h.city || ''}`.toLowerCase().includes(q));
-        return matches.slice(0, 40).map((h) => ({ ...h, selected: h.id === this.dcrSelectedHCOId }));
-    }
-
-    get selectedDcrHco() {
-        return this.hcoAffiliationOptions.find((h) => h.id === this.dcrSelectedHCOId);
-    }
-
-    get hasNoHCOsYet() {
-        return this.isRequestingHCP && this.hcoAffiliationOptions.length === 0;
-    }
+    // MARK: - New Request (KAM's DCR-gated create)
 
     get isRequestingHCP() {
-        return this.dcrType === 'HCP';
+        return this.requestType === 'HCP';
     }
 
-    get canSubmitDcr() {
-        if (this.isRequestingHCO) {
-            return this.dcrHcoName.trim() !== '' && this.dcrCity.trim() !== '';
+    get requestFieldDefs() {
+        return this.isRequestingHCP ? HCP_REQUEST_FIELDS : HCO_REQUEST_FIELDS;
+    }
+
+    // Each field def carries its own options array's *property name* (not the array
+    // itself) so this can stay a plain getter over requestFieldDefs — the template
+    // resolves {def.value}/{def.options} per row without a second, hand-kept list.
+    get requestFieldRows() {
+        return this.requestFieldDefs.map((def) => ({
+            ...def,
+            value: this.requestFields[def.key] || '',
+            options: def.optionsProp ? this[def.optionsProp] : undefined,
+            isPicklist: def.type === 'picklist',
+            isText: def.type !== 'picklist',
+        }));
+    }
+
+    get hcoFilter() {
+        return { criteria: [{ fieldPath: 'Type__c', operator: 'eq', value: 'HCO' }] };
+    }
+
+    get submitRequestDisabled() {
+        return this.isSubmittingRequest || (this.isRequestingHCP && !this.relatedHCOId);
+    }
+
+    handleRequestTypeChange(event) {
+        this.requestType = event.detail.value;
+        this.requestFields = {};
+    }
+
+    handleRequestFieldChange(event) {
+        const key = event.currentTarget.dataset.field;
+        const value = event.detail.value;
+        this.requestFields = { ...this.requestFields, [key]: value };
+    }
+
+    handleRelatedHCOChange(event) {
+        this.relatedHCOId = event.detail.recordId || undefined;
+    }
+
+    handleCloseRequest() {
+        this.isRequesting = false;
+    }
+
+    async handleSubmitRequest() {
+        if (this.isRequestingHCP && !this.relatedHCOId) {
+            this.dispatchEvent(new ShowToastEvent({
+                title: 'Affiliated HCO required',
+                message: 'Select the HCO this HCP is affiliated with.',
+                variant: 'error',
+            }));
+            return;
         }
-        return this.hcoAffiliationOptions.length > 0 && this.dcrSelectedHCOId != null &&
-            this.dcrFirstName.trim() !== '' && this.dcrLastName.trim() !== '';
-    }
-
-    get isSubmitDcrDisabled() {
-        return this.isSubmittingDcr || !this.canSubmitDcr;
-    }
-
-    handleOpenNewRequest(event) {
-        this.dcrType = event.currentTarget.dataset.type; // 'HCO' | 'HCP'
-        this.resetDcrForm();
-        this.isRequestingDcr = true;
-    }
-
-    handleCloseDcr() {
-        this.isRequestingDcr = false;
-    }
-
-    resetDcrForm() {
-        this.dcrHcoName = '';
-        this.dcrHcoType = '';
-        this.dcrHcoSpeciality = '';
-        this.dcrCity = '';
-        this.dcrState = '';
-        this.dcrPincode = '';
-        this.dcrPhone = '';
-        this.dcrPrefix = 'Dr.';
-        this.dcrFirstName = '';
-        this.dcrLastName = '';
-        this.dcrSpecialty = '';
-        this.dcrHcpType = '';
-        this.dcrEmail = '';
-        this.dcrDegree = '';
-        this.dcrHcoSearch = '';
-        this.dcrSelectedHCOId = null;
-    }
-
-    handleSwitchToNewHCO() {
-        // Mirrors DCRView.swift's "HCO not listed? Request a new HCO first" —
-        // an HCP request can't go anywhere without an HCO to affiliate with.
-        this.dcrType = 'HCO';
-    }
-
-    handleDcrFieldChange(event) {
-        const field = event.currentTarget.dataset.field;
-        this[field] = event.detail.value;
-    }
-
-    handleDcrHcoSearchChange(event) {
-        this.dcrHcoSearch = event.target.value;
-    }
-
-    handleSelectDcrHco(event) {
-        this.dcrSelectedHCOId = event.currentTarget.dataset.id;
-    }
-
-    handleClearDcrHco() {
-        this.dcrSelectedHCOId = null;
-    }
-
-    async handleSubmitDcr() {
-        if (!this.canSubmitDcr || this.isSubmittingDcr) return;
-        this.isSubmittingDcr = true;
+        this.isSubmittingRequest = true;
         try {
-            let type;
-            let fields;
-            let relatedHCOId = null;
-            if (this.isRequestingHCO) {
-                type = 'New HCO';
-                fields = {
-                    name: this.dcrHcoName.trim(),
-                    type: this.dcrHcoType,
-                    speciality: this.dcrHcoSpeciality,
-                    city: this.dcrCity.trim(),
-                    state: this.dcrState.trim(),
-                    pincode: this.dcrPincode.trim(),
-                    phone: this.dcrPhone.trim(),
-                };
-            } else {
-                type = 'New HCP';
-                relatedHCOId = this.dcrSelectedHCOId;
-                const hcoName = this.selectedDcrHco ? this.selectedDcrHco.name : '';
-                fields = {
-                    prefix: this.dcrPrefix,
-                    firstName: this.dcrFirstName.trim(),
-                    lastName: this.dcrLastName.trim(),
-                    specialty: this.dcrSpecialty,
-                    hcpType: this.dcrHcpType,
-                    email: this.dcrEmail.trim(),
-                    phone: this.dcrPhone.trim(),
-                    affiliationHCO: hcoName,
-                };
-                if (this.dcrDegree.trim() !== '') {
-                    fields.degree1 = this.dcrDegree.trim();
-                }
-            }
-
-            await submitAccountDcr({ type, fields, relatedHCOId });
-            this.isRequestingDcr = false;
+            await submitNewAccountRequest({
+                acctType: this.requestType,
+                fields: this.requestFields,
+                relatedHCOId: this.isRequestingHCP ? this.relatedHCOId : null,
+            });
+            this.isRequesting = false;
             this.dispatchEvent(new ShowToastEvent({
                 title: 'Request submitted',
-                message: 'Sent to DCR Review for approval.',
+                message: 'Sent for review in DCR Review — the account is created once a steward approves it.',
                 variant: 'success',
             }));
         } catch (e) {
-            this.dispatchEvent(new ShowToastEvent({
-                title: 'Couldn’t submit request',
-                message: reduceError(e),
-                variant: 'error',
-            }));
+            this.dispatchEvent(new ShowToastEvent({ title: 'Couldn’t submit request', message: reduceError(e), variant: 'error' }));
         } finally {
-            this.isSubmittingDcr = false;
+            this.isSubmittingRequest = false;
         }
     }
 }

@@ -64,11 +64,13 @@ private class SampleLimitCheckerTest {
         Sample_Lot__c l = SampleTestData.lot(p, 'OV-1', 100, 200);
         Sample_Limit__c perCall = [SELECT Id FROM Sample_Limit__c WHERE Limit_Scope__c = 'Per_Call'];
         System.assertEquals(true, SampleLimitChecker.checkLimits(UserInfo.getUserId(), d.Id, p.Id, 8, null).needsReason);
+        // Activating an override needs Manage_Sample_Inventory.
+        SampleAccess.testIsManager = true;
         insert new Sample_Limit_Override__c(Sample_Limit__c = perCall.Id, Override_Type__c = 'Increase', Override_Value__c = 10, Target_Account__c = d.Id,
             Reason__c = 'Launch event', Status__c = 'Active');
+        insert new Sample_Limit_Override__c(Sample_Limit__c = perCall.Id, Override_Type__c = 'Exempt', Target_Account__c = d.Id, Reason__c = 'Trial site', Status__c = 'Active');
         SampleLimitChecker.LimitCheckResult raised = SampleLimitChecker.checkLimits(UserInfo.getUserId(), d.Id, p.Id, 8, null);
         System.assertEquals(false, raised.needsReason, 'the limit is now 10 for this doctor');
-        insert new Sample_Limit_Override__c(Sample_Limit__c = perCall.Id, Override_Type__c = 'Exempt', Target_Account__c = d.Id, Reason__c = 'Trial site', Status__c = 'Active');
         System.assertEquals(false, SampleLimitChecker.checkLimits(UserInfo.getUserId(), d.Id, p.Id, 50, null).needsReason);
 
         Sample_Limit__c reg = [SELECT Id FROM Sample_Limit__c WHERE Is_Regulatory__c = true LIMIT 1];
@@ -82,6 +84,8 @@ private class SampleLimitCheckerTest {
         Sciagen_Account__c d = SampleTestData.doctor('Dr Dates');
         Product__c p = SampleTestData.product('Dates SKU');
         Sample_Limit__c perCall = [SELECT Id FROM Sample_Limit__c WHERE Limit_Scope__c = 'Per_Call'];
+        // Activating an override needs Manage_Sample_Inventory.
+        SampleAccess.testIsManager = true;
         Sample_Limit_Override__c old = new Sample_Limit_Override__c(Sample_Limit__c = perCall.Id, Override_Type__c = 'Exempt', Target_Account__c = d.Id, Reason__c = 'past',
             Status__c = 'Active', Valid_From__c = Date.today().addDays(-30), Valid_To__c = Date.today().addDays(-1));
         insert old;
@@ -119,54 +123,6 @@ private class SampleLimitCheckerTest {
         Integer first = SampleLimitSeeder.seedDefaults();
         System.assert(first >= 4);
         System.assertEquals(0, SampleLimitSeeder.seedDefaults());
-    }
-
-    /** SM-... Phase 0 hotfix: checkLimits() ran one usage() query per active limit PER
-     *  LINE — a call with 15 lines and 4 active limits could run well over the 100-query
-     *  governor limit. checkLimitsBulk() must do the same work for the whole batch in far
-     *  fewer queries, and still be accurate. */
-    @isTest
-    static void bulkCheckForFifteenLinesAndFourActiveLimitsStaysWellUnderTheQueryLimitAndIsStillAccurate() {
-        Integer activeLimitCount = SampleLimitSeeder.seedDefaults();
-        System.assertEquals(4, activeLimitCount, 'this test is written against exactly the 4 seeded defaults');
-        Sciagen_Account__c hcp = SampleTestData.doctor('Dr Bulk');
-        List<Product__c> products = new List<Product__c>();
-        List<Sample_Lot__c> lots = new List<Sample_Lot__c>();
-        for (Integer i = 0; i < 5; i++) {
-            Product__c p = SampleTestData.product('Bulk SKU ' + i);
-            Sample_Lot__c l = SampleTestData.lot(p, 'BULK-' + i, 100, 200);
-            products.add(p);
-            lots.add(l);
-        }
-        // product[0] is already at its 12-pack UCPMP cap for this doctor — every line
-        // asking for more of it should come back blocked; the other 4 products have
-        // plenty of headroom and should not.
-        SampleTestData.given(products[0], lots[0], hcp, 12);
-
-        List<SampleLimitChecker.LimitCheckRequest> requests = new List<SampleLimitChecker.LimitCheckRequest>();
-        for (Integer i = 0; i < 15; i++) {
-            SampleLimitChecker.LimitCheckRequest r = new SampleLimitChecker.LimitCheckRequest();
-            r.key = String.valueOf(i);
-            r.repUserId = UserInfo.getUserId();
-            r.hcpAccountId = hcp.Id;
-            r.productId = products[Math.mod(i, 5)].Id;
-            r.requestedQuantity = 1;
-            requests.add(r);
-        }
-
-        Test.startTest();
-        Map<String, SampleLimitChecker.LimitCheckResult> results = SampleLimitChecker.checkLimitsBulk(requests);
-        Integer queriesUsed = Limits.getQueries();
-        Test.stopTest();
-
-        System.assert(queriesUsed < 30, 'expected fewer than 30 SOQL queries for 15 lines / 4 active limits, used ' + queriesUsed);
-        System.assertEquals(15, results.size());
-        for (Integer i = 0; i < 15; i++) {
-            Boolean isProductAtCap = Math.mod(i, 5) == 0;
-            SampleLimitChecker.LimitCheckResult r = results.get(String.valueOf(i));
-            System.assertNotEquals(null, r, 'line ' + i + ' missing from the bulk result');
-            System.assertEquals(!isProductAtCap, r.allowed, 'line ' + i + ' (product index ' + Math.mod(i, 5) + ')');
-        }
     }
 
     @isTest

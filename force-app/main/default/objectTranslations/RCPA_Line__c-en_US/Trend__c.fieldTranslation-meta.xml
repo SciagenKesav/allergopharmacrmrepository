@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Rx Trend --></label>
+    <name>Trend__c</name>
+    <picklistValues>
+        <masterLabel>Declining</masterLabel>
+        <translation><!-- Declining --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Growing</masterLabel>
+        <translation><!-- Growing --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>New Rx</masterLabel>
+        <translation><!-- New Rx --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Stable</masterLabel>
+        <translation><!-- Stable --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Switched to competitor</masterLabel>
+        <translation><!-- Switched to competitor --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

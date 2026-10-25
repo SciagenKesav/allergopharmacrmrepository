@@ -26,10 +26,11 @@ public with sharing class SampleLimitGuardService {
     }
 
     public static void beforeOverrideSave(List<Sample_Limit_Override__c> rows, Map<Id, Sample_Limit_Override__c> oldMap) {
+        if (oldMap != null && SciagenAccess.mergeInProgress) return;   // DuplicateMergeService re-pointing Target_Account__c
         Set<Id> limitIds = new Set<Id>();
         for (Sample_Limit_Override__c r : rows) limitIds.add(r.Sample_Limit__c);
         Map<Id, Sample_Limit__c> limits = new Map<Id, Sample_Limit__c>([SELECT Id, Is_Regulatory__c FROM Sample_Limit__c WHERE Id IN :limitIds]);
-        Boolean manager = FeatureManagement.checkPermission('Manage_Sample_Inventory');
+        Boolean manager = SampleAccess.isManager();
         for (Sample_Limit_Override__c r : rows) {
             Sample_Limit_Override__c old = oldMap == null ? null : oldMap.get(r.Id);
             Sample_Limit__c lim = limits.get(r.Sample_Limit__c);

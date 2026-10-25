@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObjectTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <caseValues>
+        <plural>false</plural>
+        <value>Data Change Request</value>
+    </caseValues>
+    <caseValues>
+        <plural>true</plural>
+        <value>Data Change Requests</value>
+    </caseValues>
+    <layouts>
+        <layout>Data Change Request Layout</layout>
+        <sections>
+            <label><!-- Address &amp; Contact --></label>
+            <section>Address &amp; Contact</section>
+        </sections>
+        <sections>
+            <label><!-- Change Details --></label>
+            <section>Change Details</section>
+        </sections>
+        <sections>
+            <label><!-- Request Details --></label>
+            <section>Request Details</section>
+        </sections>
+        <sections>
+            <label><!-- Submission --></label>
+            <section>Submission</section>
+        </sections>
+    </layouts>
+    <startsWith>Consonant</startsWith>
+</CustomObjectTranslation>

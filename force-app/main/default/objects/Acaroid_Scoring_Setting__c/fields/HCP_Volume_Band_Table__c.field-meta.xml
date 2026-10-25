@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>HCP_Volume_Band_Table__c</fullName>
+    <defaultValue>&quot;50:100;25:70;10:40;0:10&quot;</defaultValue>
+    <description>Semicolon-separated min:points pairs, highest band first (e.g. &quot;50:100;25:70;10:40;0:10&quot;). Keyed on weekly AR+Asthma patients.</description>
+    <externalId>false</externalId>
+    <label>HCP Volume Band Table</label>
+    <length>255</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

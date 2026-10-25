@@ -8,11 +8,11 @@
         <layoutColumns>
             <layoutItems>
                 <behavior>Required</behavior>
-                <field>List__c</field>
+                <field>HCP__c</field>
             </layoutItems>
             <layoutItems>
                 <behavior>Required</behavior>
-                <field>HCP__c</field>
+                <field>List__c</field>
             </layoutItems>
             <layoutItems>
                 <behavior>Required</behavior>
@@ -51,8 +51,8 @@
         <style>CustomLinks</style>
     </layoutSections>
     <miniLayout>
-        <fields>List__c</fields>
         <fields>HCP__c</fields>
+        <fields>List__c</fields>
     </miniLayout>
     <showEmailCheckbox>false</showEmailCheckbox>
     <showHighlightsPanel>false</showHighlightsPanel>

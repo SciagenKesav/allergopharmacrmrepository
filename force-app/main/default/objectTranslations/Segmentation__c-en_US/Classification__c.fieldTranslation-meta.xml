@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Classification --></label>
+    <name>Classification__c</name>
+    <picklistValues>
+        <masterLabel>Unclassified</masterLabel>
+        <translation><!-- Unclassified --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>V1</masterLabel>
+        <translation><!-- V1 --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>V2</masterLabel>
+        <translation><!-- V2 --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>V3</masterLabel>
+        <translation><!-- V3 --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

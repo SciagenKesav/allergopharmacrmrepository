@@ -127,12 +127,7 @@ private class AccountPlanControllerTest {
         Sciagen_Account__c hcp = [SELECT Id FROM Sciagen_Account__c WHERE Type__c = 'HCP' LIMIT 1];
 
         Planned_Call__c pc = new Planned_Call__c(
-            HCP__c = hcp.Id, Call_Type__c = 'Detailing',
-            // Fixed at 11 AM, not Datetime.now() — office hours
-            // (PlannedCallOfficeHoursValidator) would otherwise randomly
-            // reject this insert depending on what time the test runs.
-            Call_DateTime__c = Datetime.newInstance(Date.today().addDays(1), Time.newInstance(11, 0, 0, 0)),
-            Status__c = 'Planned'
+            HCP__c = hcp.Id, Call_Type__c = 'Detailing', Call_DateTime__c = SciagenTestTime.nextBusinessSlot(), Status__c = 'Planned'
         );
         insert pc;
         Call_Visit_Report__c cvr = new Call_Visit_Report__c(
@@ -170,9 +165,7 @@ private class AccountPlanControllerTest {
     static void testPlanCallInterlink_unknownKindThrows() {
         Sciagen_Account__c hcp = [SELECT Id FROM Sciagen_Account__c WHERE Type__c = 'HCP' LIMIT 1];
         Planned_Call__c pc = new Planned_Call__c(
-            HCP__c = hcp.Id, Call_Type__c = 'Detailing',
-            Call_DateTime__c = Datetime.newInstance(Date.today().addDays(1), Time.newInstance(11, 0, 0, 0)),
-            Status__c = 'Planned'
+            HCP__c = hcp.Id, Call_Type__c = 'Detailing', Call_DateTime__c = SciagenTestTime.nextBusinessSlot(), Status__c = 'Planned'
         );
         insert pc;
 
@@ -278,5 +271,82 @@ private class AccountPlanControllerTest {
         System.assertEquals(1, options.size());
         System.assertEquals('Activity Two', options[0].label);
         System.assertEquals('Strategy One', options[0].strategyName);
+    }
+
+    @isTest
+    static void testCreateStakeholderInsertsUnderPlan() {
+        Account_Plan__c plan = [SELECT Id FROM Account_Plan__c LIMIT 1];
+
+        Test.startTest();
+        Id newId = AccountPlanController.createStakeholder(plan.Id, 'New Stakeholder', 'Influencer', 'High', 'Strong');
+        Test.stopTest();
+
+        Plan_Stakeholder__c created = [SELECT Stakeholder_Name__c, Role__c, Influence__c, Strength__c, Plan__c FROM Plan_Stakeholder__c WHERE Id = :newId];
+        System.assertEquals('New Stakeholder', created.Stakeholder_Name__c);
+        System.assertEquals('Influencer', created.Role__c);
+        System.assertEquals('High', created.Influence__c);
+        System.assertEquals('Strong', created.Strength__c);
+        System.assertEquals(plan.Id, created.Plan__c);
+    }
+
+    @isTest
+    static void testCreateStakeholderThrowsWhenNameBlank() {
+        Account_Plan__c plan = [SELECT Id FROM Account_Plan__c LIMIT 1];
+        Test.startTest();
+        try {
+            AccountPlanController.createStakeholder(plan.Id, '', 'Influencer', 'High', 'Strong');
+            System.assert(false, 'Expected AuraHandledException');
+        } catch (AuraHandledException e) {
+            System.assert(true);
+        }
+        Test.stopTest();
+    }
+
+    @isTest
+    static void testCreateTeamMemberInsertsUnderPlan() {
+        Account_Plan__c plan = [SELECT Id FROM Account_Plan__c LIMIT 1];
+
+        Test.startTest();
+        Id newId = AccountPlanController.createTeamMember(plan.Id, 'New Member', 'MSL', 'Write');
+        Test.stopTest();
+
+        Account_Team_Member__c created = [SELECT Member_Name__c, Role__c, Access__c, Plan__c FROM Account_Team_Member__c WHERE Id = :newId];
+        System.assertEquals('New Member', created.Member_Name__c);
+        System.assertEquals('MSL', created.Role__c);
+        System.assertEquals('Write', created.Access__c);
+        System.assertEquals(plan.Id, created.Plan__c);
+    }
+
+    @isTest
+    static void testCreateGoalInsertsUnderPlan() {
+        Account_Plan__c plan = [SELECT Id FROM Account_Plan__c LIMIT 1];
+
+        Test.startTest();
+        Id newId = AccountPlanController.createGoal(plan.Id, 'New Goal', 'Visits', 50, 10, 'visits', Date.today().addMonths(6));
+        Test.stopTest();
+
+        Plan_Goal__c created = [SELECT Title__c, Metric__c, Target__c, Current__c, Unit__c, Due_Date__c, Plan__c FROM Plan_Goal__c WHERE Id = :newId];
+        System.assertEquals('New Goal', created.Title__c);
+        System.assertEquals('Visits', created.Metric__c);
+        System.assertEquals(50, created.Target__c);
+        System.assertEquals(10, created.Current__c);
+        System.assertEquals('visits', created.Unit__c);
+        System.assertEquals(Date.today().addMonths(6), created.Due_Date__c);
+        System.assertEquals(plan.Id, created.Plan__c);
+    }
+
+    @isTest
+    static void testCreateStrategyInsertsUnderPlanWithShareWith() {
+        Account_Plan__c plan = [SELECT Id FROM Account_Plan__c LIMIT 1];
+
+        Test.startTest();
+        Id newId = AccountPlanController.createStrategy(plan.Id, 'New Strategy', 'Some detail', new List<String>{ 'NOAD', 'PSS' });
+        Test.stopTest();
+
+        Plan_Strategy__c created = [SELECT Strategy_Name__c, Detail__c, Share_With__c, Plan__c FROM Plan_Strategy__c WHERE Id = :newId];
+        System.assertEquals('New Strategy', created.Strategy_Name__c);
+        System.assertEquals('Some detail', created.Detail__c);
+        System.assertEquals('NOAD;PSS', created.Share_With__c);
+        System.assertEquals(plan.Id, created.Plan__c);
     }
 }

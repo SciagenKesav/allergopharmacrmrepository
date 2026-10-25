@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>HCO_Tier1_Min_Score__c</fullName>
+    <defaultValue>70</defaultValue>
+    <externalId>false</externalId>
+    <label>HCO Tier 1 Minimum Score</label>
+    <precision>5</precision>
+    <required>false</required>
+    <scale>1</scale>
+    <trackTrending>false</trackTrending>
+    <type>Number</type>
+    <unique>false</unique>
+</CustomField>

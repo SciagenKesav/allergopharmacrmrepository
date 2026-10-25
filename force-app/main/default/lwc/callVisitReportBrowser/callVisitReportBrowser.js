@@ -2,6 +2,7 @@ import { LightningElement } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import getMyCallReports from '@salesforce/apex/SciagenCVRController.getMyCallReports';
+import getOpenPlannedCalls from '@salesforce/apex/SciagenScheduleController.getOpenPlannedCalls';
 import { pillStyle, callStatusColor } from 'c/sciagenColors';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -32,19 +33,59 @@ export default class CallVisitReportBrowser extends NavigationMixin(LightningEle
     editingId = null;
     formDefaultHcpId = null;
     formDefaultHcoId = null;
+    formSourcePlannedCallId = null;
+
+    // MARK: - "Start from Planned Call" picker
+    showPlannedCallPicker = false;
+    isLoadingPlannedCalls = false;
+    openPlannedCalls = [];
 
     connectedCallback() {
         this.loadReports();
     }
 
+    // Custom from/to date filter -- when both are set, they replace the
+    // rolling 14-day window entirely (there was previously no way to query
+    // an arbitrary date range at all, only step through fixed 2-week blocks).
+    customFromDate = null;
+    customToDate = null;
+
+    get hasCustomRange() {
+        return !!(this.customFromDate && this.customToDate);
+    }
+
     get rangeStart() {
-        return this.selectedDate;
+        return this.hasCustomRange ? this.parseDateOnly(this.customFromDate) : this.selectedDate;
     }
 
     get rangeEnd() {
+        if (this.hasCustomRange) {
+            return this.parseDateOnly(this.customToDate);
+        }
         const end = new Date(this.selectedDate);
         end.setDate(end.getDate() + 13);
         return end;
+    }
+
+    parseDateOnly(isoString) {
+        const [year, month, day] = isoString.split('-').map(Number);
+        return new Date(year, month - 1, day);
+    }
+
+    handleFromDateChange(event) {
+        this.customFromDate = event.target.value || null;
+        this.loadReports();
+    }
+
+    handleToDateChange(event) {
+        this.customToDate = event.target.value || null;
+        this.loadReports();
+    }
+
+    handleClearCustomRange() {
+        this.customFromDate = null;
+        this.customToDate = null;
+        this.loadReports();
     }
 
     get rangeLabel() {
@@ -69,16 +110,22 @@ export default class CallVisitReportBrowser extends NavigationMixin(LightningEle
     }
 
     handlePrev() {
+        this.customFromDate = null;
+        this.customToDate = null;
         this.selectedDate = new Date(this.selectedDate.getTime() - 14 * DAY_MS);
         this.loadReports();
     }
 
     handleNext() {
+        this.customFromDate = null;
+        this.customToDate = null;
         this.selectedDate = new Date(this.selectedDate.getTime() + 14 * DAY_MS);
         this.loadReports();
     }
 
     handleToday() {
+        this.customFromDate = null;
+        this.customToDate = null;
         this.selectedDate = toDateOnly(new Date());
         this.loadReports();
     }
@@ -120,6 +167,7 @@ export default class CallVisitReportBrowser extends NavigationMixin(LightningEle
         this.editingId = null;
         this.formDefaultHcpId = null;
         this.formDefaultHcoId = null;
+        this.formSourcePlannedCallId = null;
         this.showDetail = true;
     }
 
@@ -127,6 +175,51 @@ export default class CallVisitReportBrowser extends NavigationMixin(LightningEle
         this.editingId = event.currentTarget.dataset.id;
         this.formDefaultHcpId = null;
         this.formDefaultHcoId = null;
+        this.formSourcePlannedCallId = null;
+        this.showDetail = true;
+    }
+
+    async handleOpenPlannedCallPicker() {
+        this.showPlannedCallPicker = true;
+        this.isLoadingPlannedCalls = true;
+        try {
+            const rows = await getOpenPlannedCalls();
+            this.openPlannedCalls = rows.map((r) => ({
+                ...r,
+                displayName: r.hcpName || r.hcoName || 'Untitled visit',
+                dateLabel: new Date(r.callDateTime).toLocaleString(undefined, {
+                    month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+                }),
+            }));
+        } catch (e) {
+            this.dispatchEvent(new ShowToastEvent({
+                title: 'Couldn’t load planned calls', message: e.body?.message || 'Try again.', variant: 'error',
+            }));
+            this.openPlannedCalls = [];
+        } finally {
+            this.isLoadingPlannedCalls = false;
+        }
+    }
+
+    handleClosePlannedCallPicker() {
+        this.showPlannedCallPicker = false;
+    }
+
+    get hasOpenPlannedCalls() {
+        return this.openPlannedCalls.length > 0;
+    }
+
+    handleStartFromPlannedCall(event) {
+        const id = event.currentTarget.dataset.id;
+        const pc = this.openPlannedCalls.find((r) => r.id === id);
+        if (!pc) {
+            return;
+        }
+        this.editingId = null;
+        this.formDefaultHcpId = pc.hcpId;
+        this.formDefaultHcoId = pc.hcoId;
+        this.formSourcePlannedCallId = pc.id;
+        this.showPlannedCallPicker = false;
         this.showDetail = true;
     }
 

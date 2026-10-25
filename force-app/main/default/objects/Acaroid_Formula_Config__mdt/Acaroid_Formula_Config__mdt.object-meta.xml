@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Tunable values referenced from declarative Formula fields via $CustomMetadata, for anything Acaroid_Admin_Readiness_Status__c (a Formula field, so it can&apos;t read Acaroid_Scoring_Setting__c) needs. One &quot;Default&quot; record. See AcaroidConfig.cls for the Apex-side equivalent.</description>
+    <label>Acaroid Formula Config</label>
+    <pluralLabel>Acaroid Formula Configs</pluralLabel>
+    <visibility>Public</visibility>
+</CustomObject>

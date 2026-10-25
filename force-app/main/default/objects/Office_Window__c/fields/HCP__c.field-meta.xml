@@ -5,7 +5,7 @@
     <referenceTo>Sciagen_Account__c</referenceTo>
     <relationshipName>OfficeWindows</relationshipName>
     <relationshipOrder>0</relationshipOrder>
-    <reparentableMasterDetail>false</reparentableMasterDetail>
+    <reparentableMasterDetail>true</reparentableMasterDetail>
     <trackTrending>false</trackTrending>
     <type>MasterDetail</type>
     <writeRequiresMasterRead>false</writeRequiresMasterRead>

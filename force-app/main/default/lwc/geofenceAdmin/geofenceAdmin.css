@@ -1,0 +1,22 @@
+.page { padding: 1rem; max-width: 70rem; }
+.page-header h2 { font-size: 1.25rem; font-weight: 700; margin: 0; }
+.page-subtitle { color: #5c5c5c; margin: 0.25rem 0 1rem; }
+.hint { color: #5c5c5c; font-size: 0.8125rem; margin-top: 0.25rem; }
+.radius-row { max-width: 16rem; }
+.unsaved { margin-left: 0.75rem; color: #a96404; font-size: 0.8125rem; }
+.search-row { display: flex; gap: 0.5rem; align-items: flex-end; margin-top: 0.5rem; }
+.search-row lightning-input { flex: 1; }
+.radius-cell { width: 9rem; }
+.missing { --slds-c-badge-color-background: #fdeaea; }
+.filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 0.75rem; margin-top: 0.75rem; align-items: end; }
+.checks { display: flex; flex-direction: column; gap: 0.25rem; }
+.count { color: #5c5c5c; font-size: 0.8125rem; margin: 0.5rem 0; }
+.table-wrap { overflow-x: auto; }
+.rname { font-weight: 600; }
+.rdetail { color: #5c5c5c; font-size: 0.78rem; white-space: normal; }
+.actions { white-space: nowrap; }
+.st-active { color: #05713c; font-weight: 600; }
+.st-inactive { color: #7a7a7a; font-weight: 600; }
+.preview-row { display: flex; gap: 0.5rem; align-items: flex-end; margin-top: 0.5rem; max-width: 30rem; }
+.preview-row lightning-record-picker { flex: 1; }
+.effective { margin: 0.75rem 0 1rem; padding: 0.75rem 0.9rem; border: 1px solid #e5e5e5; border-radius: 0.5rem; background: #f7f9fb; max-width: 30rem; }

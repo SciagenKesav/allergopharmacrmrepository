@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Behaviour_Segmentation__c</fullName>
+    <label>Behaviour Segmentation</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <controllingField>Customer_Profile__c</controllingField>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>AIT Flex Prescribers</fullName>
+                <default>false</default>
+                <label>AIT Flex Prescribers</label>
+            </value>
+            <value>
+                <fullName>AIT Development Accounts</fullName>
+                <default>false</default>
+                <label>AIT Development Accounts</label>
+            </value>
+            <value>
+                <fullName>AIT Loyalists</fullName>
+                <default>false</default>
+                <label>AIT Loyalists</label>
+            </value>
+            <value>
+                <fullName>Non-Standardized AIT Loyalists</fullName>
+                <default>false</default>
+                <label>Non-Standardized AIT Loyalists</label>
+            </value>
+            <value>
+                <fullName>Comprehensive ENT Specialists</fullName>
+                <default>false</default>
+                <label>Comprehensive ENT Specialists</label>
+            </value>
+            <value>
+                <fullName>Allergy - OPD Focussed ENT</fullName>
+                <default>false</default>
+                <label>Allergy - OPD Focussed ENT</label>
+            </value>
+            <value>
+                <fullName>Surgery- Focused ENT Specialists</fullName>
+                <default>false</default>
+                <label>Surgery- Focused ENT Specialists</label>
+            </value>
+            <value>
+                <fullName>General OPD ENT</fullName>
+                <default>false</default>
+                <label>General OPD ENT</label>
+            </value>
+            <value>
+                <fullName>AIT Explorers</fullName>
+                <default>false</default>
+                <label>AIT Explorers</label>
+            </value>
+            <value>
+                <fullName>AIT Believers – Limited OPD</fullName>
+                <default>false</default>
+                <label>AIT Believers – Limited OPD</label>
+            </value>
+            <value>
+                <fullName>AIT Non-Adopters</fullName>
+                <default>false</default>
+                <label>AIT Non-Adopters</label>
+            </value>
+            <value>
+                <fullName>AIT Champions</fullName>
+                <default>false</default>
+                <label>AIT Champions</label>
+            </value>
+        </valueSetDefinition>
+        <valueSettings>
+            <controllingFieldValue>Allergist</controllingFieldValue>
+            <valueName>AIT Flex Prescribers</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>Allergist</controllingFieldValue>
+            <valueName>AIT Development Accounts</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>Allergist</controllingFieldValue>
+            <valueName>AIT Loyalists</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>Allergist</controllingFieldValue>
+            <valueName>Non-Standardized AIT Loyalists</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>ENT Specialist</controllingFieldValue>
+            <valueName>Comprehensive ENT Specialists</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>ENT Specialist</controllingFieldValue>
+            <valueName>Allergy - OPD Focussed ENT</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>ENT Specialist</controllingFieldValue>
+            <valueName>Surgery- Focused ENT Specialists</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>ENT Specialist</controllingFieldValue>
+            <valueName>General OPD ENT</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>Pulmonologist</controllingFieldValue>
+            <controllingFieldValue>Paediatrician</controllingFieldValue>
+            <valueName>AIT Explorers</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>Pulmonologist</controllingFieldValue>
+            <controllingFieldValue>Paediatrician</controllingFieldValue>
+            <valueName>AIT Believers – Limited OPD</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>Pulmonologist</controllingFieldValue>
+            <controllingFieldValue>Paediatrician</controllingFieldValue>
+            <valueName>AIT Non-Adopters</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>Pulmonologist</controllingFieldValue>
+            <controllingFieldValue>Paediatrician</controllingFieldValue>
+            <valueName>AIT Champions</valueName>
+        </valueSettings>
+    </valueSet>
+</CustomField>

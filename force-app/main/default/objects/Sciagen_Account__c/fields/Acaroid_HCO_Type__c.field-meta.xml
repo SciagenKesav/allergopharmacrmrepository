@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Acaroid_HCO_Type__c</fullName>
+    <description>Clinical classification used for Acaroid targeting (distinct from the generic HCO Type). Diagnostic Labs are partners, never administration sites.</description>
+    <label>Acaroid HCO Type</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Tertiary / Teaching Hospital</fullName>
+                <default>false</default>
+                <label>Tertiary / Teaching Hospital</label>
+            </value>
+            <value>
+                <fullName>Multi-specialty Hospital</fullName>
+                <default>false</default>
+                <label>Multi-specialty Hospital</label>
+            </value>
+            <value>
+                <fullName>Children&apos;s Hospital</fullName>
+                <default>false</default>
+                <label>Children&apos;s Hospital</label>
+            </value>
+            <value>
+                <fullName>Specialty Allergy Clinic</fullName>
+                <default>false</default>
+                <label>Specialty Allergy Clinic</label>
+            </value>
+            <value>
+                <fullName>Chest / Respiratory Clinic</fullName>
+                <default>false</default>
+                <label>Chest / Respiratory Clinic</label>
+            </value>
+            <value>
+                <fullName>ENT Clinic</fullName>
+                <default>false</default>
+                <label>ENT Clinic</label>
+            </value>
+            <value>
+                <fullName>Polyclinic</fullName>
+                <default>false</default>
+                <label>Polyclinic</label>
+            </value>
+            <value>
+                <fullName>Nursing Home</fullName>
+                <default>false</default>
+                <label>Nursing Home</label>
+            </value>
+            <value>
+                <fullName>Diagnostic Lab</fullName>
+                <default>false</default>
+                <label>Diagnostic Lab</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ReportType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <baseObject>Planned_Call__c</baseObject>
+    <category>other</category>
+    <deployed>true</deployed>
+    <description>Planned calls with the Call Visit Report that resulted from them, if any -- powers the Missed Calls tile (a WITHOUT cross filter on the related CVR).</description>
+    <join>
+        <outerJoin>true</outerJoin>
+        <relationship>ResultingCVRs__r</relationship>
+    </join>
+    <label>Planned Calls with Call Visit Reports V2</label>
+    <sections>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Call_DateTime__c</field>
+            <table>Planned_Call__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Status__c</field>
+            <table>Planned_Call__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Is_Event__c</field>
+            <table>Planned_Call__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Origin__c</field>
+            <table>Planned_Call__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>HCP__c</field>
+            <table>Planned_Call__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>HCO__c</field>
+            <table>Planned_Call__c</table>
+        </columns>
+        <masterLabel>Planned Calls</masterLabel>
+    </sections>
+    <sections>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Visit_Date__c</field>
+            <table>Planned_Call__c.ResultingCVRs__r</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Record_Status__c</field>
+            <table>Planned_Call__c.ResultingCVRs__r</table>
+        </columns>
+        <masterLabel>Call Visit Reports</masterLabel>
+    </sections>
+</ReportType>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Acaroid_Earliest_Inuse_Expiry__c</fullName>
+    <description>Opened vials must be used within 12 months; alert at 60 days.</description>
+    <label>Earliest In-use Expiry</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Date</type>
+</CustomField>

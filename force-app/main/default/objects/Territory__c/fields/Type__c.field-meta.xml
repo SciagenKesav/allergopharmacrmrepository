@@ -24,6 +24,26 @@
                 <default>false</default>
                 <label>Territory</label>
             </value>
+            <value>
+                <fullName>North</fullName>
+                <default>false</default>
+                <label>North</label>
+            </value>
+            <value>
+                <fullName>South</fullName>
+                <default>false</default>
+                <label>South</label>
+            </value>
+            <value>
+                <fullName>East</fullName>
+                <default>false</default>
+                <label>East</label>
+            </value>
+            <value>
+                <fullName>West</fullName>
+                <default>false</default>
+                <label>West</label>
+            </value>
         </valueSetDefinition>
     </valueSet>
 </CustomField>

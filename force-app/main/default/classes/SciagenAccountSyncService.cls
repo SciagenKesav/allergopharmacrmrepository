@@ -151,6 +151,21 @@ global with sharing class SciagenAccountSyncService {
 
     // ===================== POST: sync up (creates DCRs) =====================
 
+    // A single changed field's before/after value, for the `fieldDiffs` map below.
+    // Deliberately its own typed class rather than a raw `Object` value: Apex's
+    // *strongly-typed* JSON.deserialize(json, ApexType.class) — what syncUp() uses on
+    // every real REST call — throws "Apex Type unsupported in JSON: Object" the moment
+    // it hits a field declared as `Object`/`Map<String, Object>`; it can only parse into
+    // known Apex types. `Map<String, Object>` compiled fine and worked when a test built
+    // the request in Apex directly (doSyncUp() called straight, skipping JSON entirely —
+    // see SciagenAccountSyncServiceTest's pre-fix history), which is exactly why this
+    // shipped without failing CI: nothing exercised the actual JSON-body entry point with
+    // a populated fieldDiffs until a real device hit it and every edit-mode sync 400'd.
+    global class FieldDiff {
+        public String current;
+        public String requested;
+    }
+
     global class AccountUpsertRequest {
         public String localId;           // client-generated id, echoed back for correlation
         public String type;              // HCP / HCO
@@ -165,17 +180,7 @@ global with sharing class SciagenAccountSyncService {
         // Edit HCP/HCO only: per-field {"current": ..., "requested": ...} diff, changed fields
         // only. Additive alongside `fields` (used by New HCP/HCO) rather than retyping it, so
         // existing callers/tests serializing a flat Map<String,String> keep working unchanged.
-        //
-        // MUST stay a concrete Map<String, Map<String, String>> — not Map<String, Object>.
-        // syncUp() parses the whole request body with the strongly-typed JSON.deserialize(String,
-        // Type), and that API throws "Apex Type unsupported in JSON: Object" the instant it hits
-        // an Object-typed field, unconditionally, for the entire request — not a per-field or
-        // per-record failure. That silently rejected every single Edit HCP/HCO DCR the iPad ever
-        // submitted (New HCP/HCO requests only use `fields` above, a plain Map<String,String>,
-        // which is why those always worked while Edit never did). The client (SalesforceRest
-        // DataService.swift's submitDataChangeRequest) only ever sends {"current": <string>,
-        // "requested": <string>} per field, so this concrete shape loses nothing.
-        public Map<String, Map<String, String>> fieldDiffs;
+        public Map<String, FieldDiff> fieldDiffs;
     }
 
     global class AccountSyncPushRequest {

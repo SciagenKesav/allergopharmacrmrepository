@@ -8,11 +8,11 @@
         <layoutColumns>
             <layoutItems>
                 <behavior>Required</behavior>
-                <field>Peer_Name__c</field>
+                <field>HCP__c</field>
             </layoutItems>
             <layoutItems>
                 <behavior>Required</behavior>
-                <field>HCP__c</field>
+                <field>Peer_Name__c</field>
             </layoutItems>
             <layoutItems>
                 <behavior>Required</behavior>
@@ -51,8 +51,8 @@
         <style>CustomLinks</style>
     </layoutSections>
     <miniLayout>
-        <fields>Peer_Name__c</fields>
         <fields>HCP__c</fields>
+        <fields>Peer_Name__c</fields>
     </miniLayout>
     <showEmailCheckbox>false</showEmailCheckbox>
     <showHighlightsPanel>false</showHighlightsPanel>

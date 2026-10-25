@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Affiliation Type --></label>
+    <name>Acaroid_Affiliation_Type__c</name>
+    <picklistValues>
+        <masterLabel>Consultant (full-time)</masterLabel>
+        <translation><!-- Consultant (full-time) --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Head of Department</masterLabel>
+        <translation><!-- Head of Department --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Own Clinic</masterLabel>
+        <translation><!-- Own Clinic --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Referrer</masterLabel>
+        <translation><!-- Referrer --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Visiting Consultant</masterLabel>
+        <translation><!-- Visiting Consultant --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

@@ -48,19 +48,6 @@ public without sharing class SampleLimitChecker {
         public Date endDate;            // exclusive, null = no upper bound
     }
 
-    /** One line's worth of input to checkLimitsBulk() — same shape as checkLimits()'s
-     *  parameters, plus `key` so the caller can match each result back to its request. */
-    public class LimitCheckRequest {
-        public String key;
-        public Id repUserId;
-        public Id hcpAccountId;
-        public Id productId;
-        public Integer requestedQuantity;
-        public Id callId;
-        public Decimal onCallSameProduct = 0;
-        public Decimal onCallAll = 0;
-    }
-
     // ------------------------------------------------------------ periods
 
     public static Date fyStart(Date d) {
@@ -102,6 +89,83 @@ public without sharing class SampleLimitChecker {
         return m.containsKey(period) ? m.get(period) : period;
     }
 
+    // ------------------------------------------------------------ batch priming (QA-49 / H8)
+    //
+    // SampleDropService primes these once per trigger batch so a list of sample lines costs a fixed
+    // number of queries (one grouped aggregate per applicable limit) instead of ~9 + one per limit per
+    // line. Unprimed callers (single eligibility checks from the UI) keep the per-call queries.
+
+    private static Boolean primed = false;
+    private static Map<Id, Product__c> primedProducts;
+    private static Map<Id, Set<Id>> primedTerritories;
+    private static List<Sample_Limit__c> primedLimits;
+    private static Map<Id, List<Sample_Limit_Override__c>> primedOverrides;
+    private static Map<Id, Map<String, Decimal>> primedCallQty;
+    private static Set<Id> primedReps, primedHcps, primedProductIds;
+    private static Map<String, Map<String, Decimal>> primedUsage;
+    private static Map<Id, Set<Id>> primedTerritoryUsers;
+
+    public static void prime(Set<Id> repIds, Set<Id> hcpIds, Set<Id> productIds, Set<Id> callIds) {
+        primedReps = repIds; primedHcps = hcpIds; primedProductIds = productIds;
+        primedProducts = new Map<Id, Product__c>([SELECT Id, Name, Max_Packs_Per_HCP_Per_Year__c FROM Product__c WHERE Id IN :productIds]);
+        primedTerritories = new Map<Id, Set<Id>>();
+        for (Id r : repIds) primedTerritories.put(r, new Set<Id>());
+        for (User_Territory__c ut : [SELECT User__c, Territory__c FROM User_Territory__c WHERE User__c IN :repIds AND Territory__c != null]) {
+            primedTerritories.get(ut.User__c).add(ut.Territory__c);
+        }
+        primedLimits = activeLimits();
+        Set<Id> limitIds = new Set<Id>();
+        Set<Id> territoryIds = new Set<Id>();
+        for (Sample_Limit__c l : primedLimits) {
+            limitIds.add(l.Id);
+            if (l.Limit_Scope__c == 'Territory_Product' && l.Territory__c != null) territoryIds.add(l.Territory__c);
+        }
+        primedOverrides = new Map<Id, List<Sample_Limit_Override__c>>();
+        for (Sample_Limit_Override__c o : activeOverrides(limitIds)) {
+            if (!primedOverrides.containsKey(o.Sample_Limit__c)) primedOverrides.put(o.Sample_Limit__c, new List<Sample_Limit_Override__c>());
+            primedOverrides.get(o.Sample_Limit__c).add(o);
+        }
+        primedTerritoryUsers = new Map<Id, Set<Id>>();
+        for (Id t : territoryIds) primedTerritoryUsers.put(t, new Set<Id>());
+        if (!territoryIds.isEmpty()) {
+            for (User_Territory__c ut : [SELECT User__c, Territory__c FROM User_Territory__c WHERE Territory__c IN :territoryIds]) primedTerritoryUsers.get(ut.Territory__c).add(ut.User__c);
+        }
+        primedCallQty = new Map<Id, Map<String, Decimal>>();
+        for (Id c : callIds) primedCallQty.put(c, new Map<String, Decimal>{ 'ALL' => 0 });
+        if (!callIds.isEmpty()) {
+            for (AggregateResult ar : [SELECT CVR__c c, Product__c p, SUM(Qty__c) q FROM Sample_Drop__c WHERE CVR__c IN :callIds GROUP BY CVR__c, Product__c]) {
+                Map<String, Decimal> m = primedCallQty.get((Id) ar.get('c'));
+                Decimal q = ar.get('q') == null ? 0 : (Decimal) ar.get('q');
+                m.put(String.valueOf(ar.get('p')), q);
+                m.put('ALL', m.get('ALL') + q);
+            }
+        }
+        primedUsage = new Map<String, Map<String, Decimal>>();
+        primed = true;
+    }
+
+    public static void clearPrime() {
+        primed = false;
+        primedProducts = null; primedTerritories = null; primedLimits = null; primedOverrides = null;
+        primedCallQty = null; primedUsage = null; primedTerritoryUsers = null;
+        primedReps = null; primedHcps = null; primedProductIds = null;
+    }
+
+    private static List<Sample_Limit__c> activeLimits() {
+        return [
+            SELECT Id, Name, Limit_Scope__c, Product__c, Limit_Quantity__c, Limit_Period__c, Warning_Threshold_Pct__c, Hard_Block__c,
+                   Override_Requires_Manager__c, Is_Regulatory__c, Regulatory_Reference__c, Territory__c, Applies_To_User__c
+            FROM Sample_Limit__c WHERE Is_Active__c = true
+        ];
+    }
+
+    private static List<Sample_Limit_Override__c> activeOverrides(Set<Id> limitIds) {
+        return [
+            SELECT Id, Sample_Limit__c, Override_Type__c, Override_Value__c, Target_Account__c, Target_User__c, Valid_From__c, Valid_To__c
+            FROM Sample_Limit_Override__c WHERE Status__c = 'Active' AND Sample_Limit__c IN :limitIds
+        ];
+    }
+
     // -------------------------------------------------------------- check
 
     public static LimitCheckResult checkLimits(Id repUserId, Id hcpAccountId, Id productId, Integer requestedQuantity, Id callId) {
@@ -115,16 +179,16 @@ public without sharing class SampleLimitChecker {
         Decimal requested = requestedQuantity == null ? 0 : requestedQuantity;
         Date today = Date.today();
 
-        Product__c product = [SELECT Id, Name, Max_Packs_Per_HCP_Per_Year__c FROM Product__c WHERE Id = :productId LIMIT 1];
+        Boolean usePrimed = primed && primedProducts.containsKey(productId) && primedTerritories.containsKey(repUserId)
+            && primedHcps.contains(hcpAccountId) && (callId == null || primedCallQty.containsKey(callId));
+        Product__c product = usePrimed ? primedProducts.get(productId)
+            : [SELECT Id, Name, Max_Packs_Per_HCP_Per_Year__c FROM Product__c WHERE Id = :productId LIMIT 1];
         Set<Id> myTerritories = new Set<Id>();
-        for (User_Territory__c ut : [SELECT Territory__c FROM User_Territory__c WHERE User__c = :repUserId AND Territory__c != null]) myTerritories.add(ut.Territory__c);
+        if (usePrimed) myTerritories = primedTerritories.get(repUserId);
+        else for (User_Territory__c ut : [SELECT Territory__c FROM User_Territory__c WHERE User__c = :repUserId AND Territory__c != null]) myTerritories.add(ut.Territory__c);
 
         List<Sample_Limit__c> limits = new List<Sample_Limit__c>();
-        for (Sample_Limit__c l : [
-            SELECT Id, Name, Limit_Scope__c, Product__c, Limit_Quantity__c, Limit_Period__c, Warning_Threshold_Pct__c, Hard_Block__c,
-                   Override_Requires_Manager__c, Is_Regulatory__c, Regulatory_Reference__c, Territory__c, Applies_To_User__c
-            FROM Sample_Limit__c WHERE Is_Active__c = true
-        ]) {
+        for (Sample_Limit__c l : usePrimed ? primedLimits : activeLimits()) {
             if (l.Product__c != null && l.Product__c != productId) continue;
             if (l.Applies_To_User__c != null && l.Applies_To_User__c != repUserId) continue;
             if (l.Territory__c != null && !myTerritories.contains(l.Territory__c)) continue;
@@ -135,18 +199,21 @@ public without sharing class SampleLimitChecker {
         Map<Id, List<Sample_Limit_Override__c>> overrides = new Map<Id, List<Sample_Limit_Override__c>>();
         Set<Id> limitIds = new Set<Id>();
         for (Sample_Limit__c l : limits) if (l.Id != null) limitIds.add(l.Id);
-        for (Sample_Limit_Override__c o : [
-            SELECT Id, Sample_Limit__c, Override_Type__c, Override_Value__c, Target_Account__c, Target_User__c, Valid_From__c, Valid_To__c
-            FROM Sample_Limit_Override__c WHERE Status__c = 'Active' AND Sample_Limit__c IN :limitIds
-        ]) {
+        List<Sample_Limit_Override__c> candidateOverrides = new List<Sample_Limit_Override__c>();
+        if (usePrimed) {
+            for (Id lid : limitIds) if (primedOverrides.containsKey(lid)) candidateOverrides.addAll(primedOverrides.get(lid));
+        } else {
+            candidateOverrides = activeOverrides(limitIds);
+        }
+        for (Sample_Limit_Override__c o : candidateOverrides) {
             if (!overrideApplies(o, hcpAccountId, repUserId, today)) continue;
             if (!overrides.containsKey(o.Sample_Limit__c)) overrides.put(o.Sample_Limit__c, new List<Sample_Limit_Override__c>());
             overrides.get(o.Sample_Limit__c).add(o);
         }
 
-        Map<String, Decimal> callQty = callQuantities(callId);
+        Map<String, Decimal> callQty = usePrimed && callId != null ? primedCallQty.get(callId) : callQuantities(callId);
         for (Sample_Limit__c l : limits) {
-            LimitCheck c = evaluate(l, overrides.get(l.Id), repUserId, hcpAccountId, productId, requested, today, callQty, onCallSameProduct, onCallAll, myTerritories);
+            LimitCheck c = evaluate(l, overrides.get(l.Id), repUserId, hcpAccountId, productId, requested, today, callQty, onCallSameProduct, onCallAll, myTerritories, usePrimed);
             res.checks.add(c);
             if (c.status == 'BLOCKED') { res.allowed = false; res.blockers.add(c.message); }
             else if (c.status == 'WARNING') {
@@ -159,235 +226,6 @@ public without sharing class SampleLimitChecker {
         res.status = !res.allowed ? 'Blocked' : (res.warnings.isEmpty() ? 'Eligible' : 'Warning');
         if (!res.allowed) { res.overrideable = false; res.needsReason = false; }
         return res;
-    }
-
-    /**
-     * Bulk form of checkLimits() for a whole batch of lines at once (e.g. every
-     * Sample_Drop__c on one call). checkLimits() runs, per line: 1 Product__c query, 1
-     * territory query, 1 Sample_Limit__c query, 1 override query, 1 call-quantity query,
-     * and — the part that actually grows unbounded — one usage() query PER ACTIVE LIMIT.
-     * A call with 15 lines and 4 active limits is ~15 x (5 + 4) = 135 queries, already
-     * over the 100-query governor limit, and every future phase that adds more limits
-     * makes it worse (Phase 0 hotfix, the audit's governor-limit risk).
-     *
-     * This does the same work with a query count that depends on the number of DISTINCT
-     * limits and dimension values in the batch, not the number of lines: one Product__c
-     * query, one territory query, one Sample_Limit__c query and one override query for
-     * the whole batch, plus exactly one grouped aggregate usage() query PER limit that
-     * actually applies to anything in the batch (GROUP BY the scope's dimension — e.g.
-     * HCP + Product — covers every line that limit applies to in that single query).
-     *
-     * requests must each carry a distinct `key`; the result map is keyed the same way.
-     */
-    public static Map<String, LimitCheckResult> checkLimitsBulk(List<LimitCheckRequest> requests) {
-        Map<String, LimitCheckResult> out = new Map<String, LimitCheckResult>();
-        if (requests == null || requests.isEmpty()) return out;
-        Date today = Date.today();
-
-        Set<Id> productIds = new Set<Id>();
-        Set<Id> repIds = new Set<Id>();
-        Set<Id> callIds = new Set<Id>();
-        for (LimitCheckRequest req : requests) {
-            if (req.productId != null) productIds.add(req.productId);
-            if (req.repUserId != null) repIds.add(req.repUserId);
-            if (req.callId != null) callIds.add(req.callId);
-        }
-
-        // Cached once for the whole batch (was: once per line).
-        Map<Id, Product__c> products = new Map<Id, Product__c>(
-            [SELECT Id, Name, Max_Packs_Per_HCP_Per_Year__c FROM Product__c WHERE Id IN :productIds]);
-        Map<Id, Set<Id>> repTerritories = new Map<Id, Set<Id>>();
-        for (User_Territory__c ut : [SELECT User__c, Territory__c FROM User_Territory__c WHERE User__c IN :repIds AND Territory__c != null]) {
-            if (!repTerritories.containsKey(ut.User__c)) repTerritories.put(ut.User__c, new Set<Id>());
-            repTerritories.get(ut.User__c).add(ut.Territory__c);
-        }
-        List<Sample_Limit__c> activeLimits = [
-            SELECT Id, Name, Limit_Scope__c, Product__c, Limit_Quantity__c, Limit_Period__c, Warning_Threshold_Pct__c, Hard_Block__c,
-                   Override_Requires_Manager__c, Is_Regulatory__c, Regulatory_Reference__c, Territory__c, Applies_To_User__c
-            FROM Sample_Limit__c WHERE Is_Active__c = true
-        ];
-
-        // addProductLimit()'s synthetic per-product regulatory limit — built once per
-        // distinct product in the batch (was: once per line).
-        Map<Id, Sample_Limit__c> syntheticByProduct = new Map<Id, Sample_Limit__c>();
-        for (Id pid : productIds) {
-            Product__c p = products.get(pid);
-            if (p == null) continue;
-            List<Sample_Limit__c> scopedToThisProduct = new List<Sample_Limit__c>();
-            for (Sample_Limit__c l : activeLimits) if (l.Product__c == null || l.Product__c == pid) scopedToThisProduct.add(l);
-            Integer before = scopedToThisProduct.size();
-            addProductLimit(scopedToThisProduct, p);
-            if (scopedToThisProduct.size() > before) syntheticByProduct.put(pid, scopedToThisProduct[scopedToThisProduct.size() - 1]);
-        }
-
-        // Which limits apply to each request — same filter as checkLimits()'s per-line
-        // loop, just evaluated once per request against the shared, already-queried lists.
-        Map<String, List<Sample_Limit__c>> applicableByKey = new Map<String, List<Sample_Limit__c>>();
-        Map<String, Sample_Limit__c> limitByKey = new Map<String, Sample_Limit__c>();
-        Map<String, List<LimitCheckRequest>> requestsByLimitKey = new Map<String, List<LimitCheckRequest>>();
-        for (LimitCheckRequest req : requests) {
-            List<Sample_Limit__c> applicable = new List<Sample_Limit__c>();
-            Set<Id> territories = repTerritories.containsKey(req.repUserId) ? repTerritories.get(req.repUserId) : new Set<Id>();
-            for (Sample_Limit__c l : activeLimits) {
-                if (l.Product__c != null && l.Product__c != req.productId) continue;
-                if (l.Applies_To_User__c != null && l.Applies_To_User__c != req.repUserId) continue;
-                if (l.Territory__c != null && !territories.contains(l.Territory__c)) continue;
-                applicable.add(l);
-            }
-            Sample_Limit__c synthetic = syntheticByProduct.get(req.productId);
-            if (synthetic != null) applicable.add(synthetic);
-            applicableByKey.put(req.key, applicable);
-            for (Sample_Limit__c l : applicable) {
-                String lk = limitKey(l);
-                limitByKey.put(lk, l);
-                if (!requestsByLimitKey.containsKey(lk)) requestsByLimitKey.put(lk, new List<LimitCheckRequest>());
-                requestsByLimitKey.get(lk).add(req);
-            }
-        }
-
-        // One grouped aggregate query per limit that actually applies to something in
-        // this batch (Per_Call doesn't need a query at all — callQuantities() below).
-        Map<String, Map<String, Decimal>> usageByLimitKey = new Map<String, Map<String, Decimal>>();
-        for (String lk : requestsByLimitKey.keySet()) {
-            Sample_Limit__c l = limitByKey.get(lk);
-            if (l.Limit_Scope__c == 'Per_Call') continue;
-            usageByLimitKey.put(lk, usageBulk(l, requestsByLimitKey.get(lk), today));
-        }
-
-        // Per_Call usage — Sample_Drop__c rows already saved on each call in this batch.
-        Map<Id, Map<String, Decimal>> callQtyByCall = new Map<Id, Map<String, Decimal>>();
-        for (Id callId : callIds) callQtyByCall.put(callId, callQuantities(callId));
-
-        Set<Id> limitIds = new Set<Id>();
-        for (String lk : limitByKey.keySet()) { Id lid = limitByKey.get(lk).Id; if (lid != null) limitIds.add(lid); }
-        Map<Id, List<Sample_Limit_Override__c>> overridesByLimit = new Map<Id, List<Sample_Limit_Override__c>>();
-        for (Sample_Limit_Override__c o : [
-            SELECT Id, Sample_Limit__c, Override_Type__c, Override_Value__c, Target_Account__c, Target_User__c, Valid_From__c, Valid_To__c
-            FROM Sample_Limit_Override__c WHERE Status__c = 'Active' AND Sample_Limit__c IN :limitIds
-        ]) {
-            if (!overridesByLimit.containsKey(o.Sample_Limit__c)) overridesByLimit.put(o.Sample_Limit__c, new List<Sample_Limit_Override__c>());
-            overridesByLimit.get(o.Sample_Limit__c).add(o);
-        }
-
-        for (LimitCheckRequest req : requests) {
-            LimitCheckResult res = new LimitCheckResult();
-            Decimal requested = req.requestedQuantity == null ? 0 : req.requestedQuantity;
-            for (Sample_Limit__c l : applicableByKey.get(req.key)) {
-                List<Sample_Limit_Override__c> ovs = l.Id != null ? overridesByLimit.get(l.Id) : null;
-                List<Sample_Limit_Override__c> matchingOvs = null;
-                if (ovs != null) {
-                    matchingOvs = new List<Sample_Limit_Override__c>();
-                    for (Sample_Limit_Override__c o : ovs) if (overrideApplies(o, req.hcpAccountId, req.repUserId, today)) matchingOvs.add(o);
-                }
-
-                Decimal used;
-                if (l.Limit_Scope__c == 'Per_Call') {
-                    Map<String, Decimal> callQty = callQtyByCall.containsKey(req.callId) ? callQtyByCall.get(req.callId) : new Map<String, Decimal>();
-                    used = l.Product__c != null
-                        ? nz(callQty.get(String.valueOf(l.Product__c))) + req.onCallSameProduct
-                        : nz(callQty.get('ALL')) + req.onCallAll;
-                } else {
-                    Map<String, Decimal> byDim = usageByLimitKey.get(limitKey(l));
-                    used = byDim != null ? nz(byDim.get(dimensionKey(l.Limit_Scope__c, req))) : 0;
-                    if (l.Limit_Scope__c == 'HCP_Product' || l.Limit_Scope__c == 'Rep_Product' || l.Limit_Scope__c == 'Product_Global' || l.Limit_Scope__c == 'Territory_Product') {
-                        used += req.onCallSameProduct;
-                    } else {
-                        used += req.onCallAll;
-                    }
-                }
-                LimitCheck c = evaluateFromUsage(l, matchingOvs, requested, used, today);
-                res.checks.add(c);
-                if (c.status == 'BLOCKED') { res.allowed = false; res.blockers.add(c.message); }
-                else if (c.status == 'WARNING') {
-                    res.warnings.add(c.message);
-                    if (c.needsReason) { res.needsReason = true; res.overrideable = true; }
-                    if (c.requiresManager) res.requiresManager = true;
-                }
-                if (c.overrideId != null && c.status != 'BLOCKED') res.overrideId = c.overrideId;
-            }
-            res.status = !res.allowed ? 'Blocked' : (res.warnings.isEmpty() ? 'Eligible' : 'Warning');
-            if (!res.allowed) { res.overrideable = false; res.needsReason = false; }
-            out.put(req.key, res);
-        }
-        return out;
-    }
-
-    /** Stable key for a Sample_Limit__c across the batch — real limits by Id, the
-     *  synthetic per-product regulatory limit (no Id) by product instead. */
-    private static String limitKey(Sample_Limit__c l) {
-        return l.Id != null ? String.valueOf(l.Id) : ('PRODUCT:' + l.Product__c);
-    }
-
-    /** The dimension a given scope groups usage by, for one request — must match how
-     *  usageBulk() below keys its grouped query results. */
-    private static String dimensionKey(String scope, LimitCheckRequest req) {
-        if (scope == 'HCP_Product') return req.hcpAccountId + '|' + req.productId;
-        if (scope == 'HCP_All') return String.valueOf(req.hcpAccountId);
-        if (scope == 'Rep_Product') return req.repUserId + '|' + req.productId;
-        if (scope == 'Rep_All') return String.valueOf(req.repUserId);
-        if (scope == 'Territory_Product' || scope == 'Product_Global') return String.valueOf(req.productId);
-        return '';
-    }
-
-    /** One grouped aggregate query covering every request this limit applies to, keyed
-     *  by dimensionKey() so checkLimitsBulk() can look each request's usage back up. */
-    private static Map<String, Decimal> usageBulk(Sample_Limit__c l, List<LimitCheckRequest> reqs, Date today) {
-        Map<String, Decimal> out = new Map<String, Decimal>();
-        Set<Id> hcps = new Set<Id>();
-        Set<Id> reps = new Set<Id>();
-        Set<Id> products = new Set<Id>();
-        for (LimitCheckRequest req : reqs) {
-            if (req.hcpAccountId != null) hcps.add(req.hcpAccountId);
-            if (req.repUserId != null) reps.add(req.repUserId);
-            if (req.productId != null) products.add(req.productId);
-        }
-
-        List<String> conds = new List<String>{ 'Transaction_Type__c = \'Disbursement\'', 'Inventory_Applied__c = true' };
-        Map<String, Object> binds = new Map<String, Object>();
-        Period p = periodFor(l.Limit_Period__c, today);
-        if (p.startDate != null) { conds.add('Performed_At__c >= :fromAt'); binds.put('fromAt', Datetime.newInstance(p.startDate, Time.newInstance(0, 0, 0, 0))); }
-        if (p.endDate != null) { conds.add('Performed_At__c < :toAt'); binds.put('toAt', Datetime.newInstance(p.endDate, Time.newInstance(0, 0, 0, 0))); }
-
-        String groupField1 = null;
-        String groupField2 = null;
-        String scope = l.Limit_Scope__c;
-        if (scope == 'HCP_Product') {
-            conds.add('HCP_Account__c IN :hcps'); conds.add('Product__c IN :products'); binds.put('hcps', hcps); binds.put('products', products);
-            groupField1 = 'HCP_Account__c'; groupField2 = 'Product__c';
-        } else if (scope == 'HCP_All') {
-            conds.add('HCP_Account__c IN :hcps'); binds.put('hcps', hcps);
-            if (l.Product__c != null) { conds.add('Product__c = :limitProduct'); binds.put('limitProduct', l.Product__c); }
-            groupField1 = 'HCP_Account__c';
-        } else if (scope == 'Rep_Product') {
-            conds.add('Performed_By__c IN :reps'); conds.add('Product__c IN :products'); binds.put('reps', reps); binds.put('products', products);
-            groupField1 = 'Performed_By__c'; groupField2 = 'Product__c';
-        } else if (scope == 'Rep_All') {
-            conds.add('Performed_By__c IN :reps'); binds.put('reps', reps);
-            if (l.Product__c != null) { conds.add('Product__c = :limitProduct'); binds.put('limitProduct', l.Product__c); }
-            groupField1 = 'Performed_By__c';
-        } else if (scope == 'Territory_Product') {
-            Set<Id> territoryUsers = new Set<Id>();
-            for (User_Territory__c ut : [SELECT User__c FROM User_Territory__c WHERE Territory__c = :l.Territory__c]) territoryUsers.add(ut.User__c);
-            conds.add('Performed_By__c IN :territoryUsers'); conds.add('Product__c IN :products'); binds.put('territoryUsers', territoryUsers); binds.put('products', products);
-            groupField1 = 'Product__c';                    // the territory itself is fixed for this one limit instance
-        } else if (scope == 'Product_Global') {
-            conds.add('Product__c IN :products'); binds.put('products', products);
-            groupField1 = 'Product__c';
-        } else {
-            return out;                                     // unknown/unsupported scope for bulk usage — treated as 0 used
-        }
-
-        String selectFields = groupField2 != null ? (groupField1 + ' g1, ' + groupField2 + ' g2') : (groupField1 + ' g1');
-        String groupBy = groupField2 != null ? (groupField1 + ', ' + groupField2) : groupField1;
-        String soql = 'SELECT ' + selectFields + ', SUM(Quantity__c) s FROM Sample_Transaction__c WHERE ' + String.join(conds, ' AND ') + ' GROUP BY ' + groupBy;
-        for (AggregateResult ar : (List<AggregateResult>) Database.queryWithBinds(soql, binds, AccessLevel.SYSTEM_MODE)) {
-            Id g1 = (Id) ar.get('g1');
-            Id g2 = groupField2 != null ? (Id) ar.get('g2') : null;
-            Decimal s = (Decimal) ar.get('s');
-            String key = g2 != null ? (String.valueOf(g1) + '|' + String.valueOf(g2)) : String.valueOf(g1);
-            out.put(key, s == null ? 0 : s);
-        }
-        return out;
     }
 
     private static void addProductLimit(List<Sample_Limit__c> limits, Product__c p) {
@@ -410,26 +248,7 @@ public without sharing class SampleLimitChecker {
     }
 
     private static LimitCheck evaluate(Sample_Limit__c l, List<Sample_Limit_Override__c> ovs, Id rep, Id hcp, Id product, Decimal requested, Date today,
-                                       Map<String, Decimal> callQty, Decimal onCallSameProduct, Decimal onCallAll, Set<Id> myTerritories) {
-        Decimal used;
-        if (l.Limit_Scope__c == 'Per_Call') {
-            used = l.Product__c != null ? nz(callQty.get(String.valueOf(l.Product__c))) + onCallSameProduct : nz(callQty.get('ALL')) + onCallAll;
-        } else {
-            used = usage(l, rep, hcp, product, today, myTerritories);
-            if (l.Limit_Scope__c == 'HCP_Product' || l.Limit_Scope__c == 'Rep_Product' || l.Limit_Scope__c == 'Product_Global' || l.Limit_Scope__c == 'Territory_Product') {
-                used += onCallSameProduct;
-            } else {
-                used += onCallAll;
-            }
-        }
-        return evaluateFromUsage(l, ovs, requested, used, today);
-    }
-
-    /** The part of evaluate() that doesn't need a fresh query once `used` (this limit's
-     *  current consumption, however it was computed) is already known — shared by the
-     *  single-line evaluate() above and checkLimitsBulk()'s batched path below, so the
-     *  override/threshold/messaging logic only exists once. */
-    private static LimitCheck evaluateFromUsage(Sample_Limit__c l, List<Sample_Limit_Override__c> ovs, Decimal requested, Decimal used, Date today) {
+                                       Map<String, Decimal> callQty, Decimal onCallSameProduct, Decimal onCallAll, Set<Id> myTerritories, Boolean usePrimed) {
         LimitCheck c = new LimitCheck();
         c.limitId = l.Id;
         c.name = l.Name;
@@ -452,6 +271,18 @@ public without sharing class SampleLimitChecker {
             }
         }
         c.limitQuantity = effective;
+
+        Decimal used;
+        if (l.Limit_Scope__c == 'Per_Call') {
+            used = l.Product__c != null ? nz(callQty.get(String.valueOf(l.Product__c))) + onCallSameProduct : nz(callQty.get('ALL')) + onCallAll;
+        } else {
+            used = usePrimed ? primedUsage(l, rep, hcp, product, today) : usage(l, rep, hcp, product, today, myTerritories);
+            if (l.Limit_Scope__c == 'HCP_Product' || l.Limit_Scope__c == 'Rep_Product' || l.Limit_Scope__c == 'Product_Global' || l.Limit_Scope__c == 'Territory_Product') {
+                used += onCallSameProduct;
+            } else {
+                used += onCallAll;
+            }
+        }
         c.used = used;
         c.projected = used + requested;
 
@@ -494,6 +325,50 @@ public without sharing class SampleLimitChecker {
             m.put('ALL', m.get('ALL') + q);
         }
         return m;
+    }
+
+    /**
+     * Same numbers as usage(), but one grouped aggregate per limit for every rep / doctor / product in
+     * the primed batch, cached for the rest of the batch.
+     */
+    private static Decimal primedUsage(Sample_Limit__c l, Id rep, Id hcp, Id product, Date today) {
+        String scope = l.Limit_Scope__c;
+        String limitKey = (l.Id != null ? String.valueOf(l.Id) : 'SYN|' + scope + '|' + l.Limit_Period__c + '|' + l.Product__c);
+        if (!primedUsage.containsKey(limitKey)) {
+            List<String> conds = new List<String>{ 'Transaction_Type__c = \'Disbursement\'', 'Inventory_Applied__c = true' };
+            Map<String, Object> binds = new Map<String, Object>{ 'hcps' => primedHcps, 'reps' => primedReps, 'products' => primedProductIds };
+            String groupBy;
+            if (scope == 'HCP_Product') { conds.add('HCP_Account__c IN :hcps'); conds.add('Product__c IN :products'); groupBy = 'HCP_Account__c, Product__c'; }
+            else if (scope == 'HCP_All') { conds.add('HCP_Account__c IN :hcps'); groupBy = 'HCP_Account__c'; }
+            else if (scope == 'Rep_Product') { conds.add('Performed_By__c IN :reps'); conds.add('Product__c IN :products'); groupBy = 'Performed_By__c, Product__c'; }
+            else if (scope == 'Rep_All') { conds.add('Performed_By__c IN :reps'); groupBy = 'Performed_By__c'; }
+            else if (scope == 'Territory_Product') {
+                Set<Id> users = primedTerritoryUsers.containsKey(l.Territory__c) ? primedTerritoryUsers.get(l.Territory__c) : new Set<Id>();
+                conds.add('Performed_By__c IN :users'); conds.add('Product__c IN :products'); binds.put('users', users); groupBy = 'Product__c';
+            }
+            else { conds.add('Product__c IN :products'); groupBy = 'Product__c'; }   // Product_Global (and any other scope)
+            if (l.Product__c != null && (scope == 'HCP_All' || scope == 'Rep_All')) { conds.add('Product__c = :limitProduct'); binds.put('limitProduct', l.Product__c); }
+            Period p = periodFor(l.Limit_Period__c, today);
+            if (p.startDate != null) { conds.add('Performed_At__c >= :fromAt'); binds.put('fromAt', Datetime.newInstance(p.startDate, Time.newInstance(0, 0, 0, 0))); }
+            if (p.endDate != null) { conds.add('Performed_At__c < :toAt'); binds.put('toAt', Datetime.newInstance(p.endDate, Time.newInstance(0, 0, 0, 0))); }
+            Map<String, Decimal> totals = new Map<String, Decimal>();
+            List<AggregateResult> grouped = Database.queryWithBinds('SELECT ' + groupBy + ', SUM(Quantity__c) s FROM Sample_Transaction__c WHERE '
+                    + String.join(conds, ' AND ') + ' GROUP BY ' + groupBy, binds, AccessLevel.SYSTEM_MODE);
+            for (AggregateResult ar : grouped) {
+                List<String> parts = new List<String>();
+                for (String f : groupBy.split(', ')) parts.add(String.valueOf(ar.get(f)));
+                totals.put(String.join(parts, '|'), ar.get('s') == null ? 0 : (Decimal) ar.get('s'));
+            }
+            primedUsage.put(limitKey, totals);
+        }
+        String k;
+        if (scope == 'HCP_Product') k = hcp + '|' + product;
+        else if (scope == 'HCP_All') k = String.valueOf(hcp);
+        else if (scope == 'Rep_Product') k = rep + '|' + product;
+        else if (scope == 'Rep_All') k = String.valueOf(rep);
+        else k = String.valueOf(product);
+        Decimal v = primedUsage.get(limitKey).get(k);
+        return v == null ? 0 : v;
     }
 
     private static Decimal usage(Sample_Limit__c l, Id rep, Id hcp, Id product, Date today, Set<Id> myTerritories) {

@@ -16,7 +16,9 @@ public with sharing class DeviceResetAdminController {
         if (String.isNotBlank(statusFilter) && statusFilter != 'All') {
             q += 'WHERE Status__c = \'' + String.escapeSingleQuotes(statusFilter) + '\' ';
         }
-        q += 'ORDER BY CreatedDate DESC LIMIT 200 WITH USER_MODE';
+        // WITH USER_MODE must come before ORDER BY/LIMIT — after them it's a
+        // syntax error, so this query threw on every call.
+        q += 'WITH USER_MODE ORDER BY CreatedDate DESC LIMIT 200';
         return Database.query(q);
     }
 }

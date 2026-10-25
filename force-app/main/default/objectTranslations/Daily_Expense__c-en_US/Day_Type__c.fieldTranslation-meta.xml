@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Day Type --></label>
+    <name>Day_Type__c</name>
+    <picklistValues>
+        <masterLabel>Field Working</masterLabel>
+        <translation><!-- Field Working --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Non-Field Working</masterLabel>
+        <translation><!-- Non-Field Working --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

@@ -3,7 +3,6 @@
     <fullName>Manufactured_Date__c</fullName>
     <label>Manufactured Date</label>
     <required>false</required>
-    <trackHistory>true</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Date</type>
 </CustomField>

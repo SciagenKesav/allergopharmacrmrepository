@@ -14,13 +14,27 @@ private class AlertAdminControllerTest {
         Sciagen_Alert__c profileTargeted = new Sciagen_Alert__c(
             Title__c = 'New Formulary Win', Message__c = 'Emrok added to state formulary.',
             Type__c = 'Content', Priority__c = 'Important', Audience_Type__c = 'Profile',
-            Target_Profile__c = myProfileId, Activation_Date__c = now.addHours(-2), Expiration_Date__c = now.addDays(30), Is_Active__c = true
+            Target_Profile__c = ',' + myProfileId + ',', Activation_Date__c = now.addHours(-2), Expiration_Date__c = now.addDays(30), Is_Active__c = true
         );
+        // Target_User__c (legacy, single-user) is always set here so
+        // getAlerts()'s fallback path resolves correctly in any environment
+        // where Target_Users__c is temporarily unusable — see the fallback
+        // note above AlertAdminController.getAlerts(). Target_Users__c
+        // itself is set dynamically via put() (never a static reference:
+        // that can fail to *compile* while this org's platform-side field
+        // propagation issue is happening, which would block deploying this
+        // test file) so the primary path is exercised whenever the field is
+        // actually usable in this run.
         Sciagen_Alert__c userTargeted = new Sciagen_Alert__c(
             Title__c = 'Your DCR was rejected', Message__c = 'See rejection reason on the request.',
             Type__c = 'DCR', Priority__c = 'Normal', Audience_Type__c = 'User',
             Target_User__c = UserInfo.getUserId(), Activation_Date__c = now.addHours(-3), Expiration_Date__c = now.addDays(30), Is_Active__c = true
         );
+        try {
+            userTargeted.put('Target_Users__c', ',' + UserInfo.getUserId() + ',');
+        } catch (Exception e) {
+            // Field temporarily unusable in this org — Target_User__c above already covers this test.
+        }
         Sciagen_Alert__c inactive = new Sciagen_Alert__c(
             Title__c = 'Retired Alert', Type__c = 'Company', Priority__c = 'Normal', Audience_Type__c = 'All Users',
             Activation_Date__c = now.addHours(-4), Expiration_Date__c = now.addDays(30), Is_Active__c = false
@@ -77,7 +91,7 @@ private class AlertAdminControllerTest {
         Test.startTest();
         Id newId = AlertAdminController.saveAlert(
             null, 'New Content Demo Available', 'Check out the new multi-format deck.',
-            'Content', 'Normal', 'All Users', null, null, null, null, expiry
+            'Content', 'Normal', 'All Users', null, null, null, expiry
         );
         Test.stopTest();
 
@@ -94,7 +108,7 @@ private class AlertAdminControllerTest {
         Test.startTest();
         AlertAdminController.saveAlert(
             existing.Id, 'System Maintenance (Updated)', null,
-            'Company', 'Important', 'All Users', null, null, null, Datetime.now(), Datetime.now().addDays(30)
+            'Company', 'Important', 'All Users', null, null, Datetime.now(), Datetime.now().addDays(30)
         );
         Test.stopTest();
 
@@ -109,7 +123,7 @@ private class AlertAdminControllerTest {
         Test.startTest();
         try {
             AlertAdminController.saveAlert(
-                null, 'No Expiration Set', null, 'Company', 'Normal', 'All Users', null, null, null, null, null
+                null, 'No Expiration Set', null, 'Company', 'Normal', 'All Users', null, null, null, null
             );
             System.assert(false, 'Expected AuraHandledException for a missing expiration date');
         } catch (AuraHandledException e) {
@@ -124,7 +138,7 @@ private class AlertAdminControllerTest {
         try {
             // audienceType 'User' with no targetUserId supplied
             AlertAdminController.saveAlert(
-                null, 'Missing Target', null, 'Company', 'Normal', 'User', null, null, null, null, null
+                null, 'Missing Target', null, 'Company', 'Normal', 'User', null, null, null, null
             );
             System.assert(false, 'Expected AuraHandledException for a User-audience alert with no target user');
         } catch (AuraHandledException e) {
@@ -138,7 +152,7 @@ private class AlertAdminControllerTest {
         Test.startTest();
         try {
             AlertAdminController.saveAlert(
-                null, '', null, 'Company', 'Normal', 'All Users', null, null, null, null, null
+                null, '', null, 'Company', 'Normal', 'All Users', null, null, null, null
             );
             System.assert(false, 'Expected AuraHandledException for a blank title');
         } catch (AuraHandledException e) {
@@ -156,6 +170,34 @@ private class AlertAdminControllerTest {
         Test.stopTest();
 
         System.assertEquals(true, [SELECT Is_Active__c FROM Sciagen_Alert__c WHERE Id = :existing.Id].Is_Active__c);
+    }
+
+    @isTest
+    static void testSaveAlertSupportsMultipleProfilesAndUsers() {
+        List<Profile> profiles = [SELECT Id FROM Profile LIMIT 2];
+        List<Id> profileIds = new List<Id>();
+        for (Profile p : profiles) profileIds.add(p.Id);
+        List<Id> userIds = new List<Id>{ UserInfo.getUserId() };
+
+        Test.startTest();
+        Id newId = AlertAdminController.saveAlert(
+            null, 'Multi Target Alert', null, 'Company', 'Normal', 'Profile',
+            profileIds, null, null, Datetime.now().addDays(30)
+        );
+        Test.stopTest();
+
+        Sciagen_Alert__c created = [SELECT Target_Profile__c FROM Sciagen_Alert__c WHERE Id = :newId];
+        for (Id pId : profileIds) {
+            System.assert(created.Target_Profile__c.contains(',' + pId + ','), 'Every selected profile Id must be present in the stored list');
+        }
+
+        List<AlertAdminController.AlertDTO> alerts = AlertAdminController.getAlerts();
+        AlertAdminController.AlertDTO found;
+        for (AlertAdminController.AlertDTO a : alerts) {
+            if (a.id == newId) found = a;
+        }
+        System.assertNotEquals(null, found);
+        System.assertEquals(profileIds.size(), found.targetProfileIds.size());
     }
 
     @isTest

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Acaroid_Department__c</fullName>
+    <label>Department</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Allergy</fullName>
+                <default>false</default>
+                <label>Allergy</label>
+            </value>
+            <value>
+                <fullName>Pulmonology</fullName>
+                <default>false</default>
+                <label>Pulmonology</label>
+            </value>
+            <value>
+                <fullName>Paediatrics</fullName>
+                <default>false</default>
+                <label>Paediatrics</label>
+            </value>
+            <value>
+                <fullName>Paediatric Pulmonology</fullName>
+                <default>false</default>
+                <label>Paediatric Pulmonology</label>
+            </value>
+            <value>
+                <fullName>ENT</fullName>
+                <default>false</default>
+                <label>ENT</label>
+            </value>
+            <value>
+                <fullName>Dermatology</fullName>
+                <default>false</default>
+                <label>Dermatology</label>
+            </value>
+            <value>
+                <fullName>General Medicine</fullName>
+                <default>false</default>
+                <label>General Medicine</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

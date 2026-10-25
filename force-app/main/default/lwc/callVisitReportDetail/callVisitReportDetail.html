@@ -25,14 +25,34 @@
             default-hcp-id={defaultHcpId}
             default-hco-id={defaultHcoId}
             default-hco-address={defaultHcoAddress}
+            default-planned-call-id={sourcePlannedCallId}
             record-status={headerRecordStatus}
-            past-edit-window={isPastEditWindow}
             onsave={handleHeaderSave}
             oncancel={handleHeaderCancel}
         ></c-cvr-header-form>
 
         <template if:true={detail}>
             <div class="child-grid">
+                <!-- Detailing Priority: captured and ordered on the iPad Call Report; read-only here. -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Detailing Priority</h3>
+                    </div>
+                    <template if:true={hasDetailPriorities}>
+                        <ol class="priority-list">
+                            <template for:each={detailPriorityRows} for:item="row">
+                                <li key={row.id}>
+                                    <span class="priority-rank">{row.priority}</span>
+                                    <span class="priority-name">{row.productName}</span>
+                                    <span class="muted"> &middot; {row.sourceLabel}</span>
+                                </li>
+                            </template>
+                        </ol>
+                    </template>
+                    <template if:false={hasDetailPriorities}>
+                        <div class="empty-tab">No detailing priority captured.</div>
+                    </template>
+                </div>
                 <c-cvr-key-messages
                     cvr-id={_recordId}
                     locked={isLocked}

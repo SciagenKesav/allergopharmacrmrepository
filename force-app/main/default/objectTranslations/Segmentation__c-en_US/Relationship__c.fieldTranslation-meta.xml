@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Relationship --></label>
+    <name>Relationship__c</name>
+    <picklistValues>
+        <masterLabel>Moderate</masterLabel>
+        <translation><!-- Moderate --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>New</masterLabel>
+        <translation><!-- New --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Strong</masterLabel>
+        <translation><!-- Strong --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Weak</masterLabel>
+        <translation><!-- Weak --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

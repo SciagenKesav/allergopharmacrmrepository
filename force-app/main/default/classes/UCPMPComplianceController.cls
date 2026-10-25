@@ -38,25 +38,15 @@ public with sharing class UCPMPComplianceController {
         d.domesticSalesCrore = cfg.domesticSalesInr == null ? null : (cfg.domesticSalesInr / UCPMPComplianceService.CRORE).setScale(2);
         d.companyName = r.Company_Name__c; d.cin = r.Company_CIN__c; d.address = r.Company_Address__c; d.email = r.Company_Email__c; d.pan = r.Company_PAN__c;
         d.designation = r.Signatory_Designation__c; d.dinOrPan = r.Signatory_DIN_or_PAN__c; d.mobile = r.Signatory_Mobile__c; d.signEmail = r.Signatory_Email__c;
-        d.canEdit = FeatureManagement.checkPermission('Manage_Sample_Inventory');
+        d.canEdit = SampleAccess.isManager();
         return d;
-    }
-
-    /** AuraHandledException.getMessage() returns a generic "Script-thrown exception"
-     *  unless setMessage() is called explicitly — the constructor argument alone is
-     *  NOT what getMessage() later returns to a caller (LWC or, here, a test). Same
-     *  fix as SampleAdminController.userError() (Phase 0 Step 1). */
-    private static AuraHandledException userError(String message) {
-        AuraHandledException e = new AuraHandledException(message);
-        e.setMessage(message);
-        return e;
     }
 
     @AuraEnabled
     public static ConfigDTO saveConfig(String financialYear, Decimal domesticSalesCrore, String companyName, String cin, String address, String email, String pan,
                                        String designation, String dinOrPan, String mobile, String signEmail) {
-        if (!FeatureManagement.checkPermission('Manage_Sample_Inventory')) throw userError('Only a sample manager can change the UCPMP settings.');
-        if (domesticSalesCrore != null && domesticSalesCrore < 0) throw userError('Domestic sales can not be negative.');
+        if (!SampleAccess.isManager()) throw new AuraHandledException('Only a sample manager can change the UCPMP settings.');
+        if (domesticSalesCrore != null && domesticSalesCrore < 0) throw new AuraHandledException('Domestic sales can not be negative.');
         UCPMP_Tenant_Config__c r = UCPMP_Tenant_Config__c.getOrgDefaults();
         if (r.Id == null) {
             r.SetupOwnerId = UserInfo.getOrganizationId();

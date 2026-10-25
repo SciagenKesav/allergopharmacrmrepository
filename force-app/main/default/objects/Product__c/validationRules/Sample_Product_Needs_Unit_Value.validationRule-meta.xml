@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Sample_Product_Needs_Unit_Value</fullName>
+    <active>true</active>
+    <errorConditionFormula>AND(Is_Sample_Product__c, OR(ISBLANK(Sample_Unit_Value_INR__c), Sample_Unit_Value_INR__c &lt;= 0))</errorConditionFormula>
+    <errorDisplayField>Sample_Unit_Value_INR__c</errorDisplayField>
+    <errorMessage>A sample product needs a per-unit value above zero for UCPMP expenditure tracking.</errorMessage>
+</ValidationRule>

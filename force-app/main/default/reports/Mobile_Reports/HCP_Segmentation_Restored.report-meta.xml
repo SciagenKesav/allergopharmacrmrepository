@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <columns>
+        <field>Sciagen_Account__c$Name</field>
+    </columns>
+    <columns>
+        <field>Sciagen_Account__c$Specialty__c</field>
+    </columns>
+    <columns>
+        <field>Sciagen_Account__c$Emerging_Expert__c</field>
+    </columns>
+    <columns>
+        <field>Sciagen_Account__c.Segmentations__r$Classification__c</field>
+    </columns>
+    <columns>
+        <field>Sciagen_Account__c.Segmentations__r$Tier__c</field>
+    </columns>
+    <columns>
+        <field>Sciagen_Account__c.Segmentations__r$Priority__c</field>
+    </columns>
+    <columns>
+        <field>Sciagen_Account__c.Segmentations__r$Is_KOL__c</field>
+    </columns>
+    <description>Every HCP with its segmentation classification, tier and priority. Territory isn&apos;t joinable alongside Segmentation in one report type — cross-reference Coverage Frequency Report / Planned Visits for territory context on these HCPs.</description>
+    <format>Tabular</format>
+    <name>HCP Segmentation</name>
+    <params>
+        <name>co</name>
+        <value>1</value>
+    </params>
+    <reportType>HCP_Segmentation_V2__c</reportType>
+    <scope>organization</scope>
+    <showDetails>true</showDetails>
+    <showGrandTotal>true</showGrandTotal>
+    <showSubTotals>true</showSubTotals>
+</Report>

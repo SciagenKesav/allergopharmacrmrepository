@@ -4,8 +4,10 @@
     <columns>NAME</columns>
     <columns>CREATED_DATE</columns>
     <columns>Presentation_Name__c</columns>
+    <columns>Training_Type__c</columns>
     <columns>Product__c</columns>
-    <columns>OBJECT_ID</columns>
+    <columns>Brand__c</columns>
+    <columns>Display_Order__c</columns>
     <filterScope>Everything</filterScope>
     <label>All</label>
 </ListView>

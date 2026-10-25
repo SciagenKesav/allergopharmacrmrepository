@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Acaroid_Current_AIT_Product__c</fullName>
+    <label>Current AIT Product</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Local extract</fullName>
+                <default>false</default>
+                <label>Local extract</label>
+            </value>
+            <value>
+                <fullName>Imported SCIT</fullName>
+                <default>false</default>
+                <label>Imported SCIT</label>
+            </value>
+            <value>
+                <fullName>HDM SLIT tablet</fullName>
+                <default>false</default>
+                <label>HDM SLIT tablet</label>
+            </value>
+            <value>
+                <fullName>SLIT drops</fullName>
+                <default>false</default>
+                <label>SLIT drops</label>
+            </value>
+            <value>
+                <fullName>None</fullName>
+                <default>false</default>
+                <label>None</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

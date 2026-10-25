@@ -15,6 +15,7 @@ private class SampleAdminControllerTest {
 
     @isTest
     static void filtersAndLotsAreListedForTheAdmin() {
+        SampleAccess.testIsManager = true;
         Product__c p = SampleTestData.product('Admin SKU');
         Sample_Lot__c mine = SampleTestData.lot(p, 'AD-1', 20, 10);
         Sample_Lot__c later = SampleTestData.lot(p, 'AD-2', 20, 300);
@@ -43,6 +44,7 @@ private class SampleAdminControllerTest {
 
     @isTest
     static void bulkRecallQuarantineAndReactivate() {
+        SampleAccess.testIsManager = true;
         Product__c p = SampleTestData.product('Bulk SKU');
         Sample_Lot__c a = SampleTestData.lot(p, 'BK-1', 20, 100);
         Sample_Lot__c b = SampleTestData.lot(p, 'BK-2', 20, 100);
@@ -58,6 +60,7 @@ private class SampleAdminControllerTest {
 
     @isTest
     static void bulkTransferMovesTheWholeBalanceAndLeavesItPendingForTheRecipient() {
+        SampleAccess.testIsManager = true;
         Product__c p = SampleTestData.product('Move SKU');
         Sample_Lot__c l = SampleTestData.lot(p, 'MV-1', 20, 100);
         Sample_Lot__c empty = SampleTestData.lot(p, 'MV-0', 5, 100);
@@ -76,6 +79,7 @@ private class SampleAdminControllerTest {
 
     @isTest
     static void shipmentsCreateALotAndAPendingReceiptAndReportRowProblems() {
+        SampleAccess.testIsManager = true;
         Product__c p = SampleTestData.product('Ship SKU');
         p.SKU_Code__c = 'SHIP-1';
         update p;
@@ -145,6 +149,7 @@ private class SampleAdminControllerTest {
 
     @isTest
     static void managerApprovesOrRejectsHeldTransactionsAndOverrideRequests() {
+        SampleAccess.testIsManager = true;
         SampleLimitSeeder.seedDefaults();
         Product__c p = SampleTestData.product('Appr SKU');
         Sciagen_Account__c d = SampleTestData.doctor('Dr Approve');
@@ -174,6 +179,7 @@ private class SampleAdminControllerTest {
 
     @isTest
     static void rejectingAHeldTransactionLeavesStockAlone() {
+        SampleAccess.testIsManager = true;
         Product__c p = SampleTestData.product('Reject Held SKU');
         Sciagen_Account__c d = SampleTestData.doctor('Dr Reject Held');
         Sample_Lot__c l = SampleTestData.lot(p, 'RH-1', 30, 100);

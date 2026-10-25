@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Acaroid_HCP_Last_Scored_Date__c</fullName>
+    <description>Stamped by the scoring batch/trigger. Read-only.</description>
+    <label>Last Scored Date (HCP)</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Date</type>
+</CustomField>

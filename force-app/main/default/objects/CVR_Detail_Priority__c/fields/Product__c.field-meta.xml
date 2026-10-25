@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Product__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>The catalog product, when the app could match one. Product_Name__c always carries the name as detailed.</description>
+    <label>Product</label>
+    <referenceTo>Product__c</referenceTo>
+    <relationshipLabel>Call Detail Priorities</relationshipLabel>
+    <relationshipName>DetailPriorities</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

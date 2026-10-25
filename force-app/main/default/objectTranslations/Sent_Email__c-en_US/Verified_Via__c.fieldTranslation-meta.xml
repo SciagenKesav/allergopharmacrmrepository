@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Verified Via --></label>
+    <name>Verified_Via__c</name>
+    <picklistValues>
+        <masterLabel>Email OTP</masterLabel>
+        <translation><!-- Email OTP --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>HCP Signature</masterLabel>
+        <translation><!-- HCP Signature --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>None</masterLabel>
+        <translation><!-- None --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>WhatsApp OTP</masterLabel>
+        <translation><!-- WhatsApp OTP --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

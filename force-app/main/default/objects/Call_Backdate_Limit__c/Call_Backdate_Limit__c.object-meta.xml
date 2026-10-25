@@ -2,7 +2,6 @@
 <CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
     <customSettingsType>Hierarchy</customSettingsType>
     <description>How many days in the past a rep may date a Call Visit Report&apos;s visit date — the same rule Veeva calls CALL_BACKDATE_LIMIT_vod. A Hierarchy Custom Setting so an admin can set one org-wide default and override it per-Profile or per-User (e.g. a stricter limit for a specific rep) entirely from Setup, with no app deploy needed.</description>
-    <enableFeeds>false</enableFeeds>
     <label>Call Backdate Limit</label>
     <visibility>Public</visibility>
 </CustomObject>

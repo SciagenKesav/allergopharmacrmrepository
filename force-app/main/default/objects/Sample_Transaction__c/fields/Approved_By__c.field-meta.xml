@@ -7,7 +7,6 @@
     <relationshipLabel>Sample Transactions Approved</relationshipLabel>
     <relationshipName>SampleTransactionsApproved</relationshipName>
     <required>false</required>
-    <trackHistory>true</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Lookup</type>
 </CustomField>

@@ -27,7 +27,8 @@ private class DeviceResetRequestTriggerTest {
         update req;
         Test.stopTest();
 
-        req = [SELECT Id, Status__c, OTP__c, OTP_Expires__c FROM Device_Reset_Request__c WHERE Id = :req.Id];
+        // System mode: OTP__c is deliberately readable only by managers/admins with the field granted (QA-34).
+        req = [SELECT Id, Status__c, OTP__c, OTP_Expires__c FROM Device_Reset_Request__c WHERE Id = :req.Id WITH SYSTEM_MODE];
         System.assertEquals('Approved', req.Status__c);
         System.assertNotEquals(null, req.OTP__c, 'Approval should mint a one-time code');
         System.assertNotEquals(null, req.OTP_Expires__c);

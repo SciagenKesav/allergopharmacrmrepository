@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Cold Chain Temperature (C) --></label>
+    <name>Cold_Chain_Temperature__c</name>
+</CustomFieldTranslation>

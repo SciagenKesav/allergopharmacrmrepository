@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Role --></label>
+    <name>Role__c</name>
+    <picklistValues>
+        <masterLabel>Champion</masterLabel>
+        <translation><!-- Champion --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Decision Maker</masterLabel>
+        <translation><!-- Decision Maker --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Economic Buyer</masterLabel>
+        <translation><!-- Economic Buyer --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Gatekeeper</masterLabel>
+        <translation><!-- Gatekeeper --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Influencer</masterLabel>
+        <translation><!-- Influencer --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>KOL</masterLabel>
+        <translation><!-- KOL --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

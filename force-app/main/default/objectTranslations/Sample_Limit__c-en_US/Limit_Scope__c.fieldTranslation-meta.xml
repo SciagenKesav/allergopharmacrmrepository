@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Limit Scope --></label>
+    <name>Limit_Scope__c</name>
+    <picklistValues>
+        <masterLabel>HCP All</masterLabel>
+        <translation><!-- HCP All --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>HCP Product</masterLabel>
+        <translation><!-- HCP Product --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Per Call</masterLabel>
+        <translation><!-- Per Call --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Product Global</masterLabel>
+        <translation><!-- Product Global --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Rep All</masterLabel>
+        <translation><!-- Rep All --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Rep Product</masterLabel>
+        <translation><!-- Rep Product --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Territory Product</masterLabel>
+        <translation><!-- Territory Product --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

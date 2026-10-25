@@ -61,75 +61,11 @@
     flex: 1;
 }
 
-/* lightning-button-menu (the KAM-only "New Request" trigger) renders taller/
-   wider than a plain lightning-button by default — same slds-button base,
-   but its own default block/inline spacing, line-height, and icon-size
-   differ (icon-size defaults to "medium" on button-menu specifically, vs.
-   the compact auto-sized icon a plain lightning-button renders). Pinning
-   these to a plain button's usual values is what makes the two actually
-   look and sit the same size in the header row; align-items: center on
-   .pane-header then centers both identically once their heights match.
-   Harmless on the plain lightning-button too, since it already renders at
-   roughly these values by default. */
-.new-button {
-    display: inline-flex;
-    flex-shrink: 0;
-    margin: 0;
-    --slds-c-button-line-height: 1.875rem;
-    --slds-c-button-spacing-block-start: 0;
-    --slds-c-button-spacing-block-end: 0;
-    --slds-c-button-spacing-inline-start: 1rem;
-    --slds-c-button-spacing-inline-end: 1rem;
-    --slds-c-button-sizing-border: 1px;
-}
-
 .filter-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.5rem;
     margin-top: 0.5rem;
-}
-
-/* MARK: - Territory search (System Administrator only — see canSeeAllTerritories) */
-
-.territory-search {
-    position: relative;
-}
-
-.territory-selected {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.25rem 0.5rem;
-    margin-top: 0.35rem;
-    border-radius: 0.5rem;
-    background: rgba(10, 10, 92, 0.06);
-    font-size: 0.8rem;
-}
-
-.territory-pick-list {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    z-index: 20;
-    margin-top: 0.25rem;
-    max-height: 200px;
-    overflow-y: auto;
-    background: #ffffff;
-    border: 1px solid #eeeef2;
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-}
-
-.territory-pick-row {
-    padding: 0.5rem 0.65rem;
-    font-size: 0.85rem;
-    cursor: pointer;
-}
-
-.territory-pick-row:hover {
-    background: #f7f7fb;
 }
 
 .type-toggle-row {
@@ -145,6 +81,11 @@
     flex: 1;
     min-height: 0;
     overflow-y: auto;
+    overflow-x: auto;
+}
+
+.table-inner {
+    width: 100%;
 }
 
 .main-list-row {
@@ -228,8 +169,9 @@
 }
 
 /* SLDS's standard:account (building) / standard:contact (person) icon,
-   given a circular chip so it reads as an avatar rather than a bare glyph —
-   same idea as the iOS app's Avatar component, just SLDS-native here. */
+   given a circular chip so it reads as an avatar rather than a bare glyph --
+   distinguishes an HCO row from an HCP row at a glance, same object icons
+   Salesforce already uses everywhere else in the org. */
 .result-avatar {
     flex-shrink: 0;
     width: 2rem;
@@ -264,6 +206,18 @@
     background: #eef0fb;
     border-color: var(--brand-primary);
     box-shadow: 0 0 0 1px var(--brand-primary);
+}
+
+/* Briefly marks the row the A-Z rail just scrolled to -- without this, jumping
+   to a letter and landing on a page full of rows gives no visual confirmation
+   of which one was actually found. */
+.result-row.alpha-jump-highlight {
+    animation: alphaJumpPulse 1.6s ease-out;
+}
+
+@keyframes alphaJumpPulse {
+    0% { box-shadow: 0 0 0 3px var(--brand-primary); background: #eef0fb; }
+    100% { box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06); background: #ffffff; }
 }
 
 .result-top {
@@ -306,37 +260,6 @@
     border-radius: 0.75rem;
 }
 
-/* List view's rendering of whatever extra fields the rep picked via "Add
-   Column" — same fields the table view shows as real columns, shown here as
-   small inline chips since a card row has no column grid to add to. */
-.extra-fields {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.3rem;
-    margin-top: 0.3rem;
-}
-
-.extra-field-chip {
-    display: inline-block;
-    font-size: 0.68rem;
-    color: var(--brand-ink);
-    background: #f3f4fb;
-    border: 1px solid #e2e8f0;
-    padding: 0.05rem 0.45rem;
-    border-radius: 0.6rem;
-}
-
-/* "Add Column" menu — the checked/unchecked lightning-menu-item rows use
-   SLDS's own selected-state styling by default; this only needs to sit
-   correctly alongside the other toolbar controls. */
-.results-toolbar {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.75rem;
-    flex-shrink: 0;
-}
-
 .main-pane {
     flex: 1;
     min-width: 0;
@@ -355,6 +278,24 @@
     height: 100%;
 }
 
+/* "Which territory am I in" -- shown right under the page title so it's the
+   first thing a rep sees after logging in, not something they have to dig
+   for in the Territory filter. */
+.my-territory-row {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: -0.25rem 0 0.75rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 0.4rem;
+    background: #f3f3f9;
+    color: var(--brand-primary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    width: fit-content;
+    --sds-c-icon-color-foreground-default: var(--brand-primary);
+}
+
 .saved-view-row {
     display: grid;
     grid-template-columns: 1fr auto auto;
@@ -370,17 +311,21 @@
 }
 
 .quick-filter-row {
-    /* Column, not row — "Emerging Expert" is too long to share a row with
-       "KOL" in this narrow (19rem) pane without its label wrapping onto a
-       second line beneath the icon, which reads as broken. Full width per
-       button guarantees both fit on one line regardless of label length. */
+    /* KOL and Emerging Expert share one row. Tight button padding and no label wrapping keep both on a
+       single line even in the narrow filter pane. */
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: nowrap;
     gap: 0.5rem;
 }
 
 .quick-filter-row lightning-button {
-    width: 100%;
+    flex: 0 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    font-size: 0.8rem;
+    --slds-c-button-spacing-inline-start: 0.6rem;
+    --slds-c-button-spacing-inline-end: 0.6rem;
 }
 
 .counter-row {
@@ -425,7 +370,14 @@
 
 .view-mode-toggle {
     display: flex;
-    gap: 0.25rem;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+/* round view-switcher buttons */
+.view-mode-toggle lightning-button-icon {
+    --slds-c-button-radius-border: 50%;
+    --slds-c-button-sizing-border: 2px;
 }
 
 .row-checkbox {
@@ -500,6 +452,12 @@
     margin-bottom: 1rem;
 }
 
+.request-hint {
+    margin: 0 0 1rem;
+    font-size: 0.8rem;
+    color: var(--brand-subtle, #64748b);
+}
+
 .hidden-field {
     display: none;
 }
@@ -511,87 +469,149 @@
     margin-bottom: 1rem;
 }
 
-/* The Address slds-section already carries SLDS's own spacing internally;
-   this just keeps it from sitting flush against the main field grid above
-   and the Cancel/Create buttons below. */
-.slds-section {
-    margin-bottom: 1rem;
-}
-
-.slds-section .edit-grid {
-    margin-top: 0.75rem;
-    margin-bottom: 0;
-}
-
 .edit-actions {
     display: flex;
     gap: 0.5rem;
     justify-content: flex-end;
 }
-
-/* MARK: - Key Account Manager "New Request" (DCR) modal */
-
-.dcr-banner {
-    padding: 0.75rem;
-    margin-bottom: 1rem;
-    border-radius: 0.5rem;
-    background: rgba(10, 10, 92, 0.06);
-    color: var(--brand-subtle, #6b6b7a);
-    font-size: 0.8rem;
+/* Records-per-page selector next to the pager */
+.page-size {
+    width: 5.5rem;
 }
 
-.dcr-rule-block {
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border-radius: 0.5rem;
-    background: rgba(255, 179, 0, 0.1);
-}
-
-.dcr-rule-block p {
-    margin: 0 0 0.75rem 0;
-    color: var(--brand-ink);
-}
-
-.dcr-hint {
-    margin: 0 0 0.5rem 0;
-    font-size: 0.8rem;
-    color: var(--brand-subtle, #6b6b7a);
-}
-
-.dcr-selected-hco {
+/* --- toolbar above the results: view switcher + "Add Column" --- */
+.results-toolbar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0.5rem 0.75rem;
-    margin-top: 0.5rem;
-    border-radius: 0.5rem;
-    background: rgba(10, 10, 92, 0.06);
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    flex-shrink: 0;
+}
+
+.add-column {
+    position: relative;
+}
+
+.add-column-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    height: 2.25rem;
+    padding: 0 0.85rem 0 1.1rem;
+    background: #ffffff;
+    border: 2px solid #5c5c6e;
+    border-radius: 999px;
+    color: #1d4ed8;
     font-size: 0.85rem;
-}
-
-.dcr-hco-pick-list {
-    max-height: 180px;
-    overflow-y: auto;
-    margin-top: 0.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-}
-
-.dcr-hco-pick-row {
-    display: flex;
-    flex-direction: column;
-    padding: 0.5rem 0.65rem;
-    border-radius: 0.5rem;
-    border: 1px solid #eeeef2;
+    font-weight: 700;
     cursor: pointer;
 }
 
-.dcr-hco-pick-row:hover {
-    background: #f7f7fb;
+.add-column-button:hover {
+    background: #f4f6ff;
 }
 
-.dcr-hco-pick-sub {
-    font-size: 0.72rem;
-    color: var(--brand-subtle, #6b6b7a);
+.add-column-caret {
+    --sds-c-icon-color-foreground-default: #1d4ed8;
+}
+
+.column-menu-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 8000;
+}
+
+.column-menu {
+    position: absolute;
+    top: calc(100% + 0.4rem);
+    left: 0;
+    z-index: 8001;
+    width: 18rem;
+    max-height: 26rem;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    border: 1px solid #d8dae6;
+    border-radius: 0.6rem;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+}
+
+.column-menu-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 0.9rem;
+    border-bottom: 1px solid #eeeef2;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: #5c5c6e;
+}
+
+.column-reset {
+    background: none;
+    border: none;
+    color: #1d4ed8;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.column-menu-list {
+    list-style: none;
+    margin: 0;
+    padding: 0.25rem 0;
+    overflow-y: auto;
+}
+
+.column-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.9rem;
+    font-size: 0.9rem;
+    color: var(--brand-ink);
+    cursor: pointer;
+}
+
+.column-option:hover {
+    background: #f4f6ff;
+}
+
+.column-option-selected .column-label {
+    font-weight: 600;
+}
+
+.column-option-locked {
+    cursor: default;
+    color: #5c5c6e;
+}
+
+.column-check {
+    width: 1.25rem;
+    flex-shrink: 0;
+    display: inline-flex;
+    justify-content: center;
+    --sds-c-icon-color-foreground-default: #1d4ed8;
+}
+
+.column-label {
+    flex: 1;
+}
+
+.column-note {
+    font-size: 0.7rem;
+    color: #8a8aa0;
+}
+
+/* extra fields on the list card */
+.result-extra {
+    margin-top: 0.15rem;
+    font-size: 0.78rem;
+    color: var(--brand-ink);
+}
+
+.result-extra-label {
+    color: #5c5c6e;
 }

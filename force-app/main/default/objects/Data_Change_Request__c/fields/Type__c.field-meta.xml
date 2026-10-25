@@ -30,14 +30,9 @@
                 <label>Edit HCO</label>
             </value>
             <value>
-                <fullName>Unassign HCP</fullName>
+                <fullName>Territory Unassign</fullName>
                 <default>false</default>
-                <label>Unassign HCP</label>
-            </value>
-            <value>
-                <fullName>Unassign HCO</fullName>
-                <default>false</default>
-                <label>Unassign HCO</label>
+                <label>Territory Unassign</label>
             </value>
         </valueSetDefinition>
     </valueSet>

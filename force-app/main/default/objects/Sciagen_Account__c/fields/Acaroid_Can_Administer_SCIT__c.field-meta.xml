@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Acaroid_Can_Administer_SCIT__c</fullName>
+    <description>Yes if any affiliation with Administers AIT Here = Yes at an HCO with Readiness = Ready; Conditional if only Conditional sites; else No. Stamped by AcaroidAffiliationService. Read-only.</description>
+    <label>Can Administer SCIT</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Yes</fullName>
+                <default>false</default>
+                <label>Yes</label>
+            </value>
+            <value>
+                <fullName>Conditional</fullName>
+                <default>false</default>
+                <label>Conditional</label>
+            </value>
+            <value>
+                <fullName>No - Referral only</fullName>
+                <default>false</default>
+                <label>No - Referral only</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

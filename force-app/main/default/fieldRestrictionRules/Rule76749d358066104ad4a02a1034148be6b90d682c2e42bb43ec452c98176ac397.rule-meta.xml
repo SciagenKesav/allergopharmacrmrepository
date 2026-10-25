@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FieldRestrictionRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <active>true</active>
+    <classification>BT_LoginHistory_EPIM</classification>
+    <classificationType>FieldSet</classificationType>
+    <description>Field Restriction Rule for Black Tab PII Masking BT_LoginHistory_EPIM</description>
+    <enforcementType>FieldRestrict</enforcementType>
+    <masterLabel>Rule76749d358066104ad4a02a1034148be6b90d682c2e42bb43ec452c98176ac397</masterLabel>
+    <recordFilter>Id=&apos;NEVER_TRUE&apos;</recordFilter>
+    <targetEntity>LoginHistory</targetEntity>
+    <userCriteria>CASE($User.UserType,&apos;SfdcAdmin&apos;,1,0)=1</userCriteria>
+    <version>0</version>
+</FieldRestrictionRule>

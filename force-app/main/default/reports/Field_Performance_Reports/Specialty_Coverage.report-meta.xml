@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <columns>
+        <field>Sciagen_Account__c$Name</field>
+    </columns>
+    <columns>
+        <field>Sciagen_Account__c.CallVisitReports__r$Visit_Date__c</field>
+    </columns>
+    <columns>
+        <field>Sciagen_Account__c.CallVisitReports__r$Call_Status__c</field>
+    </columns>
+    <columns>
+        <field>Sciagen_Account__c.CallVisitReports__r$Rep__c</field>
+    </columns>
+    <description>Completed call visit coverage grouped by HCP Specialty instead of Territory -- accounts with zero visits still appear once with blank visit columns (same coverage-gap pattern as Coverage Frequency Report).</description>
+    <format>Summary</format>
+    <groupingsDown>
+        <dateGranularity>Day</dateGranularity>
+        <field>Sciagen_Account__c$Specialty__c</field>
+        <sortOrder>Asc</sortOrder>
+    </groupingsDown>
+    <name>Specialty Coverage</name>
+    <params>
+        <name>co</name>
+        <value>1</value>
+    </params>
+    <reportType>Coverage_Report_for_Completed_Call_Visits__c</reportType>
+    <scope>organization</scope>
+    <showDetails>true</showDetails>
+    <showGrandTotal>true</showGrandTotal>
+    <showSubTotals>true</showSubTotals>
+    <timeFrameFilter>
+        <dateColumn>Sciagen_Account__c.CallVisitReports__r$Visit_Date__c</dateColumn>
+        <interval>INTERVAL_CURRENT</interval>
+    </timeFrameFilter>
+</Report>

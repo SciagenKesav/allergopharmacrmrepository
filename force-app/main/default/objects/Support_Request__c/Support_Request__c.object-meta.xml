@@ -148,7 +148,6 @@
     <description>A rep or manager asking the Business Admin team for help. The rep&apos;s manager is copied in.</description>
     <enableActivities>false</enableActivities>
     <enableBulkApi>true</enableBulkApi>
-    <enableFeeds>false</enableFeeds>
     <enableHistory>false</enableHistory>
     <enableLicensing>false</enableLicensing>
     <enableReports>true</enableReports>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- 2-8C Pharma Refrigerator --></label>
+    <name>Acaroid_Has_2_8C_Fridge__c</name>
+</CustomFieldTranslation>

@@ -2,7 +2,6 @@
 <CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
     <customSettingsType>Hierarchy</customSettingsType>
     <description>Service targets, hygiene and notification switches for Help &amp; Support requests.</description>
-    <enableFeeds>false</enableFeeds>
     <label>Support Setting</label>
     <visibility>Public</visibility>
 </CustomObject>

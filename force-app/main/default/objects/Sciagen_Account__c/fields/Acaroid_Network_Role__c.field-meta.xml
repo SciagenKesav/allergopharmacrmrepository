@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Acaroid_Network_Role__c</fullName>
+    <description>Tier 1 = Hub by default.</description>
+    <label>Network Role</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Hub</fullName>
+                <default>false</default>
+                <label>Hub</label>
+            </value>
+            <value>
+                <fullName>Spoke</fullName>
+                <default>false</default>
+                <label>Spoke</label>
+            </value>
+            <value>
+                <fullName>Referral</fullName>
+                <default>false</default>
+                <label>Referral</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Next Visit Planned Call --></label>
+    <name>Next_Visit_Planned_Call__c</name>
+    <relationshipLabel><!-- Call Visit Reports (Next Visit Planned Call) --></relationshipLabel>
+</CustomFieldTranslation>

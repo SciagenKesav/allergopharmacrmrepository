@@ -1,28 +1,6 @@
 @isTest
 private class SampleDropServiceTest {
 
-    // Users for the unlock tests below — created in @testSetup (a separate,
-    // already-committed transaction), not inline inside an @isTest method:
-    // FeatureManagement.checkPermission() does not reliably see a
-    // PermissionSetAssignment inserted in the same transaction it's checked in.
-    @testSetup
-    static void users() {
-        Profile std = [SELECT Id FROM Profile WHERE Name = 'Standard User' LIMIT 1];
-        Profile sysAdmin = [SELECT Id FROM Profile WHERE Name = 'System Administrator' LIMIT 1];
-        User rep = new User(FirstName = 'No', LastName = 'PermTest', Alias = 'noperm', Email = 'no.perm.unlock@sciagen-test.invalid',
-            Username = 'no.perm.unlock@sciagen-new-dev.invalid', TimeZoneSidKey = 'Asia/Kolkata', LocaleSidKey = 'en_US',
-            EmailEncodingKey = 'UTF-8', LanguageLocaleKey = 'en_US', ProfileId = std.Id, IsActive = true);
-        User admin = new User(FirstName = 'Sample', LastName = 'AdminUnlockTest', Alias = 'sadmu', Email = 'sample.admin.unlock@sciagen-test.invalid',
-            Username = 'sample.admin.unlock@sciagen-new-dev.invalid', TimeZoneSidKey = 'Asia/Kolkata', LocaleSidKey = 'en_US',
-            EmailEncodingKey = 'UTF-8', LanguageLocaleKey = 'en_US', ProfileId = sysAdmin.Id, IsActive = true);
-        insert new List<User>{ rep, admin };
-        insert new PermissionSetAssignment(AssigneeId = rep.Id, PermissionSetId = [SELECT Id FROM PermissionSet WHERE Name = 'Sciagen_Mobile_App_Access'].Id);
-        insert new PermissionSetAssignment(AssigneeId = admin.Id, PermissionSetId = [SELECT Id FROM PermissionSet WHERE Name = 'Sciagen_Sample_Admin'].Id);
-    }
-
-    static User repNoPermission() { return [SELECT Id FROM User WHERE Username = 'no.perm.unlock@sciagen-new-dev.invalid']; }
-    static User sampleAdminUser() { return [SELECT Id FROM User WHERE Username = 'sample.admin.unlock@sciagen-new-dev.invalid']; }
-
     static Decimal avail(Id lotId) { return [SELECT Available_Quantity__c FROM Sample_Lot__c WHERE Id = :lotId].Available_Quantity__c; }
 
     static Sample_Drop__c drop(Call_Visit_Report__c c, Product__c p, Integer qty) {
@@ -153,59 +131,6 @@ private class SampleDropServiceTest {
         System.assert(r.getErrors()[0].getMessage().contains('Cannot distribute more'), r.getErrors()[0].getMessage());
     }
 
-    /** SM-... Phase 0 hotfix (SampleLimitChecker/SampleEligibilityService.checkBulk):
-     *  beforeInsert() now checks limits for the whole trigger batch in one bulk pass rather
-     *  than strictly line-by-line, which changes ONE thing on purpose — a line that will
-     *  itself turn out to be refused still counts toward a later same-product line's running
-     *  total within the same batch (see beforeInsert()'s doc comment). This can only make a
-     *  later line MORE likely to be blocked, never less, so two lines that are each fine
-     *  alone but breach the cap combined must still both be caught correctly. */
-    @isTest
-    static void twoLinesForTheSameProductInOneBatchAreCheckedAgainstTheirCombinedTotal() {
-        // A dedicated 12-pack HCP_Product hard limit, not SampleLimitSeeder.seedDefaults()
-        // — its Company Per_Call limit is only 6 packs for the whole call, which would
-        // trip on a single 7-pack line and mask what this test is actually checking.
-        Product__c p = SampleTestData.product('Batch Combine SKU');
-        insert new Sample_Limit__c(Name = 'Combine test cap', Limit_Scope__c = 'HCP_Product', Product__c = p.Id, Limit_Quantity__c = 12,
-            Limit_Period__c = 'Financial_Year', Hard_Block__c = true, Is_Regulatory__c = true, Regulatory_Reference__c = SampleLimitChecker.UCPMP_REF);
-        Sciagen_Account__c d = SampleTestData.doctor('Dr Batch Combine');
-        SampleTestData.lot(p, 'BC-1', 100, 200);
-        Call_Visit_Report__c call = SampleTestData.call(d, 'Draft');
-        // Neither 7-pack line alone breaks the 12-pack cap; together (14) they do.
-        Database.SaveResult[] results = Database.insert(new List<Sample_Drop__c>{ drop(call, p, 7), drop(call, p, 7) }, false);
-        System.assertEquals(true, results[0].isSuccess(), 'first line alone is well inside the cap');
-        System.assertEquals(false, results[1].isSuccess(), 'second line pushes the combined total over the cap');
-        System.assert(results[1].getErrors()[0].getMessage().contains('Cannot distribute more'), results[1].getErrors()[0].getMessage());
-    }
-
-    /** End-to-end version of SampleLimitCheckerTest's own bulk query-count test — this one
-     *  goes through the real trigger (SampleCallTrigger -> SampleDropService.beforeInsert),
-     *  which still runs steps 1-4 (product/doctor/opt-in/lot) per line, so its budget is
-     *  looser than the checker's own <30 (that's the part Step 4 didn't have to touch). The
-     *  real number that matters here is just "well under the 100-query governor limit",
-     *  which is the actual failure this hotfix prevents. No Sample_Limit__c rows are seeded
-     *  here on purpose — each SampleTestData product's own Max_Packs_Per_HCP_Per_Year__c
-     *  (12) still synthesizes a regulatory limit per product (addProductLimit), so the
-     *  limits path is fully exercised without the company Per_Call cap (only 6 packs for
-     *  the whole call in SampleLimitSeeder's defaults) tripping on a 15-line call. */
-    @isTest
-    static void fifteenLinesAcrossFiveProductsInsertSuccessfullyThroughTheBulkPath() {
-        Sciagen_Account__c d = SampleTestData.doctor('Dr Fifteen');
-        Call_Visit_Report__c call = SampleTestData.call(d, 'Draft');
-        List<Sample_Drop__c> drops = new List<Sample_Drop__c>();
-        for (Integer i = 0; i < 5; i++) {
-            Product__c p = SampleTestData.product('Fifteen SKU ' + i);
-            SampleTestData.lot(p, 'FT-' + i, 100, 200);
-            for (Integer j = 0; j < 3; j++) drops.add(drop(call, p, 1));
-        }
-        Test.startTest();
-        insert drops;
-        Integer queriesUsed = Limits.getQueries();
-        Test.stopTest();
-        System.assertEquals(15, [SELECT COUNT() FROM Sample_Drop__c WHERE CVR__c = :call.Id]);
-        System.assert(queriesUsed < 100, 'a real 15-line insert must stay under the governor limit, used ' + queriesUsed);
-    }
-
     @isTest
     static void softLimitNeedsAReasonAndAManagerHoldsTheTransaction() {
         SampleLimitSeeder.seedDefaults();
@@ -233,7 +158,8 @@ private class SampleDropServiceTest {
         System.assertEquals('Clinic training day', t.Override_Reason__c);
         System.assertEquals(100, avail(lot.Id));
         t.Status__c = 'Completed';
-        update t;   // the running user is a sample manager
+        SampleAccess.testIsManager = true;   // releasing a manager hold needs Manage_Sample_Inventory
+        update t;
         System.assertEquals(92, avail(lot.Id));
     }
 
@@ -246,55 +172,14 @@ private class SampleDropServiceTest {
         SampleTestData.lot(p, 'CD-1', 20, 200);
         Call_Visit_Report__c call = SampleTestData.call(d, 'Draft');
         System.assert(!Database.insert(drop(call, p, 1), false).isSuccess());
-
-        // SM-CC-04: the tag alert number must match Sample_Tag_Alert_Regex
-        // (Sciagen_App_Config__mdt.Default, ^[0-9]{10}$ out of the box) --
-        // a free-text value like 'T-1' is refused even with a valid status.
-        Sample_Drop__c badFormat = drop(call, p, 1);
-        badFormat.Cold_Chain_Tag_Number__c = 'T-1';
-        badFormat.Cold_Chain_Status__c = 'Normal';
-        System.assert(Database.insert(badFormat, false).getErrors()[0].getMessage().contains('valid format'));
-
         Sample_Drop__c breach = drop(call, p, 1);
-        breach.Cold_Chain_Tag_Number__c = '1234567890';
+        breach.Cold_Chain_Tag_Number__c = 'T-1';
         breach.Cold_Chain_Status__c = 'Breach';
         System.assert(Database.insert(breach, false).getErrors()[0].getMessage().contains('breach'));
-
         Sample_Drop__c ok = drop(call, p, 1);
-        ok.Cold_Chain_Tag_Number__c = '1234567890';
+        ok.Cold_Chain_Tag_Number__c = 'T-1';
         ok.Cold_Chain_Status__c = 'Normal';
         insert ok;
-    }
-
-    /** SM-CC-02: the cvrSampleDrops LWC now captures these fields (Phase 0
-     *  hotfix — beforeInsert used to hard-block any cold-chain product because
-     *  the LWC never rendered them at all), so a cold-chain product must be
-     *  able to go all the way through submission to a posted Disbursement,
-     *  carrying the tag/status onto the transaction. */
-    @isTest
-    static void coldChainProductCanBeSubmittedAndCarriesTagStatusOntoTheTransaction() {
-        Product__c p = SampleTestData.product('Cold Submit SKU');
-        p.Requires_Cold_Chain__c = true;
-        p.Requires_Signature__c = false;
-        update p;
-        Sciagen_Account__c d = SampleTestData.doctor('Dr Cold Submit');
-        Sample_Lot__c lot = SampleTestData.lot(p, 'CS-1', 20, 200);
-        Call_Visit_Report__c call = SampleTestData.call(d, 'Draft');
-        Sample_Drop__c line = drop(call, p, 2);
-        line.Cold_Chain_Tag_Number__c = '9876543210';
-        line.Cold_Chain_Status__c = 'Normal';
-        insert line;
-
-        call.Record_Status__c = 'Submitted';
-        update call;
-
-        System.assertEquals(18, avail(lot.Id));
-        Sample_Transaction__c t = [SELECT Transaction_Type__c, Status__c, Cold_Chain_Tag_Number__c, Cold_Chain_Status__c
-                                    FROM Sample_Transaction__c WHERE Call_Report__c = :call.Id];
-        System.assertEquals('Disbursement', t.Transaction_Type__c);
-        System.assertEquals('Completed', t.Status__c);
-        System.assertEquals('9876543210', t.Cold_Chain_Tag_Number__c);
-        System.assertEquals('Normal', t.Cold_Chain_Status__c);
     }
 
     @isTest
@@ -313,7 +198,12 @@ private class SampleDropServiceTest {
         call.Signature_Captured__c = true;
         update call;
         call.Record_Status__c = 'Draft';
-        update call;    // the running user is a sample manager: allowed, but the signature is cleared
+        // Unlocking a submitted call needs BOTH real Modify All Data (CallReportLockService's
+        // generic lock -- a fresh System Administrator test user, since there's no static test
+        // hook for that check) and Manage_Sample_Inventory (SampleDropService's own, stricter
+        // check for a call carrying controlled-substance samples), but the signature is cleared.
+        SampleAccess.testIsManager = true;
+        System.runAs(SampleTestData.adminUser()) { update call; }
         System.assertEquals(false, [SELECT Signature_Captured__c FROM Call_Visit_Report__c WHERE Id = :call.Id].Signature_Captured__c);
     }
 
@@ -355,6 +245,7 @@ private class SampleDropServiceTest {
         Sample_Transaction__c t = [SELECT Id, Status__c FROM Sample_Transaction__c WHERE HCP_Account__c = :d.Id];
         System.assertEquals(5, [SELECT Total_Packs_Given__c FROM Sample_Expenditure_Tracking__c WHERE HCP_Account__c = :d.Id].Total_Packs_Given__c);
         t.Status__c = 'Cancelled';
+        SampleAccess.testIsManager = true;   // reversing a disbursement needs Manage_Sample_Inventory
         update t;
         System.assertEquals(0, [SELECT Total_Packs_Given__c FROM Sample_Expenditure_Tracking__c WHERE HCP_Account__c = :d.Id].Total_Packs_Given__c);
         System.assertEquals(50, avail(lot.Id));
@@ -373,102 +264,5 @@ private class SampleDropServiceTest {
         System.assertEquals('Verified', [SELECT License_Verification_Status__c FROM Sciagen_Account__c WHERE Id = :fine.Id].License_Verification_Status__c);
         System.assertEquals(false, [SELECT Sample_Eligible__c FROM Sciagen_Account__c WHERE Id = :lapsed.Id].Sample_Eligible__c);
         System.assertEquals(true, [SELECT Sample_Eligible__c FROM Sciagen_Account__c WHERE Id = :fine.Id].Sample_Eligible__c);
-    }
-
-    // ---------------------------------------------------------------------
-    // SM-UNL-01..03 (D3/D14): unlock reverses the posted Disbursement(s)
-    // rather than editing them in place; resubmitting posts fresh ones with
-    // no double counting of stock or UCPMP expenditure.
-    // ---------------------------------------------------------------------
-
-    @isTest
-    static void unlockingASubmittedCallReversesItsDisbursementWithoutEditingItInPlace() {
-        Product__c p = SampleTestData.product('Unlock SKU');
-        Sciagen_Account__c d = SampleTestData.doctor('Dr Unlock');
-        Sample_Lot__c lot = SampleTestData.lot(p, 'UNL-1', 20, 200);
-        Call_Visit_Report__c call = SampleTestData.call(d, 'Draft');
-        Sample_Drop__c line = drop(call, p, 3);
-        insert line;
-        call.Record_Status__c = 'Submitted';
-        call.Signature_Captured__c = true;
-        call.Signee_Name__c = 'Dr Unlock';
-        update call;
-
-        System.assertEquals(17, avail(lot.Id), 'disbursement took 3 packs');
-        Sample_Transaction__c original = [SELECT Id, Quantity__c, Status__c, Transaction_Type__c FROM Sample_Transaction__c WHERE Call_Report__c = :call.Id];
-        Sample_Expenditure_Tracking__c e1 = [SELECT Total_Packs_Given__c FROM Sample_Expenditure_Tracking__c WHERE HCP_Account__c = :d.Id AND Product__c = :p.Id];
-        System.assertEquals(3, e1.Total_Packs_Given__c);
-
-        // Unlock (the direct Sample Admin path — SampleAdminController.unlockCall).
-        Test.startTest();
-        System.runAs(sampleAdminUser()) {
-            SampleAdminController.unlockCall(call.Id, 'Rep reported the wrong quantity.');
-        }
-        Test.stopTest();
-
-        System.assertEquals('Saved', [SELECT Record_Status__c FROM Call_Visit_Report__c WHERE Id = :call.Id].Record_Status__c);
-        // The original Disbursement itself is untouched — never edited in place.
-        Sample_Transaction__c untouchedOriginal = [SELECT Quantity__c, Status__c, Transaction_Type__c, Inventory_Applied__c FROM Sample_Transaction__c WHERE Id = :original.Id];
-        System.assertEquals('Disbursement', untouchedOriginal.Transaction_Type__c);
-        System.assertEquals('Completed', untouchedOriginal.Status__c);
-        System.assertEquals(3, untouchedOriginal.Quantity__c);
-        System.assertEquals(true, untouchedOriginal.Inventory_Applied__c, 'the original record itself is never flipped back off');
-        // A separate Reversal transaction exists, linked back to it.
-        Sample_Transaction__c reversal = [SELECT Transaction_Type__c, Quantity__c, Paired_Transaction__c, Sample_Lot__c FROM Sample_Transaction__c
-                                          WHERE Transaction_Type__c = 'Reversal' AND Paired_Transaction__c = :original.Id];
-        System.assertEquals(3, reversal.Quantity__c);
-        System.assertEquals(lot.Id, reversal.Sample_Lot__c);
-        System.assertEquals(20, avail(lot.Id), 'stock is fully restored');
-        Sample_Expenditure_Tracking__c e2 = [SELECT Total_Packs_Given__c FROM Sample_Expenditure_Tracking__c WHERE HCP_Account__c = :d.Id AND Product__c = :p.Id];
-        System.assertEquals(0, e2.Total_Packs_Given__c, 'the UCPMP counter is undone, not left over-counted');
-        System.assertEquals(null, [SELECT Transaction__c FROM Sample_Drop__c WHERE Id = :line.Id].Transaction__c, 'freed to be re-posted on resubmit');
-
-        // Edit the quantity, then resubmit — must post a FRESH disbursement, not touch the old records again.
-        line.Qty__c = 5;
-        update line;
-        call = [SELECT Id, Record_Status__c FROM Call_Visit_Report__c WHERE Id = :call.Id];
-        call.Record_Status__c = 'Submitted';
-        update call;
-
-        Sample_Drop__c afterResubmit = [SELECT Transaction__c, Eligibility_Status__c FROM Sample_Drop__c WHERE Id = :line.Id];
-        System.assertNotEquals(null, afterResubmit.Transaction__c, 'the resubmit posted a fresh disbursement, linked back to the drop line');
-        System.assertNotEquals('Blocked', afterResubmit.Eligibility_Status__c);
-        System.assertEquals(15, avail(lot.Id), '20 on hand minus the new, edited quantity of 5 — not 20-3-5');
-        System.assertEquals(2, [SELECT COUNT() FROM Sample_Transaction__c WHERE Call_Report__c = :call.Id AND Transaction_Type__c = 'Disbursement'],
-            'the original disbursement plus one fresh one for the resubmit — never a third');
-        Sample_Transaction__c fresh = [SELECT Quantity__c FROM Sample_Transaction__c WHERE Call_Report__c = :call.Id AND Transaction_Type__c = 'Disbursement'
-                                       AND Id != :original.Id];
-        System.assertEquals(5, fresh.Quantity__c);
-        Sample_Expenditure_Tracking__c e3 = [SELECT Total_Packs_Given__c FROM Sample_Expenditure_Tracking__c WHERE HCP_Account__c = :d.Id AND Product__c = :p.Id];
-        System.assertEquals(5, e3.Total_Packs_Given__c, 'reflects only the resubmitted quantity — no double counting');
-    }
-
-    @isTest
-    static void unlockCallRequiresThePermissionAndARunningReason() {
-        Sciagen_Account__c d = SampleTestData.doctor('Dr NoPerm');
-        Call_Visit_Report__c call = SampleTestData.call(d, 'Submitted');
-
-        // A plain rep (Sciagen_Mobile_App_Access only, no Sample Admin permission
-        // set) must be refused.
-        Test.startTest();
-        System.runAs(repNoPermission()) {
-            System.assertEquals(false, FeatureManagement.checkPermission('Sample_Unlock_Calls'), 'diagnostic: raw permission check for the no-perm rep');
-            try {
-                SampleAdminController.unlockCall(call.Id, 'trying without permission');
-                System.assert(false, 'a user without Sample_Unlock_Calls must be refused');
-            } catch (AuraHandledException e) {
-                System.assert(true);
-            }
-        }
-
-        System.runAs(sampleAdminUser()) {
-            try {
-                SampleAdminController.unlockCall(call.Id, '');
-                System.assert(false, 'a blank reason must be refused even with permission');
-            } catch (AuraHandledException e) {
-                System.assert(e.getMessage().contains('reason'), e.getMessage());
-            }
-        }
-        Test.stopTest();
     }
 }

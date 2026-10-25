@@ -45,6 +45,18 @@ public without sharing class SupportRequestService {
             ]) raisedToday.put((Id) ar.get('u'), (Integer) ar.get('n'));
         }
 
+        // "Unlock Monthly Plan": the rep's own frozen plan, one open request per plan.
+        Set<Id> planIds = new Set<Id>();
+        for (Support_Request__c r : rows) if (r.Category__c == MonthlyCallPlanService.CAT_UNLOCK_PLAN && r.Monthly_Call_Plan__c != null) planIds.add(r.Monthly_Call_Plan__c);
+        Map<Id, Monthly_Call_Plan__c> plans = planIds.isEmpty() ? new Map<Id, Monthly_Call_Plan__c>() : new Map<Id, Monthly_Call_Plan__c>([
+            SELECT Id, OwnerId, Status__c, Month__c FROM Monthly_Call_Plan__c WHERE Id IN :planIds
+        ]);
+        Set<Id> planAlreadyOpen = new Set<Id>();
+        if (!planIds.isEmpty()) {
+            for (Support_Request__c o : [SELECT Monthly_Call_Plan__c FROM Support_Request__c WHERE Monthly_Call_Plan__c IN :planIds
+                                         AND Is_Open__c = true AND Category__c = :MonthlyCallPlanService.CAT_UNLOCK_PLAN]) planAlreadyOpen.add(o.Monthly_Call_Plan__c);
+        }
+
         Set<Id> callIds = new Set<Id>();
         for (Support_Request__c r : rows) if (r.Category__c == CAT_UNLOCK && r.Call_Visit_Report__c != null) callIds.add(r.Call_Visit_Report__c);
         Map<Id, Call_Visit_Report__c> calls = new Map<Id, Call_Visit_Report__c>([
@@ -73,6 +85,15 @@ public without sharing class SupportRequestService {
                 if (alreadyOpen.contains(call.Id)) { r.addError('There is already an open request to unlock this call.'); continue; }
                 alreadyOpen.add(call.Id);
                 r.Call_Summary__c = ((call.HCP__r == null ? 'Call' : call.HCP__r.Name) + ' - ' + (call.Visit_Date__c == null ? '' : call.Visit_Date__c.format())).left(255);
+            }
+            if (r.Category__c == MonthlyCallPlanService.CAT_UNLOCK_PLAN) {
+                Monthly_Call_Plan__c plan = r.Monthly_Call_Plan__c == null ? null : plans.get(r.Monthly_Call_Plan__c);
+                if (plan == null) { r.addError('Choose the monthly plan you want unlocked.'); continue; }
+                if (plan.Status__c != MonthlyCallPlanService.FROZEN) { r.addError('That plan is not frozen, so you can already change it.'); continue; }
+                if (!agent && plan.OwnerId != requester) { r.addError('You can only ask to unlock your own plan.'); continue; }
+                if (planAlreadyOpen.contains(plan.Id)) { r.addError('There is already an open request to unlock this plan.'); continue; }
+                planAlreadyOpen.add(plan.Id);
+                r.Call_Summary__c = ('Monthly plan · ' + Datetime.newInstance(plan.Month__c, Time.newInstance(12, 0, 0, 0)).format('MMMM yyyy')).left(255);
             }
             User u = users.get(requester);
             r.OwnerId = requester;

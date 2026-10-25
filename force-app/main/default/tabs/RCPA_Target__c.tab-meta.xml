@@ -2,5 +2,5 @@
 <CustomTab xmlns="http://soap.sforce.com/2006/04/metadata">
     <customObject>true</customObject>
     <description>Per-rep, per-molecule prescription share targets used by RCPA reporting.</description>
-    <motif>Custom63: Target</motif>
+    <motif>Custom63: Chip</motif>
 </CustomTab>

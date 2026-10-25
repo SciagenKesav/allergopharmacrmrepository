@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Origin__c</fullName>
+    <description>Planned: the rep scheduled this call ahead of time. Call log: the app created this row only to record a call already made, so it is not a plan.</description>
+    <label>Origin</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Planned</fullName>
+                <default>false</default>
+                <label>Planned</label>
+            </value>
+            <value>
+                <fullName>Call log</fullName>
+                <default>false</default>
+                <label>Call log</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

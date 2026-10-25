@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Key Barriers --></label>
+    <name>Acaroid_Key_Barriers__c</name>
+    <picklistValues>
+        <masterLabel>30-min observation time</masterLabel>
+        <translation><!-- 30-min observation time --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Anaphylaxis concern</masterLabel>
+        <translation><!-- Anaphylaxis concern --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Cold-chain handling</masterLabel>
+        <translation><!-- Cold-chain handling --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Evidence awareness</masterLabel>
+        <translation><!-- Evidence awareness --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Patient adherence</masterLabel>
+        <translation><!-- Patient adherence --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Patient cost</masterLabel>
+        <translation><!-- Patient cost --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Prefers SLIT</masterLabel>
+        <translation><!-- Prefers SLIT --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

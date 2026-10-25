@@ -1,0 +1,976 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RecordType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>HCP</fullName>
+    <active>true</active>
+    <description>Individual healthcare provider. Drives which standard page layout (HCP fields, not HCO) shows for a record in Setup&apos;s own record view — the app&apos;s own screens always render via Type__c regardless of Record Type.</description>
+    <label>Healthcare Professional</label>
+    <picklistValues>
+        <picklist>AIT_Preference__c</picklist>
+        <values>
+            <fullName>Non-AIT User</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Non-Standardized AIT User</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Standardized %26 Non-Standardized AIT User</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Standardized AIT User</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_AIT_Offered__c</picklist>
+        <values>
+            <fullName>None</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>SCIT</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>SCIT %2B SLIT</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>SLIT</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_AIT_Product_Source__c</picklist>
+        <values>
+            <fullName>Compounded in-house</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Imported product</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Local extract</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>None</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_AIT_Training__c</picklist>
+        <values>
+            <fullName>EAACI %2F WAO course</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Fellowship - Allergy</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>ICAAI course</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>None</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_Adoption_Stage__c</picklist>
+        <values>
+            <fullName>Adopter %28%3E%3D5 patients%29</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Advocate</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Aware</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Interested</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Trial %281st patient%29</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Unaware</fullName>
+            <default>true</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_Allergy_Test_Types__c</picklist>
+        <values>
+            <fullName>Component-resolved %28Der p 1%2F2%2F23%29</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>None</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Skin Prick Test</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Specific IgE</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_Allergy_Testing_Freq__c</picklist>
+        <values>
+            <fullName>Never</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Occasionally</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Regularly</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_Allergy_Testing__c</picklist>
+        <values>
+            <fullName>Component-resolved %28Der p 1%2F2%2F23%29</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>None</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Skin Prick Test %28in-house%29</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Specific IgE %28in-house%29</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Specific IgE %28outsourced%29</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_Can_Administer_SCIT__c</picklist>
+        <values>
+            <fullName>Conditional</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>No - Referral only</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Yes</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_City_Tier__c</picklist>
+        <values>
+            <fullName>Metro</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Tier 1</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Tier 2</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Tier 3</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_Current_AIT_Product__c</picklist>
+        <values>
+            <fullName>HDM SLIT tablet</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Imported SCIT</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Local extract</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>None</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>SLIT drops</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_Formulary_Status__c</picklist>
+        <values>
+            <fullName>Approved</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Not applicable</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Not initiated</fullName>
+            <default>true</default>
+        </values>
+        <values>
+            <fullName>Rejected</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Submitted</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_HCO_Affordability_Band__c</picklist>
+        <values>
+            <fullName>High</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Low</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Medium</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_HCO_Launch_Wave__c</picklist>
+        <values>
+            <fullName>Not in plan</fullName>
+            <default>true</default>
+        </values>
+        <values>
+            <fullName>Wave 1</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Wave 2</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Wave 3</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_HCO_Tier_Override__c</picklist>
+        <values>
+            <fullName>Not Targeted</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Tier 1 - AIT Centre of Excellence</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Tier 2 - Specialty AIT Site</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Tier 3 - Referral Site</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_HCO_Type__c</picklist>
+        <values>
+            <fullName>Chest %2F Respiratory Clinic</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Children%27s Hospital</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Diagnostic Lab</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>ENT Clinic</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Multi-specialty Hospital</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Nursing Home</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Polyclinic</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Specialty Allergy Clinic</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Tertiary %2F Teaching Hospital</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_HCP_Affordability_Band__c</picklist>
+        <values>
+            <fullName>High</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Low</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Medium</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_HCP_Launch_Wave__c</picklist>
+        <values>
+            <fullName>Not in plan</fullName>
+            <default>true</default>
+        </values>
+        <values>
+            <fullName>Wave 1</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Wave 2</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Wave 3</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_HCP_Tier_Override__c</picklist>
+        <values>
+            <fullName>A</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>B</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>C</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Not Targeted</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Referral</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_HDM_Burden_Zone__c</picklist>
+        <values>
+            <fullName>High</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Low</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Moderate</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_KOL_Tier__c</picklist>
+        <values>
+            <fullName>Local</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>National</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>None</fullName>
+            <default>true</default>
+        </values>
+        <values>
+            <fullName>Regional</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_Key_Barriers__c</picklist>
+        <values>
+            <fullName>30-min observation time</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Anaphylaxis concern</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Cold-chain handling</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Evidence awareness</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Patient adherence</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Patient cost</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Prefers SLIT</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_NABH_Status__c</picklist>
+        <values>
+            <fullName>Entry-level</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Full</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>None</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_Network_Role__c</picklist>
+        <values>
+            <fullName>Hub</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Referral</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Spoke</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_Ownership_Type__c</picklist>
+        <values>
+            <fullName>Government</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Medical College</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Private - Chain</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Private - Standalone</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Trust %2F Charitable</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_Payer_Mix__c</picklist>
+        <values>
+            <fullName>Government scheme dominant</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Insurance %2F corporate dominant</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Mixed</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Self-pay dominant</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_Practice_Setting__c</picklist>
+        <values>
+            <fullName>Both</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Hospital-attached</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Own clinic</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_Practises_AIT__c</picklist>
+        <values>
+            <fullName>None</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>SCIT</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>SCIT %2B SLIT</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>SLIT</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_Preferred_Channel__c</picklist>
+        <values>
+            <fullName>CME</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Email</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>F2F</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Remote detailing</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>WhatsApp</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_Primary_Specialty__c</picklist>
+        <values>
+            <fullName>Allergist %2F Clinical Immunologist</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Consulting Physician</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Dermatologist</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>ENT Surgeon</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>General Practitioner</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Paediatric Pulmonologist</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Paediatrician</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Pulmonologist %2F Chest Physician</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_Procurement_Model__c</picklist>
+        <values>
+            <fullName>Doctor dispensing</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Hospital pharmacy purchase</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Patient-named supply</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_Qualification__c</picklist>
+        <values>
+            <fullName>DCH</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DLO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DM</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DNB</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Fellowship - Allergy</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>MBBS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>MD</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>MS %28ENT%29</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_SCIT_Attitude__c</picklist>
+        <values>
+            <fullName>Advocate</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Neutral</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Positive</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Sceptic</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Unaware</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_Segment__c</picklist>
+        <values>
+            <fullName>AIT Practitioner</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>High-Volume Prescriber</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Referrer</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Tester - Non-treater</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_Society_Memberships__c</picklist>
+        <values>
+            <fullName>AOI</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>IADVL</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>IAP Respiratory Chapter</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>ICAAI</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Indian Chest Society</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>NCCP</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>None</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_Storage_Location__c</picklist>
+        <values>
+            <fullName>Department %2F Clinic</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Hospital Pharmacy</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>None</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_Subspecialty_Interest__c</picklist>
+        <values>
+            <fullName>Allergy</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Asthma</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Atopic dermatitis</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Paediatric respiratory</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Rhinology</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_Target_Tier__c</picklist>
+        <values>
+            <fullName>A</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>B</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>C</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Not Targeted</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Referral</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_Temp_Monitoring__c</picklist>
+        <values>
+            <fullName>Digital data logger</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Manual log</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>None</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Acaroid_Tier__c</picklist>
+        <values>
+            <fullName>Not Targeted</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Tier 1 - AIT Centre of Excellence</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Tier 2 - Specialty AIT Site</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Tier 3 - Referral Site</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>HCO_Type__c</picklist>
+        <values>
+            <fullName>Chemist Shop</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Clinic</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Diagnostic Centre</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Health System</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Hospital</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Medical Shop</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Nursing Home</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Pharmacy</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Stockist</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>HCP_Type__c</picklist>
+        <values>
+            <fullName>Consultant</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>General Practitioner</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Other</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Physician</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Specialist</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Super Specialist</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Surgeon</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>License_Verification_Status__c</picklist>
+        <values>
+            <fullName>Expired</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Invalid</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Pending</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Unverified</fullName>
+            <default>true</default>
+        </values>
+        <values>
+            <fullName>Verified</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Reach_Flag__c</picklist>
+        <values>
+            <fullName>Global</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Local</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Regional</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Speciality__c</picklist>
+        <values>
+            <fullName>Pulmonology</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Specialty__c</picklist>
+        <values>
+            <fullName>Pulmonology</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Type__c</picklist>
+        <values>
+            <fullName>HCO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>HCP</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+</RecordType>

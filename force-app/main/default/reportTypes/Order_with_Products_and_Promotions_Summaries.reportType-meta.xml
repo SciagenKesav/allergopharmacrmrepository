@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ReportType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <baseObject></baseObject>
+    <category>commerce</category>
+    <deployed>true</deployed>
+    <description>Shows orders with products and promotions in Commerce stores. This report type uses the data from Summaries objects.</description>
+    <label>Order with Products and Promotions, from Summaries</label>
+    <sections>
+        <masterLabel>Order Summaries</masterLabel>
+    </sections>
+    <sections>
+        <masterLabel>Order Product Summaries</masterLabel>
+    </sections>
+    <sections>
+        <masterLabel>Order Product Adjustment Line Item Summaries</masterLabel>
+    </sections>
+</ReportType>

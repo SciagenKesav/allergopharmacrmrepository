@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Working Days Without Calls --></label>
+    <name>Working_Days_Without_Calls__c</name>
+</CustomFieldTranslation>

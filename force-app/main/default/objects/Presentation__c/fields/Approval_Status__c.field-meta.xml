@@ -39,6 +39,12 @@
                 <default>false</default>
                 <label>Expired</label>
             </value>
+            <value>
+                <fullName>Approved Non Promotional</fullName>
+                <default>false</default>
+                <isActive>false</isActive>
+                <label>Approved Non Promotional</label>
+            </value>
         </valueSetDefinition>
     </valueSet>
 </CustomField>

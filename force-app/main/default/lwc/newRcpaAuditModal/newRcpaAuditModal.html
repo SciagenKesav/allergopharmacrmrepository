@@ -1,0 +1,47 @@
+<template>
+    <section class="modal-backdrop" onclick={handleClose}>
+        <div class="modal-panel" onclick={stopPropagation}>
+            <div class="modal-header">
+                <h3>New RCPA Audit</h3>
+                <p class="modal-subtitle">Start a Draft audit, then add prescriber lines from its detail view.</p>
+                <button class="close-button" title="Close" onclick={handleClose}>&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <lightning-record-picker
+                    label="Chemist (HCO)"
+                    required
+                    object-api-name="Sciagen_Account__c"
+                    filter={chemistFilter}
+                    onchange={handleChemistChange}
+                    class="field"
+                ></lightning-record-picker>
+
+                <lightning-record-picker
+                    label="Territory"
+                    object-api-name="Territory__c"
+                    onchange={handleTerritoryChange}
+                    class="field"
+                ></lightning-record-picker>
+
+                <lightning-input
+                    type="date"
+                    label="Audit Date"
+                    value={auditDate}
+                    onchange={handleAuditDateChange}
+                    class="field"
+                ></lightning-input>
+            </div>
+
+            <div class="modal-footer">
+                <lightning-button label="Cancel" onclick={handleClose}></lightning-button>
+                <lightning-button
+                    label="Create"
+                    variant="brand"
+                    disabled={isSaveDisabled}
+                    onclick={handleSave}
+                ></lightning-button>
+            </div>
+        </div>
+    </section>
+</template>

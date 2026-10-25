@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Transaction Type --></label>
+    <name>Transaction_Type__c</name>
+    <picklistValues>
+        <masterLabel>Adjustment</masterLabel>
+        <translation><!-- Adjustment --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Disbursement</masterLabel>
+        <translation><!-- Disbursement --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Receipt</masterLabel>
+        <translation><!-- Receipt --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Return</masterLabel>
+        <translation><!-- Return --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Transfer In</masterLabel>
+        <translation><!-- Transfer In --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Transfer Out</masterLabel>
+        <translation><!-- Transfer Out --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

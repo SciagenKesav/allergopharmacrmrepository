@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Payer Mix --></label>
+    <name>Acaroid_Payer_Mix__c</name>
+    <picklistValues>
+        <masterLabel>Government scheme dominant</masterLabel>
+        <translation><!-- Government scheme dominant --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Insurance / corporate dominant</masterLabel>
+        <translation><!-- Insurance / corporate dominant --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Mixed</masterLabel>
+        <translation><!-- Mixed --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Self-pay dominant</masterLabel>
+        <translation><!-- Self-pay dominant --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

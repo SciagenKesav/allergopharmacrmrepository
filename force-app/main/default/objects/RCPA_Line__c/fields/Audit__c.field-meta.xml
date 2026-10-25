@@ -3,6 +3,7 @@
     <fullName>Audit__c</fullName>
     <label>RCPA Audit</label>
     <referenceTo>RCPA_Audit__c</referenceTo>
+    <relationshipLabel>RCPA Molecule Lines</relationshipLabel>
     <relationshipName>Lines</relationshipName>
     <relationshipOrder>0</relationshipOrder>
     <reparentableMasterDetail>false</reparentableMasterDetail>

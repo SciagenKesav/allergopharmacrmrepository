@@ -16,46 +16,62 @@
             <template if:false={hasSlides}>
                 <div class="empty-state">This presentation has no slides yet.</div>
             </template>
-            <div class="slide-list">
-                <template for:each={slideRows} for:item="slide">
-                    <div key={slide.id} class="slide-card">
-                        <div class="slide-header">
-                            <span class="slide-no">Slide {slide.slideNo}</span>
-                            <span class="slide-name">{slide.name}</span>
-                            <span class="file-type-badge">{slide.fileType}</span>
-                            <template if:true={slide.durationLabel}>
-                                <span class="file-type-badge">{slide.durationLabel}</span>
-                            </template>
-                        </div>
-                        <template if:true={slide.hasFile}>
-                            <lightning-button
-                                label="Preview File"
-                                icon-name="utility:preview"
-                                data-url={slide.assetUrl}
-                                onclick={handlePreview}
-                            ></lightning-button>
-                        </template>
-                        <template if:true={slide.isHtml}>
-                            <lightning-button
-                                label="Preview HTML"
-                                icon-name="utility:preview"
-                                data-id={slide.id}
-                                onclick={handleToggleHtmlPreview}
-                            ></lightning-button>
-                            <template if:true={slide.isHtmlExpanded}>
-                                <div class="html-preview">
-                                    <lightning-formatted-rich-text value={slide.htmlContent}></lightning-formatted-rich-text>
-                                </div>
-                            </template>
-                        </template>
-                        <template if:false={slide.hasFile}>
-                            <template if:false={slide.isHtml}>
-                                <div class="no-file">No file attached to this slide.</div>
-                            </template>
+
+            <template if:true={isShowingSlide}>
+                <div class="slide-nav">
+                    <lightning-button label="Previous" icon-name="utility:chevronleft" onclick={handlePrevSlide} disabled={isFirstSlide}></lightning-button>
+                    <span class="slide-position">{slidePositionLabel}</span>
+                    <lightning-button label={nextButtonLabel} icon-name="utility:chevronright" icon-position="right" variant="brand" onclick={handleNextSlide}></lightning-button>
+                </div>
+                <div class="slide-card slide-card-current">
+                    <div class="slide-header">
+                        <span class="slide-no">Slide {currentSlide.slideNo}</span>
+                        <span class="slide-name">{currentSlide.name}</span>
+                        <span class="file-type-badge">{currentSlide.fileType}</span>
+                        <template if:true={currentSlide.durationLabel}>
+                            <span class="file-type-badge">{currentSlide.durationLabel}</span>
                         </template>
                     </div>
-                </template>
-            </div>
+                    <template if:true={currentSlide.hasFile}>
+                        <lightning-button
+                            label="Preview File"
+                            icon-name="utility:preview"
+                            data-url={currentSlide.assetUrl}
+                            onclick={handlePreview}
+                        ></lightning-button>
+                    </template>
+                    <template if:true={currentSlide.isHtml}>
+                        <lightning-button
+                            label="Preview HTML"
+                            icon-name="utility:preview"
+                            data-id={currentSlide.id}
+                            onclick={handleToggleHtmlPreview}
+                        ></lightning-button>
+                        <template if:true={currentSlide.isHtmlExpanded}>
+                            <div class="html-preview">
+                                <lightning-formatted-rich-text value={currentSlide.htmlContent}></lightning-formatted-rich-text>
+                            </div>
+                        </template>
+                    </template>
+                    <template if:false={currentSlide.hasFile}>
+                        <template if:false={currentSlide.isHtml}>
+                            <div class="no-file">No file attached to this slide.</div>
+                        </template>
+                    </template>
+                </div>
+            </template>
+
+            <template if:true={showEndState}>
+                <div class="end-state">
+                    <lightning-icon icon-name="utility:check" variant="success" size="large"></lightning-icon>
+                    <h4>End of Presentation</h4>
+                    <p>You've reached the last slide of {detail.name}.</p>
+                    <div class="end-state-actions">
+                        <lightning-button label="Restart" onclick={handleRestart}></lightning-button>
+                        <lightning-button label="Back to Library" variant="brand" onclick={handleBack}></lightning-button>
+                    </div>
+                </div>
+            </template>
         </template>
     </div>
 </template>

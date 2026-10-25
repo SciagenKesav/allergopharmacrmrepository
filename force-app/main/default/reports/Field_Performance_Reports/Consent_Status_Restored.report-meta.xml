@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <columns>
+        <field>Sciagen_Account__c$Name</field>
+    </columns>
+    <columns>
+        <field>Sciagen_Account__c.Consents__r$Signed__c</field>
+    </columns>
+    <columns>
+        <field>Sciagen_Account__c.Consents__r$Sample_Opt_In_Valid_Until__c</field>
+    </columns>
+    <columns>
+        <field>Sciagen_Account__c.Consents__r$Signed_At__c</field>
+    </columns>
+    <description>HCPs grouped by 3-state Consent Status (Pending/Expired/Captured) as of today. No-Consent__c HCPs form their own blank group (also Pending). Read the &quot;Captured&quot; row&apos;s Captured % column.</description>
+    <format>Summary</format>
+    <name>Consent Status</name>
+    <params>
+        <name>co</name>
+        <value>1</value>
+    </params>
+    <reportType>HCPs_with_Consent_V2__c</reportType>
+    <scope>organization</scope>
+    <showDetails>true</showDetails>
+    <showGrandTotal>true</showGrandTotal>
+    <showSubTotals>true</showSubTotals>
+    <timeFrameFilter>
+        <dateColumn>Sciagen_Account__c.Consents__r$Sample_Opt_In_Valid_Until__c</dateColumn>
+        <interval>INTERVAL_CURRENT</interval>
+    </timeFrameFilter>
+</Report>

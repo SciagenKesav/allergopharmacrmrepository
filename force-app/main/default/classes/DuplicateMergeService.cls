@@ -66,6 +66,12 @@ public without sharing class DuplicateMergeService {
             new Rel('RCPA_Line__c', 'Prescriber__c', 'HCP', 'MOVE', null),
             new Rel('RCPA_Target__c', 'Target_HCP__c', 'HCP', 'MOVE', null),
             new Rel('Sales_Transaction__c', 'Stockist__c', 'HCO', 'MOVE', null),
+            // UCPMP sample history must follow the doctor, or the survivor's annual limits start from zero (audit H4).
+            // Sample_Expenditure_Tracking__c is merged separately (mergeExpenditure): one row per FY + HCP + product.
+            new Rel('Sample_Transaction__c', 'HCP_Account__c', 'HCP', 'MOVE', null),
+            new Rel('Sample_Blocked_Attempt__c', 'HCP_Account__c', 'HCP', 'MOVE', null),
+            new Rel('Sample_Limit_Override__c', 'Target_Account__c', 'BOTH', 'MOVE', null),
+            new Rel('Call_Visit_Report__c', 'Signee_Account__c', 'HCP', 'MOVE', null),
             new Rel('Segmentation__c', 'HCP__c', 'HCP', 'IF_EMPTY', null),
             new Rel('Sent_Email__c', 'HCP__c', 'HCP', 'MOVE', null),
             new Rel('Sciagen_Account__c', 'Parent_Account__c', 'HCO', 'MOVE', null),
@@ -150,7 +156,14 @@ public without sharing class DuplicateMergeService {
             Map<String, List<Id>> movedIds = new Map<String, List<Id>>();
             List<Id> demotedPrimary = new List<Id>();
             Map<String, List<Id>> createdIds = new Map<String, List<Id>>();
-            moveChildren(w, l, res, movedIds, demotedPrimary, createdIds);
+            List<Map<String, Object>> expenditure = new List<Map<String, Object>>();
+            SciagenAccess.mergeInProgress = true;
+            try {
+                moveChildren(w, l, res, movedIds, demotedPrimary, createdIds);
+                expenditure = mergeExpenditure(winnerId, loserId, res);
+            } finally {
+                SciagenAccess.mergeInProgress = false;
+            }
 
             List<Map<String, Object>> decisions = new List<Map<String, Object>>();
             Sciagen_Account__c upd = survive(w, l, choices, decisions);
@@ -170,7 +183,7 @@ public without sharing class DuplicateMergeService {
                 Method__c = method == null ? 'Manual' : method, Score__c = score, Status__c = 'Merged',
                 Field_Decisions__c = cap(JSON.serialize(decisions), 32000),
                 Loser_Snapshot__c = cap(JSON.serialize(snapshot(l)), 131072),
-                Moved_Records__c = cap(JSON.serialize(new Map<String, Object>{ 'moved' => movedIds, 'demotedPrimary' => demotedPrimary, 'created' => createdIds }), 131072),
+                Moved_Records__c = cap(JSON.serialize(new Map<String, Object>{ 'moved' => movedIds, 'demotedPrimary' => demotedPrimary, 'created' => createdIds, 'expenditure' => expenditure }), 131072),
                 Summary__c = summary(w, l, res)
             );
             insert log;
@@ -279,6 +292,101 @@ public without sharing class DuplicateMergeService {
             }
         }
     }
+
+    // ---------------------------------------------------------------- UCPMP expenditure
+
+    /**
+     * Sample_Expenditure_Tracking__c holds one row per FY + HCP + product (unique Tracking_Key__c). A loser row
+     * with no counterpart on the winner is re-keyed to the winner; one that clashes is added into the winner's
+     * row and zeroed (kept, so Undo can restore it). Returns what was done, for the merge log.
+     */
+    private static List<Map<String, Object>> mergeExpenditure(Id winnerId, Id loserId, MergeResult res) {
+        List<Map<String, Object>> log = new List<Map<String, Object>>();
+        List<Sample_Expenditure_Tracking__c> loserRows = [
+            SELECT Id, Tracking_Key__c, Financial_Year__c, Product__c, Total_Packs_Given__c, Total_Units_Given__c, Total_Value_INR__c, Last_Sample_Date__c
+            FROM Sample_Expenditure_Tracking__c WHERE HCP_Account__c = :loserId
+        ];
+        if (loserRows.isEmpty()) return log;
+        Set<String> winnerKeys = new Set<String>();
+        for (Sample_Expenditure_Tracking__c e : loserRows) winnerKeys.add(SampleExpenditureService.keyFor(e.Financial_Year__c, winnerId, e.Product__c));
+        Map<String, Sample_Expenditure_Tracking__c> winnerRows = new Map<String, Sample_Expenditure_Tracking__c>();
+        for (Sample_Expenditure_Tracking__c e : [
+            SELECT Id, Tracking_Key__c, Total_Packs_Given__c, Total_Units_Given__c, Total_Value_INR__c, Last_Sample_Date__c
+            FROM Sample_Expenditure_Tracking__c WHERE Tracking_Key__c IN :winnerKeys FOR UPDATE
+        ]) winnerRows.put(e.Tracking_Key__c.toLowerCase(), e);
+
+        Map<Id, Sample_Expenditure_Tracking__c> winnerUpdates = new Map<Id, Sample_Expenditure_Tracking__c>();
+        for (Sample_Expenditure_Tracking__c e : loserRows) {
+            String newKey = SampleExpenditureService.keyFor(e.Financial_Year__c, winnerId, e.Product__c);
+            Sample_Expenditure_Tracking__c w = winnerRows.get(newKey.toLowerCase());
+            if (w == null) {
+                log.add(new Map<String, Object>{ 'mode' => 'moved', 'id' => e.Id, 'oldKey' => e.Tracking_Key__c });
+                e.HCP_Account__c = winnerId;
+                e.Tracking_Key__c = newKey;
+            } else {
+                log.add(new Map<String, Object>{ 'mode' => 'summed', 'id' => e.Id, 'winnerRowId' => w.Id,
+                    'packs' => nz(e.Total_Packs_Given__c), 'units' => nz(e.Total_Units_Given__c), 'value' => nz(e.Total_Value_INR__c),
+                    'winnerLastDate' => w.Last_Sample_Date__c == null ? null : String.valueOf(w.Last_Sample_Date__c) });
+                w.Total_Packs_Given__c = nz(w.Total_Packs_Given__c) + nz(e.Total_Packs_Given__c);
+                w.Total_Units_Given__c = nz(w.Total_Units_Given__c) + nz(e.Total_Units_Given__c);
+                w.Total_Value_INR__c = nz(w.Total_Value_INR__c) + nz(e.Total_Value_INR__c);
+                if (e.Last_Sample_Date__c != null && (w.Last_Sample_Date__c == null || w.Last_Sample_Date__c < e.Last_Sample_Date__c)) w.Last_Sample_Date__c = e.Last_Sample_Date__c;
+                winnerUpdates.put(w.Id, w);
+                e.Total_Packs_Given__c = 0;
+                e.Total_Units_Given__c = 0;
+                e.Total_Value_INR__c = 0;
+            }
+        }
+        // Winner totals first, then the loser rows (their new keys never clash: checked above).
+        if (!winnerUpdates.isEmpty()) update winnerUpdates.values();
+        update loserRows;
+        res.moved.put('Sample_Expenditure_Tracking__c.HCP_Account__c', loserRows.size());
+        res.movedTotal += loserRows.size();
+        return log;
+    }
+
+    private static void revertExpenditure(Object raw, Id loserId) {
+        if (raw == null) return;
+        Map<Id, Sample_Expenditure_Tracking__c> updates = new Map<Id, Sample_Expenditure_Tracking__c>();
+        Set<Id> ids = new Set<Id>();
+        List<Map<String, Object>> entries = new List<Map<String, Object>>();
+        for (Object o : (List<Object>) raw) {
+            Map<String, Object> m = (Map<String, Object>) o;
+            entries.add(m);
+            ids.add((Id) m.get('id'));
+            if (m.get('winnerRowId') != null) ids.add((Id) m.get('winnerRowId'));
+        }
+        Map<Id, Sample_Expenditure_Tracking__c> rows = new Map<Id, Sample_Expenditure_Tracking__c>([
+            SELECT Id, Total_Packs_Given__c, Total_Units_Given__c, Total_Value_INR__c, Last_Sample_Date__c
+            FROM Sample_Expenditure_Tracking__c WHERE Id IN :ids FOR UPDATE
+        ]);
+        List<Sample_Expenditure_Tracking__c> movedBack = new List<Sample_Expenditure_Tracking__c>();
+        for (Map<String, Object> m : entries) {
+            Id rowId = (Id) m.get('id');
+            if (!rows.containsKey(rowId)) continue;
+            if (m.get('mode') == 'moved') {
+                movedBack.add(new Sample_Expenditure_Tracking__c(Id = rowId, HCP_Account__c = loserId, Tracking_Key__c = (String) m.get('oldKey')));
+                continue;
+            }
+            Decimal packs = toDecimal(m.get('packs')), units = toDecimal(m.get('units')), value = toDecimal(m.get('value'));
+            updates.put(rowId, new Sample_Expenditure_Tracking__c(Id = rowId, Total_Packs_Given__c = packs, Total_Units_Given__c = units, Total_Value_INR__c = value));
+            Sample_Expenditure_Tracking__c w = rows.get((Id) m.get('winnerRowId'));
+            if (w != null) {
+                Sample_Expenditure_Tracking__c wu = updates.containsKey(w.Id) ? updates.get(w.Id) : new Sample_Expenditure_Tracking__c(Id = w.Id,
+                    Total_Packs_Given__c = nz(w.Total_Packs_Given__c), Total_Units_Given__c = nz(w.Total_Units_Given__c), Total_Value_INR__c = nz(w.Total_Value_INR__c));
+                wu.Total_Packs_Given__c = Math.max(0, wu.Total_Packs_Given__c - packs);
+                wu.Total_Units_Given__c = Math.max(0, wu.Total_Units_Given__c - units);
+                wu.Total_Value_INR__c = Math.max(0, wu.Total_Value_INR__c - value);
+                wu.Last_Sample_Date__c = m.get('winnerLastDate') == null ? null : Date.valueOf((String) m.get('winnerLastDate'));
+                updates.put(w.Id, wu);
+            }
+        }
+        if (!updates.isEmpty()) update updates.values();
+        if (!movedBack.isEmpty()) update movedBack;
+    }
+
+    private static Decimal nz(Decimal d) { return d == null ? 0 : d; }
+    private static Decimal toDecimal(Object o) { return o == null ? 0 : Decimal.valueOf(String.valueOf(o)); }
 
     // ---------------------------------------------------------------- survivorship
 
@@ -480,6 +588,8 @@ public without sharing class DuplicateMergeService {
                 Dedupe_License_Key__c = loser.Dedupe_License_Key__c, Dedupe_Geo_Key__c = loser.Dedupe_Geo_Key__c, Dedupe_Checked_At__c = null);
 
 
+            SciagenAccess.mergeInProgress = true;
+            revertExpenditure(moved.get('expenditure'), loserId);
             for (String key : byRel.keySet()) {
                 String obj = key.substringBefore('.'), field = key.substringAfter('.');
                 Set<Id> ids = new Set<Id>();
@@ -492,6 +602,7 @@ public without sharing class DuplicateMergeService {
                 }
                 if (!back.isEmpty()) update back;
             }
+            SciagenAccess.mergeInProgress = false;
 
             // Put back the winner's own values, but only where nobody has edited them since.
             Sciagen_Account__c w = ((List<Sciagen_Account__c>) Database.query('SELECT ' + selectAll() + ' FROM Sciagen_Account__c WHERE Id = :winnerId'))[0];
@@ -515,6 +626,7 @@ public without sharing class DuplicateMergeService {
             for (Duplicate_Candidate__c c : cands) { c.Status__c = 'Open'; c.Merge_Log__c = null; c.Reviewed_By__c = null; c.Reviewed_At__c = null; }
             if (!cands.isEmpty()) update cands;
         } catch (Exception e) {
+            SciagenAccess.mergeInProgress = false;
             Database.rollback(sp);
             if (e instanceof MergeException) throw e;
             throw new MergeException('Undo failed and was rolled back: ' + e.getMessage());

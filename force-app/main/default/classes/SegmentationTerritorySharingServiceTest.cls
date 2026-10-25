@@ -22,7 +22,7 @@ private class SegmentationTerritorySharingServiceTest {
         insert hcp;
         insert new Account_Territory__c(Account__c = hcp.Id, Territory__c = tA.Id);
         // Segmentation owned by the admin running the test, like the real seeded rows.
-        Segmentation__c seg = new Segmentation__c(HCP__c = hcp.Id, Classification__c = 'A');
+        Segmentation__c seg = new Segmentation__c(HCP__c = hcp.Id, Classification__c = 'V3');
         insert seg;
         insert new List<User_Territory__c>{
             new User_Territory__c(User__c = repA.Id, Territory__c = tA.Id),
@@ -50,7 +50,7 @@ private class SegmentationTerritorySharingServiceTest {
         insert new Account_Territory__c(Account__c = hcp.Id, Territory__c = tA.Id);
         insert new User_Territory__c(User__c = repA.Id, Territory__c = tA.Id);
 
-        Segmentation__c seg = new Segmentation__c(HCP__c = hcp.Id, Classification__c = 'B');
+        Segmentation__c seg = new Segmentation__c(HCP__c = hcp.Id, Classification__c = 'V2');
         insert seg;
         System.assertEquals(1, [SELECT COUNT() FROM Segmentation__Share WHERE ParentId = :seg.Id AND UserOrGroupId = :repA.Id AND RowCause = 'Manual']);
     }

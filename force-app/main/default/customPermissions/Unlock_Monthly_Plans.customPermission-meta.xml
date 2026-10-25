@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomPermission xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Business Admin: can unlock a rep&apos;s frozen monthly call plan so the rep can change it and freeze it again.</description>
+    <isLicensed>false</isLicensed>
+    <label>Unlock Monthly Plans</label>
+</CustomPermission>

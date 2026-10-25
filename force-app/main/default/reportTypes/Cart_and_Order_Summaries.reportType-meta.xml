@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ReportType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <baseObject></baseObject>
+    <category>commerce</category>
+    <deployed>true</deployed>
+    <description>Shows the relationship between cart and order to calculate order conversion rate. This report type uses the data from Summaries objects.</description>
+    <label>Order Conversion Rate, from Summaries</label>
+    <sections>
+        <masterLabel>Carts</masterLabel>
+    </sections>
+    <sections>
+        <masterLabel>Order Summaries</masterLabel>
+    </sections>
+</ReportType>

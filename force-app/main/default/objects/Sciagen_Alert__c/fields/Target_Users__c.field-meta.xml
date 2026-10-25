@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Target_Users__c</fullName>
+    <description>Comma-delimited list of User Ids, wrapped in leading/trailing commas (&quot;,id1,id2,&quot;) for safe LIKE &apos;%,id,%&apos; matching, set when Audience_Type__c = &apos;User&apos;. Replaces the single-value Target_User__c Lookup, which a multi-select audience can&apos;t use — that field is no longer written to but is left in place rather than deleted since no schema-delete is warranted for an unused field.</description>
+    <externalId>false</externalId>
+    <label>Target User Id List</label>
+    <length>255</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

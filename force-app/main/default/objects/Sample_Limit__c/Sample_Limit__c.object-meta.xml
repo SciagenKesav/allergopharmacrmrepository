@@ -146,7 +146,6 @@
     <description>A cap on how many sample packs can be given: regulatory (UCPMP) or company. Checked on the iPad and again in Salesforce.</description>
     <enableActivities>false</enableActivities>
     <enableBulkApi>true</enableBulkApi>
-    <enableFeeds>false</enableFeeds>
     <enableHistory>false</enableHistory>
     <enableLicensing>false</enableLicensing>
     <enableReports>true</enableReports>

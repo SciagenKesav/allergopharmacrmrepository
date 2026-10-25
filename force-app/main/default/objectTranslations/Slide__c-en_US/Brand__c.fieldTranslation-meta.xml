@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Brand --></label>
+    <name>Brand__c</name>
+    <picklistValues>
+        <masterLabel>Cardiace</masterLabel>
+        <translation><!-- Cardiace --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Emrok</masterLabel>
+        <translation><!-- Emrok --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Glaritus</masterLabel>
+        <translation><!-- Glaritus --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Miqnaf</masterLabel>
+        <translation><!-- Miqnaf --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Neutraline</masterLabel>
+        <translation><!-- Neutraline --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Other</masterLabel>
+        <translation><!-- Other --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

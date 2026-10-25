@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Adoption Ladder --></label>
+    <name>Adoption_Ladder__c</name>
+    <picklistValues>
+        <masterLabel>Advocate</masterLabel>
+        <translation><!-- Advocate --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Awareness</masterLabel>
+        <translation><!-- Awareness --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Interest</masterLabel>
+        <translation><!-- Interest --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Rising star</masterLabel>
+        <translation><!-- Rising star --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Trial</masterLabel>
+        <translation><!-- Trial --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>User/Adoption</masterLabel>
+        <translation><!-- User/Adoption --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

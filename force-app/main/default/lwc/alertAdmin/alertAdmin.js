@@ -3,7 +3,6 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import getAlerts from '@salesforce/apex/AlertAdminController.getAlerts';
 import getProfileOptions from '@salesforce/apex/AlertAdminController.getProfileOptions';
 import getUserOptions from '@salesforce/apex/AlertAdminController.getUserOptions';
-import getActiveUserOptions from '@salesforce/apex/AlertAdminController.getActiveUserOptions';
 import saveAlert from '@salesforce/apex/AlertAdminController.saveAlert';
 import setActive from '@salesforce/apex/AlertAdminController.setActive';
 import { BRAND, pillStyle, ALERT_PRIORITY_COLOR, ALERT_TYPE_COLOR } from 'c/sciagenColors';
@@ -22,7 +21,6 @@ const AUDIENCE_OPTIONS = [
     { label: 'All Users', value: 'All Users' },
     { label: 'Profile', value: 'Profile' },
     { label: 'User', value: 'User' },
-    { label: 'Multiple Users', value: 'Multiple Users' },
 ];
 
 const TYPE_FILTER_OPTIONS = [{ label: 'All Types', value: 'All' }, ...TYPE_OPTIONS];
@@ -50,10 +48,8 @@ function emptyForm() {
         type: 'Company',
         priority: 'Normal',
         audienceType: 'All Users',
-        targetProfileId: null,
-        targetUserId: null,
-        targetUserLabel: '',
-        targetUserIds: [],
+        targetProfileIds: [],
+        targetUsers: [],
         activationDate: new Date().toISOString(),
         expirationDate: null,
     };
@@ -65,9 +61,9 @@ export default class AlertAdmin extends LightningElement {
     isSaving = false;
     error;
 
+    showForm = false;
     form = emptyForm();
     profileOptions = [];
-    activeUserOptions = [];
     userSearchTerm = '';
     userOptions = [];
     userSearchTimer;
@@ -88,7 +84,6 @@ export default class AlertAdmin extends LightningElement {
     connectedCallback() {
         this.loadAlerts();
         this.loadProfileOptions();
-        this.loadActiveUserOptions();
     }
 
     async loadAlerts() {
@@ -107,15 +102,6 @@ export default class AlertAdmin extends LightningElement {
         try {
             const options = await getProfileOptions();
             this.profileOptions = options.map((o) => ({ label: o.name, value: o.id }));
-        } catch (e) {
-            this.error = reduceError(e);
-        }
-    }
-
-    async loadActiveUserOptions() {
-        try {
-            const options = await getActiveUserOptions();
-            this.activeUserOptions = options.map((o) => ({ label: o.name, value: o.id }));
         } catch (e) {
             this.error = reduceError(e);
         }
@@ -197,21 +183,21 @@ export default class AlertAdmin extends LightningElement {
             type: found.type,
             priority: found.priority,
             audienceType: found.audienceType,
-            targetProfileId: found.targetProfileId,
-            targetUserId: found.targetUserId,
-            targetUserLabel: found.audienceType === 'User' ? found.audienceLabel : '',
-            targetUserIds: found.targetUserIds ? [...found.targetUserIds] : [],
+            targetProfileIds: found.targetProfileIds || [],
+            targetUsers: found.targetUsers || [],
             activationDate: found.activationDate,
             expirationDate: found.expirationDate,
         };
         this.userSearchTerm = '';
         this.userOptions = [];
+        this.showForm = true;
     }
 
     handleNewAlert() {
         this.form = emptyForm();
         this.userSearchTerm = '';
         this.userOptions = [];
+        this.showForm = true;
     }
 
     get isEditingExisting() {
@@ -232,10 +218,6 @@ export default class AlertAdmin extends LightningElement {
         return this.form.audienceType === 'User';
     }
 
-    get isMultipleUsersAudience() {
-        return this.form.audienceType === 'Multiple Users';
-    }
-
     handleFieldChange(event) {
         const field = event.target.dataset.field;
         this.form = { ...this.form, [field]: event.target.value };
@@ -245,17 +227,28 @@ export default class AlertAdmin extends LightningElement {
         this.form = {
             ...this.form,
             audienceType: event.detail.value,
-            targetProfileId: null,
-            targetUserId: null,
-            targetUserLabel: '',
-            targetUserIds: [],
+            targetProfileIds: [],
+            targetUsers: [],
         };
         this.userSearchTerm = '';
         this.userOptions = [];
     }
 
-    handleTargetUsersChange(event) {
-        this.form = { ...this.form, targetUserIds: event.detail.value };
+    handleProfilesChange(event) {
+        this.form = { ...this.form, targetProfileIds: event.detail.value };
+    }
+
+    get selectedUserRows() {
+        return this.form.targetUsers || [];
+    }
+
+    get hasSelectedUsers() {
+        return this.selectedUserRows.length > 0;
+    }
+
+    handleRemoveUser(event) {
+        const id = event.currentTarget.dataset.id;
+        this.form = { ...this.form, targetUsers: this.selectedUserRows.filter((u) => u.id !== id) };
     }
 
     handleUserSearchChange(event) {
@@ -279,8 +272,8 @@ export default class AlertAdmin extends LightningElement {
     handlePickUser(event) {
         const id = event.currentTarget.dataset.id;
         const found = this.userOptions.find((u) => u.id === id);
-        if (!found) return;
-        this.form = { ...this.form, targetUserId: found.id, targetUserLabel: found.name };
+        if (!found || this.selectedUserRows.some((u) => u.id === found.id)) return;
+        this.form = { ...this.form, targetUsers: [...this.selectedUserRows, found] };
         this.userSearchTerm = '';
         this.userOptions = [];
     }
@@ -304,15 +297,17 @@ export default class AlertAdmin extends LightningElement {
                 type: this.form.type,
                 priority: this.form.priority,
                 audienceType: this.form.audienceType,
-                targetProfileId: this.form.targetProfileId,
-                targetUserId: this.form.targetUserId,
-                targetUserIds: this.form.targetUserIds,
+                targetProfileIds: this.form.targetProfileIds,
+                targetUserIds: this.selectedUserRows.map((u) => u.id),
                 activationDate: this.form.activationDate,
                 expirationDate: this.form.expirationDate,
             });
             this.dispatchEvent(new ShowToastEvent({ title: 'Saved', message: 'Alert saved.', variant: 'success' }));
             await this.loadAlerts();
-            this.handleNewAlert();
+            this.form = emptyForm();
+            this.userSearchTerm = '';
+            this.userOptions = [];
+            this.showForm = false;
         } catch (e) {
             this.dispatchEvent(new ShowToastEvent({ title: 'Could not save alert', message: reduceError(e), variant: 'error' }));
         } finally {
@@ -326,7 +321,10 @@ export default class AlertAdmin extends LightningElement {
             await setActive({ alertId: this.form.id, isActive: !this.isCurrentlyActive });
             this.dispatchEvent(new ShowToastEvent({ title: 'Updated', message: 'Alert status updated.', variant: 'success' }));
             await this.loadAlerts();
-            this.handleNewAlert();
+            this.form = emptyForm();
+            this.userSearchTerm = '';
+            this.userOptions = [];
+            this.showForm = false;
         } catch (e) {
             this.dispatchEvent(new ShowToastEvent({ title: 'Could not update alert', message: reduceError(e), variant: 'error' }));
         } finally {

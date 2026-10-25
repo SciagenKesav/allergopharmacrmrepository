@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Conflict Resolution --></label>
+    <name>Conflict_Resolution__c</name>
+    <picklistValues>
+        <masterLabel>Salesforce Wins</masterLabel>
+        <translation><!-- Salesforce Wins --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>iPad Wins</masterLabel>
+        <translation><!-- iPad Wins --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

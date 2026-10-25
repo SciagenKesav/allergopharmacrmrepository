@@ -39,5 +39,6 @@
     <tabs>RCPA_Browser_Page</tabs>
     <tabs>standard-report</tabs>
     <tabs>Sciagen_Reports</tabs>
+    <tabs>Monthly_Call_Plan__c</tabs>
     <uiType>Lightning</uiType>
 </CustomApplication>

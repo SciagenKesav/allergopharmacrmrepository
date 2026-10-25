@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObjectTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <caseValues>
+        <plural>false</plural>
+        <value>Sample Limit</value>
+    </caseValues>
+    <caseValues>
+        <plural>true</plural>
+        <value>Sample Limits</value>
+    </caseValues>
+    <startsWith>Consonant</startsWith>
+    <validationRules>
+        <errorMessage><!-- The limit can&apos;t be negative. --></errorMessage>
+        <name>Limit_Must_Be_Positive_Or_Zero</name>
+    </validationRules>
+    <validationRules>
+        <errorMessage><!-- Choose the territory this limit applies to. --></errorMessage>
+        <name>Territory_Scope_Needs_Territory</name>
+    </validationRules>
+    <validationRules>
+        <errorMessage><!-- The warning threshold must be between 1 and 100. --></errorMessage>
+        <name>Warning_Threshold_In_Range</name>
+    </validationRules>
+</CustomObjectTranslation>

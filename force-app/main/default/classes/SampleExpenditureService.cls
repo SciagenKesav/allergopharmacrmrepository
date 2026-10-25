@@ -8,15 +8,12 @@ public without sharing class SampleExpenditureService {
 
     public static String keyFor(String fy, Id hcp, Id product) { return fy + '|' + hcp + '|' + product; }
 
-    /** sign +1 when disbursements are applied. Also takes sign -1 for either the old
-     *  in-place-reversal path (a Disbursement's own Inventory_Applied__c flipping back
-     *  off) or a new, separate Transaction_Type__c = 'Reversal' row (SM-UNL-03) — both
-     *  represent "undo what a Disbursement already added to this counter". */
+    /** sign +1 when disbursements are applied, -1 when they are reversed. */
     public static void applyDisbursements(List<Sample_Transaction__c> disbursements, Integer sign) {
         if (disbursements == null || disbursements.isEmpty()) return;
         Map<String, Sample_Expenditure_Tracking__c> delta = new Map<String, Sample_Expenditure_Tracking__c>();
         for (Sample_Transaction__c t : disbursements) {
-            if ((t.Transaction_Type__c != 'Disbursement' && t.Transaction_Type__c != 'Reversal') || t.HCP_Account__c == null || t.Product__c == null) continue;
+            if (t.Transaction_Type__c != 'Disbursement' || t.HCP_Account__c == null || t.Product__c == null) continue;
             Date givenOn = (t.Performed_At__c == null ? System.now() : t.Performed_At__c).date();
             String fy = SampleLimitChecker.financialYear(givenOn);
             String key = keyFor(fy, t.HCP_Account__c, t.Product__c);

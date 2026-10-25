@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Behaviour Segmentation --></label>
+    <name>Behaviour_Segmentation__c</name>
+    <picklistValues>
+        <masterLabel>AIT Believers – Limited OPD</masterLabel>
+        <translation><!-- AIT Believers – Limited OPD --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>AIT Champions</masterLabel>
+        <translation><!-- AIT Champions --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>AIT Development Accounts</masterLabel>
+        <translation><!-- AIT Development Accounts --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>AIT Explorers</masterLabel>
+        <translation><!-- AIT Explorers --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>AIT Flex Prescribers</masterLabel>
+        <translation><!-- AIT Flex Prescribers --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>AIT Loyalists</masterLabel>
+        <translation><!-- AIT Loyalists --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>AIT Non-Adopters</masterLabel>
+        <translation><!-- AIT Non-Adopters --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Allergy - OPD Focussed ENT</masterLabel>
+        <translation><!-- Allergy - OPD Focussed ENT --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Comprehensive ENT Specialists</masterLabel>
+        <translation><!-- Comprehensive ENT Specialists --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>General OPD ENT</masterLabel>
+        <translation><!-- General OPD ENT --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Non-Standardized AIT Loyalists</masterLabel>
+        <translation><!-- Non-Standardized AIT Loyalists --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Surgery- Focused ENT Specialists</masterLabel>
+        <translation><!-- Surgery- Focused ENT Specialists --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

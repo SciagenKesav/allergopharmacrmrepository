@@ -5,7 +5,6 @@
     <label>Cold Chain Tag Number</label>
     <length>50</length>
     <required>false</required>
-    <trackHistory>true</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Text</type>
     <unique>false</unique>

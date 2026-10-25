@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <columns>
+        <field>Sample_Transaction__c$Performed_At__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Transaction__c$Product__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Transaction__c$Sample_Lot__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Transaction__c$Cold_Chain_Tag_Number__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Transaction__c$Cold_Chain_Status__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Transaction__c$Cold_Chain_Temperature__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Transaction__c$Performed_By__c</field>
+    </columns>
+    <description>Transactions that carried a cold chain tag, with their status and temperature.</description>
+    <format>Tabular</format>
+    <name>Cold Chain Tracking</name>
+    <params>
+        <name>co</name>
+        <value>1</value>
+    </params>
+    <reportType>Sample_Transaction_Report__c</reportType>
+    <scope>organization</scope>
+    <showDetails>true</showDetails>
+    <showGrandTotal>true</showGrandTotal>
+    <showSubTotals>true</showSubTotals>
+    <sortColumn>Sample_Transaction__c$Performed_At__c</sortColumn>
+    <sortOrder>Desc</sortOrder>
+    <timeFrameFilter>
+        <dateColumn>Sample_Transaction__c$Approved_At__c</dateColumn>
+        <interval>INTERVAL_CURRENT</interval>
+    </timeFrameFilter>
+</Report>

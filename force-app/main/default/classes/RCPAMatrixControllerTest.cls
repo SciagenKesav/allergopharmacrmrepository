@@ -17,7 +17,7 @@ private class RCPAMatrixControllerTest {
         );
         insert new List<Sciagen_Account__c>{ chemist, doctorA, doctorB };
 
-        insert new Segmentation__c(HCP__c = doctorA.Id, Classification__c = 'A');
+        insert new Segmentation__c(HCP__c = doctorA.Id, Classification__c = 'V3');
         // doctorB intentionally left without a Segmentation__c record -> should default to 'Unclassified'.
 
         Territory__c territory = new Territory__c(Name = 'Matrix Territory', Territory_Code__c = 'MT', Type__c = 'Territory');
@@ -130,7 +130,7 @@ private class RCPAMatrixControllerTest {
         Map<String, String> classificationByDoctor = new Map<String, String>();
         for (RCPAMatrixController.RxObservation o : observations) classificationByDoctor.put(o.doctorName, o.classification);
 
-        System.assertEquals('A', classificationByDoctor.get('Dr. Matrix A'));
+        System.assertEquals('V3', classificationByDoctor.get('Dr. Matrix A'));
         System.assertEquals('Unclassified', classificationByDoctor.get('Dr. Matrix B'), 'No Segmentation__c record exists for Dr. B');
         // 2 own-brand rows (one per audit, same molecule) + 2 competitor rows for Dr. A, + 1 own-brand row for Dr. B.
         System.assertEquals(5, observations.size());

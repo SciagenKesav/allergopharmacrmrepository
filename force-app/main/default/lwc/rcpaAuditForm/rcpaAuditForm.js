@@ -1,6 +1,7 @@
 import { LightningElement, wire } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { createRecord } from 'lightning/uiRecordApi';
+import getCompetitor1ForMolecule from '@salesforce/apex/RCPAMatrixController.getCompetitor1ForMolecule';
 import getMoleculeCatalog from '@salesforce/apex/RCPAMatrixController.getMoleculeCatalog';
 import getSKUCatalog from '@salesforce/apex/RCPAController.getSKUCatalog';
 import getPriorLineForPrescriber from '@salesforce/apex/RCPAController.getPriorLineForPrescriber';
@@ -105,8 +106,21 @@ export default class RcpaAuditForm extends LightningElement {
         }
     }
 
+    // POB: once molecules are in the capture table, offer only the SKUs that
+    // belong to those molecules (Product__c.Parent_Molecule__c). Before any
+    // molecule is added there is nothing to relate to, so the full list shows.
     get skuOptions() {
-        return this.skuCatalog.map((s) => ({ label: s.name, value: s.id }));
+        const molecules = new Set(this.lines.map((l) => l.molecule));
+        const skus = molecules.size
+            ? this.skuCatalog.filter((s) => molecules.has(s.molecule))
+            : this.skuCatalog;
+        return skus.map((s) => ({ label: s.name, value: s.id }));
+    }
+
+    get skuPlaceholder() {
+        return this.lines.length > 0 && this.skuOptions.length === 0
+            ? 'No SKUs for the selected molecule'
+            : 'Select SKU';
     }
 
     get addableMolecules() {
@@ -228,7 +242,9 @@ export default class RcpaAuditForm extends LightningElement {
                 trend: 'Stable',
                 remarks: '',
                 prescriberId: null,
-                competitors: [...namedCompetitors, { brand: 'Others', company: '' }].map((c) => ({
+                competitors: [
+                    ...namedCompetitors,
+                ].map((c) => ({
                     key: c.brand,
                     brand: c.brand,
                     company: c.company,
@@ -236,11 +252,34 @@ export default class RcpaAuditForm extends LightningElement {
                 })),
             },
         ];
+        this.loadCompetitorOptions(molecule);
+    }
+
+    // Adds one capture cell per distinct Product__c.Competitor1__c value recorded for this
+    // molecule (labelled with the competitor's name, like the other brand cells).
+    async loadCompetitorOptions(molecule) {
+        try {
+            const names = await getCompetitor1ForMolecule({ molecule });
+            const line = this.findLine(molecule);
+            if (!line) return;
+            const have = new Set(line.competitors.map((c) => c.brand));
+            const added = (names || [])
+                .filter((n) => !have.has(n))
+                .map((n) => ({ key: n, brand: n, company: '', unitsPerWeek: 0 }));
+            line.competitors = [...added, ...line.competitors];
+            this.lines = [...this.lines];
+        } catch (e) {
+            // Non-fatal: the line just has no Competitor 1 cell.
+        }
     }
 
     handleRemoveLine(event) {
         const key = event.currentTarget.dataset.key;
         this.lines = this.lines.filter((l) => l.key !== key);
+        // A SKU picked for a molecule that was just removed is no longer offered.
+        if (this.pobSelectedSku && !this.skuOptions.some((o) => o.value === this.pobSelectedSku)) {
+            this.pobSelectedSku = undefined;
+        }
     }
 
     findLine(key) {

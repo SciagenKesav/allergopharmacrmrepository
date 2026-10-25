@@ -3,7 +3,6 @@
     <fullName>Unlocked_At__c</fullName>
     <label>Unlocked At</label>
     <required>false</required>
-    <trackHistory>true</trackHistory>
     <trackTrending>false</trackTrending>
     <type>DateTime</type>
 </CustomField>

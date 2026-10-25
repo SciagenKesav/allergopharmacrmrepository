@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ReportType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <baseObject>Call_Visit_Report__c</baseObject>
+    <category>other</category>
+    <deployed>true</deployed>
+    <description>Call Visit Reports with the products prioritized/detailed during the call -- powers the Product Detailing tile.</description>
+    <join>
+        <outerJoin>true</outerJoin>
+        <relationship>Detail_Priorities__r</relationship>
+    </join>
+    <label>Call Visit Reports with Detail Priorities</label>
+    <sections>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Visit_Date__c</field>
+            <table>Call_Visit_Report__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>HCP__c</field>
+            <table>Call_Visit_Report__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Territory__c</field>
+            <table>Call_Visit_Report__c</table>
+        </columns>
+        <masterLabel>Call Visit Reports</masterLabel>
+    </sections>
+    <sections>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Product__c</field>
+            <table>Call_Visit_Report__c.Detail_Priorities__r</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Priority__c</field>
+            <table>Call_Visit_Report__c.Detail_Priorities__r</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Time_Spent_Sec__c</field>
+            <table>Call_Visit_Report__c.Detail_Priorities__r</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Slides_Shown__c</field>
+            <table>Call_Visit_Report__c.Detail_Priorities__r</table>
+        </columns>
+        <masterLabel>Detail Priorities</masterLabel>
+    </sections>
+</ReportType>

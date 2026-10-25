@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObjectTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <caseValues>
+        <plural>false</plural>
+        <value>Product</value>
+    </caseValues>
+    <caseValues>
+        <plural>true</plural>
+        <value>Products</value>
+    </caseValues>
+    <startsWith>Consonant</startsWith>
+    <validationRules>
+        <errorMessage><!-- Only sample products can be marked as cold chain. --></errorMessage>
+        <name>Cold_Chain_Must_Be_Sample</name>
+    </validationRules>
+    <validationRules>
+        <errorMessage><!-- Enter the drug schedule for a controlled substance. --></errorMessage>
+        <name>Controlled_Needs_Schedule</name>
+    </validationRules>
+    <validationRules>
+        <errorMessage><!-- Hypnotics, sedatives and tranquillizers can&apos;t be sampled (UCPMP 5.1(ii)(f)). Set Max Packs Per HCP Per Year to 0. --></errorMessage>
+        <name>Hypnotic_Sedative_Cannot_Be_Sampled</name>
+    </validationRules>
+    <validationRules>
+        <errorMessage><!-- Choose why this product is restricted. --></errorMessage>
+        <name>Restricted_Needs_Reason</name>
+    </validationRules>
+    <validationRules>
+        <errorMessage><!-- A sample pack can&apos;t be larger than the smallest pack in the market (UCPMP 5.1(ii)(d)). --></errorMessage>
+        <name>Sample_Pack_Not_Larger_Than_Market</name>
+    </validationRules>
+    <validationRules>
+        <errorMessage><!-- A sample product needs a per-unit value above zero for UCPMP expenditure tracking. --></errorMessage>
+        <name>Sample_Product_Needs_Unit_Value</name>
+    </validationRules>
+</CustomObjectTranslation>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <columns>
+        <field>Call_Visit_Report__c$Visit_Date__c</field>
+    </columns>
+    <columns>
+        <field>Call_Visit_Report__c$Record_Status__c</field>
+    </columns>
+    <columns>
+        <field>Call_Visit_Report__c$Territory__c</field>
+    </columns>
+    <columns>
+        <field>Call_Visit_Report__c$HCP__c</field>
+    </columns>
+    <description>Rep&apos;s own call visit activity — Territory-scoped for a rep, rolls up to a consolidated view for their manager, via Salesforce Role Hierarchy.</description>
+    <format>Tabular</format>
+    <name>My Call Visit Reports</name>
+    <params>
+        <name>co</name>
+        <value>1</value>
+    </params>
+    <reportType>Call_Visit_Reports__c</reportType>
+    <scope>user</scope>
+    <showDetails>true</showDetails>
+    <showGrandTotal>true</showGrandTotal>
+    <showSubTotals>true</showSubTotals>
+    <timeFrameFilter>
+        <dateColumn>Call_Visit_Report__c$Visit_Date__c</dateColumn>
+        <interval>INTERVAL_CURRENT</interval>
+    </timeFrameFilter>
+</Report>

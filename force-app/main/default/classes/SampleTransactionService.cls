@@ -18,13 +18,27 @@ public without sharing class SampleTransactionService {
     public static final String T_TRANSFER_IN = 'Transfer_In';
     public static final String T_RETURN = 'Return';
     public static final String T_ADJUSTMENT = 'Adjustment';
-    /** System-created only (see SampleDropService.reverseDisbursements) — reverses a
-     *  posted Disbursement's stock effect via a new, Paired_Transaction__c-linked row.
-     *  The original Disbursement is never edited in place (SM-UNL-03). */
-    public static final String T_REVERSAL = 'Reversal';
     public static final Decimal LARGE_ADJUSTMENT_SHARE = 0.10;
 
     private static Boolean followUpRunning = false;
+
+    /**
+     * Set by trusted server code that creates transactions itself (SampleDropService after the
+     * UCPMP limit engine has passed the drop). Direct API inserts never have it.
+     */
+    public static Boolean systemOrigin = false;
+
+    public static final String DIRECT_DISBURSEMENT =
+        'Samples given to a doctor must be recorded as a sample line on a call report, so the UCPMP limits are checked.';
+    public static final String HELD_FOR_APPROVAL = 'Adding stock needs sample manager approval.';
+
+    // Fields the ledger itself owns: never taken from a client.
+    private static final List<String> SERVICE_FIELDS = new List<String>{ 'Inventory_Applied__c', 'Inventory_Effect__c', 'Inventory_Shortfall__c' };
+    // What a transaction is: a rep can't change these after creating it (a sample manager can).
+    private static final List<String> IDENTITY_FIELDS = new List<String>{
+        'Transaction_Type__c', 'Quantity__c', 'Product__c', 'Sample_Lot__c', 'HCP_Account__c', 'To_User__c', 'From_User__c',
+        'Performed_By__c', 'Approved_By__c', 'Approved_At__c', 'Unit_Value_At_Transaction__c', 'Pack_Size_At_Transaction__c'
+    };
 
     // ------------------------------------------------------------------ before
 
@@ -40,7 +54,7 @@ public without sharing class SampleTransactionService {
             if (r.To_Warehouse__c != null) warehouseIds.add(r.To_Warehouse__c);
         }
         Map<Id, Sample_Lot__c> lots = new Map<Id, Sample_Lot__c>([
-            SELECT Id, Product__c, Status__c, Available_Quantity__c, Lot_Number__c, Expiry_Date__c,
+            SELECT Id, Product__c, Status__c, Available_Quantity__c, Initial_Quantity__c, Lot_Number__c, Expiry_Date__c,
                    Cold_Chain_Tag_Number__c, Cold_Chain_Status__c, Owner_User__c
             FROM Sample_Lot__c WHERE Id IN :lotIds
         ]);
@@ -57,7 +71,7 @@ public without sharing class SampleTransactionService {
         Map<Id, Sample_Warehouse__c> warehouses = new Map<Id, Sample_Warehouse__c>([
             SELECT Id, Has_Cold_Storage__c, Is_Active__c FROM Sample_Warehouse__c WHERE Id IN :warehouseIds
         ]);
-        Boolean isManager = FeatureManagement.checkPermission('Manage_Sample_Inventory');
+        Boolean isManager = SampleAccess.isManager();
         Map<Id, Decimal> running = new Map<Id, Decimal>();
         for (Sample_Lot__c l : lots.values()) running.put(l.Id, l.Available_Quantity__c == null ? 0 : l.Available_Quantity__c);
 
@@ -66,9 +80,17 @@ public without sharing class SampleTransactionService {
             for (Sample_Transaction__c r : rows) repIds.add(r.Performed_By__c != null ? r.Performed_By__c : UserInfo.getUserId());
         }
         Map<Id, String> territories = SampleTerritoryService.namesFor(repIds);
+        Boolean trusted = systemOrigin || followUpRunning;
+        // Admins (Modify All Data) are treated like sample managers; checked only when it matters.
+        Boolean privileged = trusted || isManager || SciagenAccess.hasModifyAllData();
         for (Sample_Transaction__c r : rows) {
             Sample_Transaction__c old = oldMap == null ? null : oldMap.get(r.Id);
             Sample_Lot__c lot = r.Sample_Lot__c == null ? null : lots.get(r.Sample_Lot__c);
+            if (!trusted) {
+                protectServiceFields(r, old);
+                if (old != null && SciagenAccess.mergeInProgress) continue;   // merge re-points HCP_Account__c only
+                if (!clientChangeAllowed(r, old, lot, isManager, privileged)) continue;
+            }
             if (old == null && r.Rep_Territory__c == null) r.Rep_Territory__c = territories.get(r.Performed_By__c != null ? r.Performed_By__c : UserInfo.getUserId());
             if (r.Product__c == null && lot != null) r.Product__c = lot.Product__c;
             Product__c product = r.Product__c == null ? null : products.get(r.Product__c);
@@ -76,6 +98,56 @@ public without sharing class SampleTransactionService {
             else if (!lockedEditsAllowed(r, old, isManager)) continue;
             validateAndDecide(r, old, lot, product, warehouses.get(r.To_Warehouse__c), running, isManager);
         }
+    }
+
+    /** Inventory_* are the ledger's own bookkeeping: a client can never set them (it could otherwise move stock at will). */
+    private static void protectServiceFields(Sample_Transaction__c r, Sample_Transaction__c old) {
+        for (String f : SERVICE_FIELDS) r.put(f, old == null ? (f == 'Inventory_Applied__c' ? (Object) false : null) : old.get(f));
+    }
+
+    /**
+     * Rules for transactions written directly by a client (iPad, web, API) rather than by trusted
+     * server code (QA-31 / S-06). Returns false after adding an error.
+     */
+    private static Boolean clientChangeAllowed(Sample_Transaction__c r, Sample_Transaction__c old, Sample_Lot__c lot,
+                                               Boolean isManager, Boolean privileged) {
+        String type = r.Transaction_Type__c;
+        Id me = UserInfo.getUserId();
+        if (old == null) {
+            // (a) Hand-outs only through Sample_Drop__c, where SampleEligibilityService / SampleLimitChecker run.
+            if (type == T_DISBURSEMENT && !SciagenAccess.hasModifyAllData()) { r.addError(DIRECT_DISBURSEMENT); return false; }
+            if (privileged) return true;
+            if (type == T_RECEIPT) { r.addError('Only a sample manager can record a receipt of stock.'); return false; }
+            if (type == T_TRANSFER_IN) { r.addError('A transfer in is created by the sender\'s transfer out.'); return false; }
+            if (r.Performed_By__c != null && r.Performed_By__c != me) { r.addError('You can only record your own sample transactions.'); return false; }
+            if ((type == T_TRANSFER_OUT || type == T_RETURN || type == T_ADJUSTMENT) && lot != null && lot.Owner_User__c != me) {
+                r.addError('You can only move stock from your own lot.'); return false;
+            }
+            // (c) Stock added by a rep (e.g. a recount that found more) waits for a sample manager.
+            if (type == T_ADJUSTMENT && r.Quantity__c != null && r.Quantity__c > 0 && r.Status__c != 'Cancelled') {
+                r.Status__c = 'Pending';
+                r.Requires_Approval__c = true;
+                r.Eligibility_Message__c = HELD_FOR_APPROVAL;
+            }
+            return true;
+        }
+        if (privileged) return true;
+        // (b) The approval hold is not the rep's to lift.
+        if (old.Requires_Approval__c == true && r.Requires_Approval__c != true) {
+            r.addError('Only a sample manager can clear the approval hold on this transaction.'); return false;
+        }
+        for (String f : IDENTITY_FIELDS) {
+            if (r.get(f) != old.get(f)) { r.addError('Only a sample manager can change ' + f + ' on a sample transaction.'); return false; }
+        }
+        if ((type == T_RECEIPT || type == T_TRANSFER_IN) && r.Status__c != old.Status__c) {
+            if (r.To_User__c != null && r.To_User__c != me) { r.addError('Only the person receiving the stock can confirm it.'); return false; }
+            if (r.Confirmed_Quantity__c != null && r.Quantity__c != null && r.Confirmed_Quantity__c > r.Quantity__c) {
+                r.addError('You can confirm at most the ' + r.Quantity__c.intValue() + ' packs sent. Ask a sample manager to record extra stock.'); return false;
+            }
+        } else if (r.Confirmed_Quantity__c != old.Confirmed_Quantity__c) {
+            r.addError('Only a sample manager can change the confirmed quantity.'); return false;
+        }
+        return true;
     }
 
     private static void defaults(Sample_Transaction__c r, Sample_Lot__c lot, Product__c product, Sciagen_Account__c hcp) {
@@ -176,9 +248,6 @@ public without sharing class SampleTransactionService {
             if (r.To_User__c == null && r.To_Warehouse__c == null) { r.addError('Say who or where the samples are received by.'); return; }
         } else if (type == T_ADJUSTMENT) {
             if (lot == null) { r.addError('Choose the lot to adjust.'); return; }
-        } else if (type == T_REVERSAL) {
-            if (lot == null) { r.addError('A reversal needs the lot it is restoring stock to.'); return; }
-            if (r.Paired_Transaction__c == null) { r.addError('A reversal must be linked to the transaction it reverses.'); return; }
         }
 
         // What will this transaction do to the lot, and has that happened yet?
@@ -216,9 +285,6 @@ public without sharing class SampleTransactionService {
             if (available + qty < 0) { r.addError('That adjustment would leave lot ' + lot.Lot_Number__c + ' below zero.'); return; }
             applies = true;
             effect = qty;
-        } else if (type == T_REVERSAL && status == 'Completed' && !wasApplied) {
-            applies = true;
-            effect = qty;   // positive: restores the stock the original Disbursement took
         } else if (type == T_DISBURSEMENT && wasApplied && (status == 'Cancelled' || status == 'Rejected') && becameActive) {
             applies = true;                   // reversal by a sample manager
             effect = -(old.Inventory_Effect__c == null ? 0 : old.Inventory_Effect__c);
@@ -241,7 +307,7 @@ public without sharing class SampleTransactionService {
 
     private static Boolean isAfterHours(Datetime at) {
         if (at == null) return false;
-        return at.hour() < 9 || at.hour() >= 18 || at.format('EEEE') == 'Sunday';
+        return !SciagenAppConfig.isWithinCallHours(at) || SciagenAppConfig.isNonWorkingDay(at);
     }
 
     // ------------------------------------------------------------------- after
@@ -266,7 +332,7 @@ public without sharing class SampleTransactionService {
         for (Sample_Transaction__c r : reversed) if (r.Sample_Lot__c != null) lotIds.add(r.Sample_Lot__c);
         Map<Id, Sample_Lot__c> lots = new Map<Id, Sample_Lot__c>([
             SELECT Id, Product__c, Lot_Number__c, Batch_Lot_Id__c, Manufactured_Date__c, Expiry_Date__c, Available_Quantity__c,
-                   Storage_Conditions__c, Cold_Chain_Tag_Number__c, Cold_Chain_Status__c, Owner_User__c, OwnerId, Status__c
+                   Initial_Quantity__c, Storage_Conditions__c, Cold_Chain_Tag_Number__c, Cold_Chain_Status__c, Owner_User__c, OwnerId, Status__c
             FROM Sample_Lot__c WHERE Id IN :lotIds FOR UPDATE
         ]);
 
@@ -276,7 +342,6 @@ public without sharing class SampleTransactionService {
         List<Sample_Transaction__c> transferIns = new List<Sample_Transaction__c>();
         List<Sample_Transaction__c> returns = new List<Sample_Transaction__c>();
         List<Sample_Transaction__c> adjustments = new List<Sample_Transaction__c>();
-        List<Sample_Transaction__c> newReversals = new List<Sample_Transaction__c>();
 
         for (Sample_Transaction__c r : moved) {
             String type = r.Transaction_Type__c;
@@ -295,7 +360,6 @@ public without sharing class SampleTransactionService {
             else if (type == T_TRANSFER_OUT) transferOuts.add(r);
             else if (type == T_RETURN) returns.add(r);
             else if (type == T_ADJUSTMENT) adjustments.add(r);
-            else if (type == T_REVERSAL) newReversals.add(r);
         }
         for (Sample_Transaction__c r : reversed) {
             if (r.Sample_Lot__c != null) addDelta(delta, r.Sample_Lot__c, r.Inventory_Effect__c == null ? 0 : r.Inventory_Effect__c);
@@ -317,10 +381,8 @@ public without sharing class SampleTransactionService {
             if (!linkUpdates.isEmpty()) update linkUpdates;
             SampleExpenditureService.applyDisbursements(disbursements, 1);
             SampleExpenditureService.applyDisbursements(reversed, -1);
-            SampleExpenditureService.applyDisbursements(newReversals, -1);
             SampleAllocationService.applyDisbursements(disbursements, 1);
             SampleAllocationService.applyDisbursements(reversed, -1);
-            SampleAllocationService.applyDisbursements(newReversals, -1);
             notifyReturns(returns, lots);
             notifyLargeAdjustments(adjustments, lots);
             notifyShortfalls(disbursements);
@@ -411,44 +473,14 @@ public without sharing class SampleTransactionService {
         }
     }
 
-    /** Inventory_Effect__c summed across every applied Receipt and Transfer_In
-     *  transaction, per lot — a lot's real cumulative quantity received to date. Public
-     *  (and its own method) so it's directly testable without depending on
-     *  SampleNotifier's fire-and-forget push notification, which nothing in this codebase
-     *  asserts on. */
-    public static Map<Id, Decimal> quantityReceivedToDate(Set<Id> lotIds) {
-        Map<Id, Decimal> receivedToDate = new Map<Id, Decimal>();
-        if (lotIds == null || lotIds.isEmpty()) return receivedToDate;
-        for (AggregateResult ar : [
-            SELECT Sample_Lot__c lot, SUM(Inventory_Effect__c) total FROM Sample_Transaction__c
-            WHERE Sample_Lot__c IN :lotIds AND Inventory_Applied__c = true AND Transaction_Type__c IN (:T_RECEIPT, :T_TRANSFER_IN)
-            GROUP BY Sample_Lot__c
-        ]) {
-            Decimal total = (Decimal) ar.get('total');
-            receivedToDate.put((Id) ar.get('lot'), total == null ? 0 : total);
-        }
-        return receivedToDate;
-    }
-
-    /** D11 (Phase 0 hotfix): "large" used to mean "more than 10% of
-     *  Sample_Lot__c.Initial_Quantity__c" — a one-time snapshot of the lot's size when it
-     *  was first created, now deprecated (read-only, off the layout). A lot topped up by
-     *  later Receipts would keep being judged against its original, stale creation size.
-     *  Re-based on the lot's actual cumulative quantity received to date. */
     private static void notifyLargeAdjustments(List<Sample_Transaction__c> adjustments, Map<Id, Sample_Lot__c> lots) {
-        if (adjustments.isEmpty()) return;
-        Set<Id> lotIds = new Set<Id>();
-        for (Sample_Transaction__c a : adjustments) if (a.Sample_Lot__c != null) lotIds.add(a.Sample_Lot__c);
-        Map<Id, Decimal> receivedToDate = quantityReceivedToDate(lotIds);
         for (Sample_Transaction__c a : adjustments) {
             Sample_Lot__c l = lots.get(a.Sample_Lot__c);
-            Decimal received = receivedToDate.get(a.Sample_Lot__c);
-            if (l == null || received == null || received == 0) continue;
-            if (Math.abs(a.Quantity__c) > received * LARGE_ADJUSTMENT_SHARE) {
+            if (l == null || l.Initial_Quantity__c == null || l.Initial_Quantity__c == 0) continue;
+            if (Math.abs(a.Quantity__c) > l.Initial_Quantity__c * LARGE_ADJUSTMENT_SHARE) {
                 Set<Id> managers = SampleNotifier.managersOf(new Set<Id>{ a.Performed_By__c != null ? a.Performed_By__c : UserInfo.getUserId() });
                 SampleNotifier.notify(managers, 'Large sample adjustment for review',
-                    'Adjustment of ' + a.Quantity__c.intValue() + ' packs (' + a.Adjustment_Reason__c + ') on lot ' + l.Lot_Number__c
-                    + ' is more than 10% of the ' + received.intValue() + ' packs received to date.', a.Id);
+                    'Adjustment of ' + a.Quantity__c.intValue() + ' packs (' + a.Adjustment_Reason__c + ') on lot ' + l.Lot_Number__c + ' is more than 10% of the lot.', a.Id);
             }
         }
     }

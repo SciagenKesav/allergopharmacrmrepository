@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <columns>
+        <field>Sample_Expenditure_Tracking__c$HCP_Name__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Expenditure_Tracking__c$HCP_Registration__c</field>
+    </columns>
+    <columns>
+        <aggregateTypes>Sum</aggregateTypes>
+        <field>Sample_Expenditure_Tracking__c$Total_Packs_Given__c</field>
+    </columns>
+    <columns>
+        <aggregateTypes>Sum</aggregateTypes>
+        <field>Sample_Expenditure_Tracking__c$Total_Value_INR__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Expenditure_Tracking__c$Pack_Limit__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Expenditure_Tracking__c$Percent_Of_Limit__c</field>
+    </columns>
+    <description>Packs and value given to each doctor against the yearly pack limit. The financial year filter is set to 2026-27: change it for other years.</description>
+    <format>Summary</format>
+    <groupingsDown>
+        <dateGranularity>Day</dateGranularity>
+        <field>Sample_Expenditure_Tracking__c$Product__c</field>
+        <sortOrder>Asc</sortOrder>
+    </groupingsDown>
+    <name>UCPMP Compliance</name>
+    <params>
+        <name>co</name>
+        <value>1</value>
+    </params>
+    <reportType>Sample_Expenditure_Report__c</reportType>
+    <scope>organization</scope>
+    <showDetails>true</showDetails>
+    <showGrandTotal>true</showGrandTotal>
+    <showSubTotals>true</showSubTotals>
+    <timeFrameFilter>
+        <dateColumn>Sample_Expenditure_Tracking__c$Last_Sample_Date__c</dateColumn>
+        <interval>INTERVAL_CURRENT</interval>
+    </timeFrameFilter>
+</Report>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Current AIT Product --></label>
+    <name>Acaroid_Current_AIT_Product__c</name>
+    <picklistValues>
+        <masterLabel>HDM SLIT tablet</masterLabel>
+        <translation><!-- HDM SLIT tablet --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Imported SCIT</masterLabel>
+        <translation><!-- Imported SCIT --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Local extract</masterLabel>
+        <translation><!-- Local extract --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>None</masterLabel>
+        <translation><!-- None --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>SLIT drops</masterLabel>
+        <translation><!-- SLIT drops --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

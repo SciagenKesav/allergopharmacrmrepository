@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Est. Referrals / Month --></label>
+    <name>Acaroid_Est_Referrals_Month__c</name>
+</CustomFieldTranslation>

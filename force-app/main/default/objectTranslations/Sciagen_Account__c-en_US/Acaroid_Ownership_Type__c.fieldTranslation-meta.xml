@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Ownership Type --></label>
+    <name>Acaroid_Ownership_Type__c</name>
+    <picklistValues>
+        <masterLabel>Government</masterLabel>
+        <translation><!-- Government --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Medical College</masterLabel>
+        <translation><!-- Medical College --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Private - Chain</masterLabel>
+        <translation><!-- Private - Chain --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Private - Standalone</masterLabel>
+        <translation><!-- Private - Standalone --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Trust / Charitable</masterLabel>
+        <translation><!-- Trust / Charitable --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

@@ -146,8 +146,7 @@
     <description>Every movement of free medical samples: receipt, disbursement to a doctor, transfer, return and adjustment. Together they form the accountability record UCPMP 2024 requires.</description>
     <enableActivities>false</enableActivities>
     <enableBulkApi>true</enableBulkApi>
-    <enableFeeds>false</enableFeeds>
-    <enableHistory>true</enableHistory>
+    <enableHistory>false</enableHistory>
     <enableLicensing>false</enableLicensing>
     <enableReports>true</enableReports>
     <enableSearch>true</enableSearch>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Author Role --></label>
+    <name>Author_Role__c</name>
+    <picklistValues>
+        <masterLabel>Manager</masterLabel>
+        <translation><!-- Manager --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Requester</masterLabel>
+        <translation><!-- Requester --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Support</masterLabel>
+        <translation><!-- Support --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>System</masterLabel>
+        <translation><!-- System --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

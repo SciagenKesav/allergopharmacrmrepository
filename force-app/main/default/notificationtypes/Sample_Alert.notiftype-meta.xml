@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomNotificationType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customNotifTypeName>Sample Alert</customNotifTypeName>
+    <description>Sample management alerts: lot expiry, returns, large adjustments, cold chain breaches and approvals.</description>
+    <desktop>true</desktop>
+    <masterLabel>Sample Alert</masterLabel>
+    <mobile>true</mobile>
+    <slack>false</slack>
+</CustomNotificationType>

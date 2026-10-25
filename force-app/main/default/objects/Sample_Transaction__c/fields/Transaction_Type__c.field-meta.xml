@@ -3,7 +3,6 @@
     <fullName>Transaction_Type__c</fullName>
     <label>Transaction Type</label>
     <required>true</required>
-    <trackHistory>true</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Picklist</type>
     <valueSet>
@@ -38,15 +37,6 @@
                 <fullName>Adjustment</fullName>
                 <default>false</default>
                 <label>Adjustment</label>
-            </value>
-            <value>
-                <!-- Sample Management Phase 0 (D3/SM-UNL-03): system-created when a
-                     submitted call with samples is unlocked. Reverses a posted
-                     Disbursement's stock effect via a new, linked (Paired_Transaction__c)
-                     record — the original Disbursement is never edited in place. -->
-                <fullName>Reversal</fullName>
-                <default>false</default>
-                <label>Reversal</label>
             </value>
         </valueSetDefinition>
     </valueSet>

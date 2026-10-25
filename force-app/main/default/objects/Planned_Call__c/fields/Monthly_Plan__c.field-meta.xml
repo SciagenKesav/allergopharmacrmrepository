@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Monthly_Plan__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>The rep&apos;s frozen monthly plan this call belongs to (set when the plan is frozen, or when a call is added to a frozen month).</description>
+    <label>Monthly Plan</label>
+    <referenceTo>Monthly_Call_Plan__c</referenceTo>
+    <relationshipLabel>Planned Calls</relationshipLabel>
+    <relationshipName>Planned_Calls</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <columns>
+        <field>Support_Request__c$Name</field>
+    </columns>
+    <columns>
+        <field>Support_Request__c$Requester__c</field>
+    </columns>
+    <columns>
+        <field>Support_Request__c$Requester_Territory__c</field>
+    </columns>
+    <columns>
+        <field>Support_Request__c$Call_Summary__c</field>
+    </columns>
+    <columns>
+        <field>Support_Request__c$Unlock_Outcome__c</field>
+    </columns>
+    <columns>
+        <field>Support_Request__c$Status__c</field>
+    </columns>
+    <columns>
+        <field>Support_Request__c$Assigned_To__c</field>
+    </columns>
+    <columns>
+        <field>Support_Request__c$CreatedDate</field>
+    </columns>
+    <columns>
+        <field>Support_Request__c$Resolved_At__c</field>
+    </columns>
+    <description>Every request to unlock a submitted call, with the outcome.</description>
+    <format>Tabular</format>
+    <name>Call Unlock Requests</name>
+    <params>
+        <name>co</name>
+        <value>1</value>
+    </params>
+    <reportType>Support_Request_Report__c</reportType>
+    <scope>organization</scope>
+    <showDetails>true</showDetails>
+    <showGrandTotal>true</showGrandTotal>
+    <showSubTotals>true</showSubTotals>
+    <sortColumn>Support_Request__c$CreatedDate</sortColumn>
+    <sortOrder>Desc</sortOrder>
+    <timeFrameFilter>
+        <dateColumn>Support_Request__c$Closed_At__c</dateColumn>
+        <interval>INTERVAL_CURRENT</interval>
+    </timeFrameFilter>
+</Report>

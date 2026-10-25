@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ReportType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <baseObject>Sample_Transaction__c</baseObject>
+    <category>other</category>
+    <deployed>true</deployed>
+    <description>Every physical sample transaction, with HCP, quantity and lot -- powers the Sales/Samples tile.</description>
+    <label>Sample Transaction</label>
+    <sections>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Name</field>
+            <table>Sample_Transaction__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>HCP_Account__c</field>
+            <table>Sample_Transaction__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>HCP_Specialty__c</field>
+            <table>Sample_Transaction__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Confirmed_Quantity__c</field>
+            <table>Sample_Transaction__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>CreatedDate</field>
+            <table>Sample_Transaction__c</table>
+        </columns>
+        <masterLabel>Sample Transactions</masterLabel>
+    </sections>
+</ReportType>

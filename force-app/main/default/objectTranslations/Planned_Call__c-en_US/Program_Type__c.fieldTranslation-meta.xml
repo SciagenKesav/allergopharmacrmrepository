@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Program Type --></label>
+    <name>Program_Type__c</name>
+    <picklistValues>
+        <masterLabel>Advisory Board</masterLabel>
+        <translation><!-- Advisory Board --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Conference</masterLabel>
+        <translation><!-- Conference --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Other</masterLabel>
+        <translation><!-- Other --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Speaker Program</masterLabel>
+        <translation><!-- Speaker Program --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

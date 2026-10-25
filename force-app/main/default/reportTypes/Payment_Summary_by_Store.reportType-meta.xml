@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ReportType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <baseObject></baseObject>
+    <category>commerce</category>
+    <deployed>true</deployed>
+    <description>Payments in all statuses, by store.</description>
+    <label>Payment Summary by Store</label>
+    <sections>
+        <masterLabel>Order Summaries</masterLabel>
+    </sections>
+    <sections>
+        <masterLabel>Order Payment Summaries</masterLabel>
+    </sections>
+</ReportType>

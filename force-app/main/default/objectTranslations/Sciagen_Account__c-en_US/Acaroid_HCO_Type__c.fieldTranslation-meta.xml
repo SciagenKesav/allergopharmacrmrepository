@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Acaroid HCO Type --></label>
+    <name>Acaroid_HCO_Type__c</name>
+    <picklistValues>
+        <masterLabel>Chest / Respiratory Clinic</masterLabel>
+        <translation><!-- Chest / Respiratory Clinic --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Children&apos;s Hospital</masterLabel>
+        <translation><!-- Children&apos;s Hospital --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Diagnostic Lab</masterLabel>
+        <translation><!-- Diagnostic Lab --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>ENT Clinic</masterLabel>
+        <translation><!-- ENT Clinic --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Multi-specialty Hospital</masterLabel>
+        <translation><!-- Multi-specialty Hospital --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Nursing Home</masterLabel>
+        <translation><!-- Nursing Home --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Polyclinic</masterLabel>
+        <translation><!-- Polyclinic --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Specialty Allergy Clinic</masterLabel>
+        <translation><!-- Specialty Allergy Clinic --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Tertiary / Teaching Hospital</masterLabel>
+        <translation><!-- Tertiary / Teaching Hospital --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

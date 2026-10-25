@@ -16,7 +16,7 @@
             </layoutItems>
             <layoutItems>
                 <behavior>Edit</behavior>
-                <field>Status__c</field>
+                <field>AIT_Preference__c</field>
             </layoutItems>
         </layoutColumns>
         <layoutColumns>

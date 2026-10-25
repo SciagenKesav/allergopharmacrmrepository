@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ReportType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <baseObject>Sciagen_Account__c</baseObject>
+    <category>other</category>
+    <deployed>true</deployed>
+    <description>Probe — Account base, joined to Consents__r. Temporary, will be deleted.</description>
+    <join>
+        <outerJoin>true</outerJoin>
+        <relationship>Consents__r</relationship>
+    </join>
+    <label>ZZ Probe Type</label>
+    <sections>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Name</field>
+            <table>Sciagen_Account__c</table>
+        </columns>
+        <masterLabel>Accounts</masterLabel>
+    </sections>
+    <sections>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Signed__c</field>
+            <table>Sciagen_Account__c.Consents__r</table>
+        </columns>
+        <masterLabel>Consents</masterLabel>
+    </sections>
+    <sections>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>AIT_Preference__c</field>
+            <table>Sciagen_Account__c</table>
+        </columns>
+        <masterLabel>Sciagen Accounts</masterLabel>
+    </sections>
+</ReportType>

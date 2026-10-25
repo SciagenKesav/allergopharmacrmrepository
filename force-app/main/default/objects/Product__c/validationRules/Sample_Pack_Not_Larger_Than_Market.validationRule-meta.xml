@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Sample_Pack_Not_Larger_Than_Market</fullName>
+    <active>true</active>
+    <errorConditionFormula>AND(Is_Sample_Product__c, NOT(ISBLANK(Pack_Size__c)), NOT(ISBLANK(Smallest_Market_Pack_Size__c)), Pack_Size__c &gt; Smallest_Market_Pack_Size__c)</errorConditionFormula>
+    <errorDisplayField>Pack_Size__c</errorDisplayField>
+    <errorMessage>A sample pack can&apos;t be larger than the smallest pack in the market (UCPMP 5.1(ii)(d)).</errorMessage>
+</ValidationRule>

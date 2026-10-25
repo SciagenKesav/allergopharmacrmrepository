@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Record Type --></label>
+    <name>Record_Type_Label__c</name>
+    <picklistValues>
+        <masterLabel>Call Report</masterLabel>
+        <translation><!-- Call Report --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

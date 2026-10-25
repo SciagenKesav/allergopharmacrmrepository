@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <columns>
+        <field>Sciagen_Account__c$Name</field>
+    </columns>
+    <columns>
+        <field>Sciagen_Account__c$Specialty__c</field>
+    </columns>
+    <columns>
+        <field>Sciagen_Account__c.Segmentations__r$Classification__c</field>
+    </columns>
+    <columns>
+        <field>Sciagen_Account__c.Segmentations__r$Priority__c</field>
+    </columns>
+    <columns>
+        <field>Sciagen_Account__c.Segmentations__r$Is_KOL__c</field>
+    </columns>
+    <description>Every HCP grouped by Segmentation Tier (Gold/Silver/Bronze) -- untiered HCPs roll into Bronze. No-record HCPs show as their own blank group. Coverage/Achievement % can&apos;t join here too (one child per Report Type) -- see HCP Coverage/Call Achievement.</description>
+    <format>Summary</format>
+    <groupingsDown>
+        <dateGranularity>Day</dateGranularity>
+        <field>Sciagen_Account__c.Segmentations__r$Tier_Group__c</field>
+        <sortOrder>Asc</sortOrder>
+    </groupingsDown>
+    <name>Segment Analysis by Tier</name>
+    <params>
+        <name>co</name>
+        <value>1</value>
+    </params>
+    <reportType>HCP_Segmentation_V2__c</reportType>
+    <scope>organization</scope>
+    <showDetails>true</showDetails>
+    <showGrandTotal>true</showGrandTotal>
+    <showSubTotals>true</showSubTotals>
+</Report>

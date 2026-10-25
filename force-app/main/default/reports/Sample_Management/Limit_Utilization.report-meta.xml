@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <columns>
+        <field>Sample_Allocation__c$Allocated_To_User__c</field>
+    </columns>
+    <columns>
+        <aggregateTypes>Sum</aggregateTypes>
+        <field>Sample_Allocation__c$Allocation_Quantity__c</field>
+    </columns>
+    <columns>
+        <aggregateTypes>Sum</aggregateTypes>
+        <field>Sample_Allocation__c$Used_Quantity__c</field>
+    </columns>
+    <columns>
+        <aggregateTypes>Sum</aggregateTypes>
+        <field>Sample_Allocation__c$Remaining_Quantity__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Allocation__c$Utilization_Pct__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Allocation__c$Period_End__c</field>
+    </columns>
+    <description>What each rep or territory was allocated and how much they have used, by product.</description>
+    <format>Summary</format>
+    <groupingsDown>
+        <dateGranularity>Day</dateGranularity>
+        <field>Sample_Allocation__c$Product__c</field>
+        <sortOrder>Asc</sortOrder>
+    </groupingsDown>
+    <name>Sample Limit Utilization</name>
+    <params>
+        <name>co</name>
+        <value>1</value>
+    </params>
+    <reportType>Sample_Allocation_Report__c</reportType>
+    <scope>organization</scope>
+    <showDetails>true</showDetails>
+    <showGrandTotal>true</showGrandTotal>
+    <showSubTotals>true</showSubTotals>
+    <timeFrameFilter>
+        <dateColumn>Sample_Allocation__c$Period_End__c</dateColumn>
+        <interval>INTERVAL_CURRENT</interval>
+    </timeFrameFilter>
+</Report>

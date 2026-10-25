@@ -9,8 +9,6 @@
 public without sharing class SampleEligibilityService {
 
     public class Request {
-        // Correlation key for checkBulk() only — check() ignores it.
-        public String key;
         public Id repUserId;
         public Id hcpAccountId;
         public Id productId;
@@ -38,61 +36,66 @@ public without sharing class SampleEligibilityService {
         public SampleLimitChecker.LimitCheckResult limits;
     }
 
+    // ------------------------------------------------------------ batch priming (QA-49 / H8)
+    // SampleDropService.beforeInsert primes these once for all sample lines in the trigger batch, so
+    // checking N lines costs a fixed number of queries. Unprimed callers query per check, as before.
+
+    private static Boolean primed = false;
+    private static Map<Id, Product__c> primedProducts;
+    private static Map<Id, Sciagen_Account__c> primedHcps;
+    private static Set<Id> primedOptIn;
+    private static Map<Id, Sample_Lot__c> primedLots;
+    private static Map<String, List<Sample_Lot__c>> primedCandidateLots;
+
+    public static void prime(Set<Id> repIds, Set<Id> hcpIds, Set<Id> productIds, Set<Id> callIds, Set<Id> lotIds) {
+        Date today = Date.today();
+        primedProducts = new Map<Id, Product__c>([
+            SELECT Id, Name, Is_Sample_Product__c, Is_Restricted__c, Restriction_Reason__c, Requires_Lot_Number__c, Requires_License_Validation__c,
+                   Requires_Signature__c, Requires_Cold_Chain__c, Is_Controlled_Substance__c
+            FROM Product__c WHERE Id IN :productIds
+        ]);
+        primedHcps = new Map<Id, Sciagen_Account__c>([
+            SELECT Id, Name, Type__c, License_Verification_Status__c, License_Expiry_Date__c, Can_Prescribe__c, Controlled_Substance_License__c
+            FROM Sciagen_Account__c WHERE Id IN :hcpIds
+        ]);
+        primedOptIn = new Set<Id>();
+        if (SampleConfig.load().requireOptIn) {
+            for (Consent__c c : [SELECT HCP__c FROM Consent__c WHERE HCP__c IN :hcpIds AND Consent_Purpose__c INCLUDES ('Sample_Opt_In')
+                                 AND Sample_Opt_In_Valid_Until__c >= :today]) primedOptIn.add(c.HCP__c);
+        }
+        primedLots = new Map<Id, Sample_Lot__c>([
+            SELECT Id, Lot_Number__c, Expiry_Date__c, Available_Quantity__c, Status__c, Cold_Chain_Status__c, Product__c
+            FROM Sample_Lot__c WHERE Id IN :lotIds
+        ]);
+        primedCandidateLots = new Map<String, List<Sample_Lot__c>>();
+        for (Sample_Lot__c l : [
+            SELECT Id, Owner_User__c, Lot_Number__c, Expiry_Date__c, Available_Quantity__c, Status__c, Cold_Chain_Status__c, Product__c
+            FROM Sample_Lot__c
+            WHERE Owner_User__c IN :repIds AND Product__c IN :productIds AND Status__c = 'Active'
+              AND Available_Quantity__c > 0 AND Expiry_Date__c >= :today
+            ORDER BY Expiry_Date__c ASC NULLS LAST, CreatedDate ASC LIMIT 2000
+        ]) {
+            String k = l.Owner_User__c + '|' + l.Product__c;
+            if (!primedCandidateLots.containsKey(k)) primedCandidateLots.put(k, new List<Sample_Lot__c>());
+            if (primedCandidateLots.get(k).size() < 20) primedCandidateLots.get(k).add(l);
+        }
+        SampleLimitChecker.prime(repIds, hcpIds, productIds, callIds);
+        primed = true;
+    }
+
+    public static void clearPrime() {
+        primed = false;
+        primedProducts = null; primedHcps = null; primedOptIn = null; primedLots = null; primedCandidateLots = null;
+        SampleLimitChecker.clearPrime();
+    }
+
     public static Result check(Request req) {
-        Result r = evaluateProductHcpOptInLot(req);
-        Integer qty = req.quantity == null ? 0 : req.quantity;
-        SampleLimitChecker.LimitCheckResult lc = null;
-        if (req.hcpAccountId != null && req.productId != null && qty > 0) {
-            lc = SampleLimitChecker.checkLimits(req.repUserId, req.hcpAccountId, req.productId, qty, req.callId, req.onCallSameProduct, req.onCallAll);
-        }
-        return finalize(r, lc);
-    }
-
-    /**
-     * Bulk form of check() for a batch of requests sharing one trigger context (e.g. every
-     * Sample_Drop__c line on one call insert). Steps 1-4 (product, doctor, opt-in, lot)
-     * still run one query set per request — bounded regardless of how many Sample_Limit__c
-     * rows exist, so left as-is. Step 5 (limits) is the one whose query count multiplies by
-     * BOTH the number of requests and the number of active limits, so it's the one that's
-     * batched — via SampleLimitChecker.checkLimitsBulk(), one round of grouped aggregate
-     * queries for every request in the list (SM-... Phase 0 hotfix, the audit's
-     * governor-limit risk). Each request must carry a distinct `key`; the result map is
-     * keyed the same way.
-     */
-    public static Map<String, Result> checkBulk(List<Request> requests) {
-        Map<String, Result> partials = new Map<String, Result>();
-        List<SampleLimitChecker.LimitCheckRequest> limitReqs = new List<SampleLimitChecker.LimitCheckRequest>();
-        for (Request req : requests) {
-            partials.put(req.key, evaluateProductHcpOptInLot(req));
-            Integer qty = req.quantity == null ? 0 : req.quantity;
-            if (req.hcpAccountId != null && req.productId != null && qty > 0) {
-                SampleLimitChecker.LimitCheckRequest lr = new SampleLimitChecker.LimitCheckRequest();
-                lr.key = req.key;
-                lr.repUserId = req.repUserId;
-                lr.hcpAccountId = req.hcpAccountId;
-                lr.productId = req.productId;
-                lr.requestedQuantity = qty;
-                lr.callId = req.callId;
-                lr.onCallSameProduct = req.onCallSameProduct;
-                lr.onCallAll = req.onCallAll;
-                limitReqs.add(lr);
-            }
-        }
-        Map<String, SampleLimitChecker.LimitCheckResult> limitResults = SampleLimitChecker.checkLimitsBulk(limitReqs);
-        Map<String, Result> out = new Map<String, Result>();
-        for (Request req : requests) out.put(req.key, finalize(partials.get(req.key), limitResults.get(req.key)));
-        return out;
-    }
-
-    /** Steps 1-4 of check() — everything except the limits step, which check()/checkBulk()
-     *  attach afterwards via finalize() so the limits computation can be swapped for a
-     *  single-request or a batched one without duplicating this logic. */
-    private static Result evaluateProductHcpOptInLot(Request req) {
         Result r = new Result();
         Date today = Date.today();
         Integer qty = req.quantity == null ? 0 : req.quantity;
+        Boolean usePrimed = primed && primedProducts.containsKey(req.productId) && primedHcps.containsKey(req.hcpAccountId);
 
-        Product__c p = [
+        Product__c p = usePrimed ? primedProducts.get(req.productId) : [
             SELECT Id, Name, Is_Sample_Product__c, Is_Restricted__c, Restriction_Reason__c, Requires_Lot_Number__c, Requires_License_Validation__c,
                    Requires_Signature__c, Requires_Cold_Chain__c, Is_Controlled_Substance__c
             FROM Product__c WHERE Id = :req.productId LIMIT 1
@@ -109,7 +112,7 @@ public without sharing class SampleEligibilityService {
         if (qty <= 0) block(r, 'Enter a quantity above zero.');
 
         // 2. the doctor
-        Sciagen_Account__c hcp = [
+        Sciagen_Account__c hcp = usePrimed ? primedHcps.get(req.hcpAccountId) : [
             SELECT Id, Name, Type__c, License_Verification_Status__c, License_Expiry_Date__c, Can_Prescribe__c, Controlled_Substance_License__c
             FROM Sciagen_Account__c WHERE Id = :req.hcpAccountId LIMIT 1
         ];
@@ -119,22 +122,18 @@ public without sharing class SampleEligibilityService {
         }
 
         // 3. sample opt-in
-        if (cfg.requireOptIn && !hasOptIn(hcp.Id, today)) {
+        if (cfg.requireOptIn && !(usePrimed ? primedOptIn.contains(hcp.Id) : hasOptIn(hcp.Id, today))) {
             String m = 'No valid sample opt-in consent for ' + hcp.Name + '. Capture it before sampling.';
             if (cfg.optInHardBlock) block(r, m); else r.warnings.add(m);
         }
 
         // 4. the lot
-        if (p.Requires_Lot_Number__c != false && p.Is_Sample_Product__c == true) lot(r, req, p, qty, today);
+        if (p.Requires_Lot_Number__c != false && p.Is_Sample_Product__c == true) lot(r, req, p, qty, today, usePrimed);
 
-        return r;
-    }
-
-    /** Merges the limits step (5) into a partial Result from evaluateProductHcpOptInLot()
-     *  and computes the final blocked/status/message — lc is null when the limits step
-     *  didn't run at all (mirrors the old check()'s own gating condition). */
-    private static Result finalize(Result r, SampleLimitChecker.LimitCheckResult lc) {
-        if (lc != null) {
+        // 5. limits
+        if (req.hcpAccountId != null && p.Id != null && qty > 0) {
+            SampleLimitChecker.LimitCheckResult lc = SampleLimitChecker.checkLimits(req.repUserId, req.hcpAccountId, p.Id, qty, req.callId,
+                req.onCallSameProduct, req.onCallAll);
             r.limits = lc;
             r.blockers.addAll(lc.blockers);
             r.warnings.addAll(lc.warnings);
@@ -142,6 +141,7 @@ public without sharing class SampleEligibilityService {
             r.requiresManager = lc.requiresManager;
             r.overrideId = lc.overrideId;
         }
+
         r.blocked = !r.blockers.isEmpty();
         r.status = r.blocked ? 'Blocked' : (r.warnings.isEmpty() ? 'Eligible' : 'Warning');
         List<String> lines = r.blocked ? r.blockers : r.warnings;
@@ -171,15 +171,22 @@ public without sharing class SampleEligibilityService {
     }
 
     /** First expiry first out. A lot the rep picked is validated instead. */
-    private static void lot(Result r, Request req, Product__c p, Integer qty, Date today) {
+    private static void lot(Result r, Request req, Product__c p, Integer qty, Date today, Boolean usePrimed) {
         Sample_Lot__c chosen = null;
         if (req.lotId != null) {
-            List<Sample_Lot__c> picked = [SELECT Id, Lot_Number__c, Expiry_Date__c, Available_Quantity__c, Status__c, Cold_Chain_Status__c, Product__c
-                                          FROM Sample_Lot__c WHERE Id = :req.lotId LIMIT 1];
-            if (!picked.isEmpty()) chosen = picked[0];
+            if (usePrimed) {
+                chosen = primedLots.get(req.lotId);
+            } else {
+                List<Sample_Lot__c> picked = [SELECT Id, Lot_Number__c, Expiry_Date__c, Available_Quantity__c, Status__c, Cold_Chain_Status__c, Product__c
+                                              FROM Sample_Lot__c WHERE Id = :req.lotId LIMIT 1];
+                if (!picked.isEmpty()) chosen = picked[0];
+            }
         }
         if (chosen == null) {
-            List<Sample_Lot__c> candidates = [
+            String key = req.repUserId + '|' + p.Id;
+            List<Sample_Lot__c> candidates = usePrimed
+                ? (primedCandidateLots.containsKey(key) ? primedCandidateLots.get(key) : new List<Sample_Lot__c>())
+                : [
                 SELECT Id, Lot_Number__c, Expiry_Date__c, Available_Quantity__c, Status__c, Cold_Chain_Status__c, Product__c
                 FROM Sample_Lot__c
                 WHERE Owner_User__c = :req.repUserId AND Product__c = :p.Id AND Status__c = 'Active'

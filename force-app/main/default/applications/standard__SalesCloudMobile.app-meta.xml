@@ -19,9 +19,8 @@
     <tabs>standard-report</tabs>
     <tabs>standard-Dashboard</tabs>
     <tabs>standard-Case</tabs>
-    <tabs>standard-Feed</tabs>
-    <tabs>standard-CollaborationGroup</tabs>
     <tabs>standard-File</tabs>
-    <tabs>Plan_Goal__c</tabs>
+    <tabs>standard-ContentNote</tabs>
+    <tabs>Monthly_Call_Plan__c</tabs>
     <uiType>Lightning</uiType>
 </CustomApplication>

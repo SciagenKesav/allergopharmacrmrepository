@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Check_In_Within_Geofence__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>True when the rep&apos;s check-in position was inside the HCO&apos;s geofence when the iPad recorded it.</description>
+    <label>Check-In Within Geofence</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

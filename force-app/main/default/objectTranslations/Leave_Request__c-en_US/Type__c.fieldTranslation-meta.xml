@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Type --></label>
+    <name>Type__c</name>
+    <picklistValues>
+        <masterLabel>Casual Leave</masterLabel>
+        <translation><!-- Casual Leave --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Compensatory Off</masterLabel>
+        <translation><!-- Compensatory Off --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Earned / Privilege</masterLabel>
+        <translation><!-- Earned / Privilege --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Loss of Pay</masterLabel>
+        <translation><!-- Loss of Pay --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Sick Leave</masterLabel>
+        <translation><!-- Sick Leave --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

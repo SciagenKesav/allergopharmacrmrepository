@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Level --></label>
+    <name>Level__c</name>
+    <picklistValues>
+        <masterLabel>Brand</masterLabel>
+        <translation><!-- Brand --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Molecule</masterLabel>
+        <translation><!-- Molecule --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>SKU</masterLabel>
+        <translation><!-- SKU --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Therapy Area</masterLabel>
+        <translation><!-- Therapy Area --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

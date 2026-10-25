@@ -1,9 +1,9 @@
 /**
- * Keeps Sciagen_Account__Share AND Planned_Call__Share in sync whenever an
- * account's territory assignment changes — a Planned_Call__c's own visibility
- * is derived from its HCP__c/HCO__c's territory, so it must be recomputed
- * here too. See TerritorySharingService / PlannedCallTerritorySharingService
- * for the actual computation.
+ * Keeps Sciagen_Account__Share and Data_Change_Request__Share in sync whenever an account's
+ * territory assignment changes. See TerritorySharingService/DataChangeRequestTerritory-
+ * SharingService for the actual computation. (A DCR targeting this account — Subject_Account__c
+ * or Related_HCO__c — derives its own sharing through the account's territory, one hop out, so
+ * it needs the same resync the account itself gets here.)
  */
 trigger AccountTerritoryShareSync on Account_Territory__c (after insert, after update, after delete, after undelete) {
     Set<Id> accountIds = new Set<Id>();
@@ -17,5 +17,6 @@ trigger AccountTerritoryShareSync on Account_Territory__c (after insert, after u
         }
     }
     TerritorySharingService.resyncForAccounts(accountIds);
-    PlannedCallTerritorySharingService.resyncForAccounts(accountIds);
+    DCRTerritorySharingService.resyncForAccounts(accountIds);
+    SegmentationTerritorySharingService.resyncForAccounts(accountIds);
 }

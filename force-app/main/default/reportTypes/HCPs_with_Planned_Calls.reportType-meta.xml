@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ReportType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <baseObject>Sciagen_Account__c</baseObject>
+    <category>other</category>
+    <deployed>true</deployed>
+    <description>HCPs/HCOs with their planned calls -- powers Call Frequency and the Planned side of Performance Overview / Call Coverage.</description>
+    <join>
+        <outerJoin>true</outerJoin>
+        <relationship>PlannedCalls__r</relationship>
+    </join>
+    <label>HCPs with Planned Calls</label>
+    <sections>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Name</field>
+            <table>Sciagen_Account__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Type__c</field>
+            <table>Sciagen_Account__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Specialty__c</field>
+            <table>Sciagen_Account__c</table>
+        </columns>
+        <masterLabel>Accounts</masterLabel>
+    </sections>
+    <sections>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Call_DateTime__c</field>
+            <table>Sciagen_Account__c.PlannedCalls__r</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Status__c</field>
+            <table>Sciagen_Account__c.PlannedCalls__r</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Call_Type__c</field>
+            <table>Sciagen_Account__c.PlannedCalls__r</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Is_Event__c</field>
+            <table>Sciagen_Account__c.PlannedCalls__r</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Origin__c</field>
+            <table>Sciagen_Account__c.PlannedCalls__r</table>
+        </columns>
+        <masterLabel>Planned Calls</masterLabel>
+    </sections>
+    <sections>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>AIT_Preference__c</field>
+            <table>Sciagen_Account__c</table>
+        </columns>
+        <masterLabel>Sciagen Accounts</masterLabel>
+    </sections>
+</ReportType>

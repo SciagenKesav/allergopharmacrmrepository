@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ReportType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <baseObject></baseObject>
+    <category>other</category>
+    <deployed>true</deployed>
+    <description>Shows payment captures and sales</description>
+    <label>Payment Captures</label>
+    <sections>
+        <masterLabel>Payments</masterLabel>
+    </sections>
+    <sections>
+        <masterLabel>Merchant Accounts</masterLabel>
+    </sections>
+    <sections>
+        <masterLabel>Sales Channels</masterLabel>
+    </sections>
+    <sections>
+        <masterLabel>Order Summaries</masterLabel>
+    </sections>
+</ReportType>

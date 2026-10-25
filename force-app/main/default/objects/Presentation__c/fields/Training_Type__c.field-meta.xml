@@ -15,9 +15,9 @@
                 <label>Medical</label>
             </value>
             <value>
-                <fullName>Compliance  and Policy</fullName>
+                <fullName>Compliance and Policy</fullName>
                 <default>false</default>
-                <label>Compliance  and Policy</label>
+                <label>Compliance and Policy</label>
             </value>
             <value>
                 <fullName>Company Communication</fullName>

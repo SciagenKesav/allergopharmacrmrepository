@@ -2,10 +2,12 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Max_Qty_Per_Call__c</fullName>
     <description>Maximum units a rep may leave in a single call. Blank = no limit.</description>
+    <externalId>false</externalId>
     <label>Max Qty Per Call</label>
     <precision>4</precision>
     <required>false</required>
     <scale>0</scale>
+    <trackHistory>false</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Number</type>
     <unique>false</unique>

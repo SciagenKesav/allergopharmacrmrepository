@@ -145,7 +145,6 @@
     <deploymentStatus>Deployed</deploymentStatus>
     <enableActivities>false</enableActivities>
     <enableBulkApi>true</enableBulkApi>
-    <enableFeeds>false</enableFeeds>
     <enableHistory>false</enableHistory>
     <enableLicensing>false</enableLicensing>
     <enableReports>false</enableReports>
@@ -159,14 +158,7 @@
         <type>Text</type>
     </nameField>
     <pluralLabel>Products</pluralLabel>
-    <searchLayouts>
-        <!-- Shown as the secondary line under each result in the Product__c
-             lookup (e.g. Sample_Drop__c.Product__c on the Samples picker),
-             so reps can tell SKUs apart by their SKUCode__c label. -->
-        <lookupDialogsAdditionalFields>SKUCode__c</lookupDialogsAdditionalFields>
-        <lookupDialogsAdditionalFields>Brand_Name__c</lookupDialogsAdditionalFields>
-        <searchResultsAdditionalFields>SKUCode__c</searchResultsAdditionalFields>
-    </searchLayouts>
+    <searchLayouts></searchLayouts>
     <sharingModel>Read</sharingModel>
     <visibility>Public</visibility>
 </CustomObject>

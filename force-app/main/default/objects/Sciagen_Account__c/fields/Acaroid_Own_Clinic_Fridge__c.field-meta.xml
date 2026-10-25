@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Acaroid_Own_Clinic_Fridge__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>For own-clinic HCPs (doctor-dispensing).</description>
+    <label>Own-clinic 2-8C Fridge</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

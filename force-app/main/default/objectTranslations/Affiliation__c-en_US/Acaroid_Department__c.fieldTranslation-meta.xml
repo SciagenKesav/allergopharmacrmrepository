@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Department --></label>
+    <name>Acaroid_Department__c</name>
+    <picklistValues>
+        <masterLabel>Allergy</masterLabel>
+        <translation><!-- Allergy --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Dermatology</masterLabel>
+        <translation><!-- Dermatology --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>ENT</masterLabel>
+        <translation><!-- ENT --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>General Medicine</masterLabel>
+        <translation><!-- General Medicine --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Paediatric Pulmonology</masterLabel>
+        <translation><!-- Paediatric Pulmonology --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Paediatrics</masterLabel>
+        <translation><!-- Paediatrics --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Pulmonology</masterLabel>
+        <translation><!-- Pulmonology --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

@@ -2,7 +2,7 @@
 private class SampleLotServiceTest {
 
     static Product__c sampleProduct() {
-        Product__c p = new Product__c(Name = 'Test Sample SKU', Product_Code__c = 'SMP-LOT-TEST', Level__c = 'SKU', Is_Sample_Product__c = true, Sample_Unit_Value_INR__c = 10, Pack_Size__c = 4);
+        Product__c p = new Product__c(Product_Code__c = 'T-SLST-1', Name = 'Test Sample SKU', Level__c = 'SKU', Is_Sample_Product__c = true, Sample_Unit_Value_INR__c = 10, Pack_Size__c = 4);
         insert p;
         return p;
     }

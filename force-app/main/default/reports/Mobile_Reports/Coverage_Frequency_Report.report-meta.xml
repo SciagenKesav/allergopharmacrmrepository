@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <columns>
+        <field>Sciagen_Account__c$Name</field>
+    </columns>
+    <columns>
+        <field>Sciagen_Account__c$Type__c</field>
+    </columns>
+    <columns>
+        <field>Sciagen_Account__c$Specialty__c</field>
+    </columns>
+    <columns>
+        <field>Sciagen_Account__c.CallVisitReports__r$Territory__c</field>
+    </columns>
+    <columns>
+        <field>Sciagen_Account__c.CallVisitReports__r$Visit_Date__c</field>
+    </columns>
+    <columns>
+        <field>Sciagen_Account__c.CallVisitReports__r$Call_Type__c</field>
+    </columns>
+    <columns>
+        <field>Sciagen_Account__c.CallVisitReports__r$Call_Status__c</field>
+    </columns>
+    <columns>
+        <field>Sciagen_Account__c.CallVisitReports__r$Rep__c</field>
+    </columns>
+    <description>Coverage and visit frequency — every HCP/HCO, one row per completed call visit. Accounts with zero visits still appear once (blank visit columns). Rows per account = frequency; no visit row ever = a coverage gap.</description>
+    <format>Tabular</format>
+    <name>Coverage Frequency Report</name>
+    <params>
+        <name>co</name>
+        <value>1</value>
+    </params>
+    <reportType>Coverage_Report_for_Completed_Call_Visits__c</reportType>
+    <scope>organization</scope>
+    <showDetails>true</showDetails>
+    <showGrandTotal>true</showGrandTotal>
+    <showSubTotals>true</showSubTotals>
+    <timeFrameFilter>
+        <dateColumn>Sciagen_Account__c.CallVisitReports__r$Visit_Date__c</dateColumn>
+        <interval>INTERVAL_CURRENT</interval>
+    </timeFrameFilter>
+</Report>

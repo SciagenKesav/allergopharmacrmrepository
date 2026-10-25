@@ -5,10 +5,12 @@
  * SciagenAccountSyncService, which writes Data_Change_Request__c). Before
  * this, the only way to act on a DCR was the raw standard object tab.
  *
- * Approving any request here just flips Status__c — the existing
- * DataChangeRequestApprovalHandler trigger does the actual work: creating the
- * Account for "New HCP"/"New HCO", or writing the requested field values onto
- * the existing Subject_Account__c for "Edit HCP"/"Edit HCO".
+ * Approving a "New HCP"/"New HCO" request just flips Status__c — the
+ * existing DataChangeRequestApprovalHandler trigger does the actual Account
+ * creation, unchanged. Approving an "Edit HCP"/"Edit HCO" request also just
+ * flips Status__c: per that same handler's own doc comment, edits are
+ * deliberately never auto-applied to the Account — a steward still makes the
+ * edit by hand after reviewing the diff here.
  *
  * Security: `with sharing` + WITH USER_MODE / AccessLevel.USER_MODE on every
  * query and DML, matching RCPAMatrixController's conventions.
@@ -24,7 +26,10 @@ public with sharing class DCRReviewController {
         'city' => 'City', 'state' => 'State', 'pincode' => 'Pincode', 'phone' => 'Phone',
         'prefix' => 'Prefix', 'firstName' => 'First Name', 'lastName' => 'Last Name',
         'specialty' => 'Specialty', 'degree1' => 'Degree', 'hcpType' => 'HCP Type',
-        'email' => 'Email', 'affiliationHCO' => 'Affiliation (HCO)'
+        'email' => 'Email', 'affiliationHCO' => 'Affiliation (HCO)',
+        'street' => 'Street', 'country' => 'Country', 'focusArea' => 'Focus Area',
+        'licenseNumber' => 'License Number', 'licensingBody' => 'Licensing Body',
+        'primaryCountry' => 'Primary Country', 'accountCode' => 'Account Code', 'website' => 'Website'
     };
 
     // MARK: - Queue
@@ -37,13 +42,12 @@ public with sharing class DCRReviewController {
         @AuraEnabled public String submittedBy;
         @AuraEnabled public String submittedAt;
         @AuraEnabled public String fullAddress;
-        @AuraEnabled public Integer commentCount;
     }
 
     @AuraEnabled
     public static List<DCRQueueItem> getDCRQueue() {
         List<Data_Change_Request__c> dcrs = [
-            SELECT Id, Type__c, Status__c, Subject_Name__c, Submitted_By__c, Submitted_At__c, Full_Address__c, Comment_Count__c
+            SELECT Id, Type__c, Status__c, Subject_Name__c, Submitted_By__c, Submitted_At__c, Full_Address__c
             FROM Data_Change_Request__c
             WITH USER_MODE
             ORDER BY Submitted_At__c DESC NULLS LAST, CreatedDate DESC
@@ -56,7 +60,6 @@ public with sharing class DCRReviewController {
             item.status = dcr.Status__c;
             item.subjectName = dcr.Subject_Name__c;
             item.submittedBy = dcr.Submitted_By__c;
-            item.commentCount = dcr.Comment_Count__c != null ? Integer.valueOf(dcr.Comment_Count__c) : 0;
             item.submittedAt = dcr.Submitted_At__c != null ? dcr.Submitted_At__c.format() : null;
             item.fullAddress = dcr.Full_Address__c;
             items.add(item);
@@ -98,6 +101,7 @@ public with sharing class DCRReviewController {
         @AuraEnabled public String submittedBy;
         @AuraEnabled public String submittedAt;
         @AuraEnabled public String rejectionReason;
+        @AuraEnabled public String approvalComment;
         @AuraEnabled public Boolean isDiff;
         @AuraEnabled public List<FlatField> flatFields;
         @AuraEnabled public List<DiffField> diffFields;
@@ -109,7 +113,7 @@ public with sharing class DCRReviewController {
         List<Data_Change_Request__c> dcrs = [
             SELECT Id, Type__c, Status__c, Subject_Name__c, Related_HCO__c, Related_HCO__r.Name,
                    Subject_Account__c, Subject_Account__r.Name, Fields_Payload__c, Summary__c,
-                   Submitted_By__c, Submitted_At__c, Rejection_Reason__c
+                   Submitted_By__c, Submitted_At__c, Rejection_Reason__c, Approval_Comment__c
             FROM Data_Change_Request__c
             WHERE Id = :dcrId
             WITH USER_MODE
@@ -133,6 +137,7 @@ public with sharing class DCRReviewController {
         detail.submittedBy = dcr.Submitted_By__c;
         detail.submittedAt = dcr.Submitted_At__c != null ? dcr.Submitted_At__c.format() : null;
         detail.rejectionReason = dcr.Rejection_Reason__c;
+        detail.approvalComment = dcr.Approval_Comment__c;
         detail.isDiff = dcr.Type__c == 'Edit HCP' || dcr.Type__c == 'Edit HCO';
         detail.flatFields = new List<FlatField>();
         detail.diffFields = new List<DiffField>();
@@ -195,9 +200,12 @@ public with sharing class DCRReviewController {
     // MARK: - Actions
 
     @AuraEnabled
-    public static void approveDCR(Id dcrId) {
+    public static void approveDCR(Id dcrId, String comment) {
         Data_Change_Request__c dcr = loadPendingOrThrow(dcrId, 'approved');
         dcr.Status__c = 'Approved';
+        if (String.isNotBlank(comment)) {
+            dcr.Approval_Comment__c = comment.trim();
+        }
         saveOrThrow(dcr);
     }
 
@@ -210,64 +218,6 @@ public with sharing class DCRReviewController {
         dcr.Status__c = 'Rejected';
         dcr.Rejection_Reason__c = reason;
         saveOrThrow(dcr);
-    }
-
-    // MARK: - Comments (DCR_Comment__c thread)
-
-    public class CommentItem {
-        @AuraEnabled public Id id;
-        @AuraEnabled public String authorName;
-        @AuraEnabled public String authorRole;
-        @AuraEnabled public String body;
-        @AuraEnabled public String createdAt;
-    }
-
-    @AuraEnabled(cacheable=true)
-    public static List<CommentItem> getComments(Id dcrId) {
-        List<CommentItem> items = new List<CommentItem>();
-        for (DCR_Comment__c c : [
-            SELECT Id, Author__c, Author__r.Name, Author_Role__c, Body__c, CreatedDate
-            FROM DCR_Comment__c
-            WHERE Data_Change_Request__c = :dcrId
-            WITH USER_MODE
-            ORDER BY CreatedDate ASC
-        ]) {
-            CommentItem item = new CommentItem();
-            item.id = c.Id;
-            item.authorName = c.Author__c != null ? c.Author__r.Name : null;
-            item.authorRole = c.Author_Role__c;
-            item.body = c.Body__c;
-            item.createdAt = c.CreatedDate.format();
-            items.add(item);
-        }
-        return items;
-    }
-
-    /// A Business Admin's reply on the DCR Review Queue — always filed as
-    /// Author_Role__c = 'Business Admin', regardless of the DCR's own
-    /// Status__c, so a steward can keep the conversation going even after
-    /// approving/rejecting (e.g. to answer a follow-up question).
-    @AuraEnabled
-    public static void addComment(Id dcrId, String body) {
-        if (String.isBlank(body)) {
-            throw new AuraHandledException('Enter a message before replying.');
-        }
-        List<Data_Change_Request__c> dcrs = [
-            SELECT Id FROM Data_Change_Request__c WHERE Id = :dcrId WITH USER_MODE LIMIT 1
-        ];
-        if (dcrs.isEmpty()) {
-            throw new AuraHandledException('Data Change Request not found or not accessible.');
-        }
-        try {
-            Database.insert(new DCR_Comment__c(
-                Data_Change_Request__c = dcrId,
-                Author__c = UserInfo.getUserId(),
-                Author_Role__c = 'Business Admin',
-                Body__c = body
-            ), AccessLevel.USER_MODE);
-        } catch (DmlException e) {
-            throw new AuraHandledException(e.getDmlMessage(0));
-        }
     }
 
     private static Data_Change_Request__c loadPendingOrThrow(Id dcrId, String action) {
@@ -290,13 +240,7 @@ public with sharing class DCRReviewController {
         try {
             Database.update(dcr, AccessLevel.USER_MODE);
         } catch (DmlException e) {
-            // AuraHandledException's constructor message is NOT what
-            // getMessage() returns to a caller (a well-known Apex gotcha) —
-            // .setMessage() is required, or every caller (including our own
-            // tests) only ever sees the generic "Script-thrown exception".
-            AuraHandledException ahe = new AuraHandledException(e.getDmlMessage(0));
-            ahe.setMessage(e.getDmlMessage(0));
-            throw ahe;
+            throw new AuraHandledException(e.getDmlMessage(0));
         }
     }
 }

@@ -146,7 +146,6 @@
     <description>Primary (company to stockist) and Secondary (stockist to retail) monthly sales, one row per SKU x Stockist x Period. Loaded via flat-file (Data Import Wizard / Bulk API) upserting on Sales_Key__c; a future SAP feed can write to the same object/key with no schema change. The mobile app only ever reads this object.</description>
     <enableActivities>false</enableActivities>
     <enableBulkApi>true</enableBulkApi>
-    <enableFeeds>false</enableFeeds>
     <enableHistory>false</enableHistory>
     <enableLicensing>false</enableLicensing>
     <enableReports>false</enableReports>

@@ -3,7 +3,6 @@
     <fullName>Status__c</fullName>
     <label>Status</label>
     <required>true</required>
-    <trackHistory>true</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Picklist</type>
     <valueSet>

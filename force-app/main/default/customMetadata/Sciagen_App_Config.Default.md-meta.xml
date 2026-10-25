@@ -3,12 +3,40 @@
     <label>Default</label>
     <protected>false</protected>
     <values>
+        <field>Allow_Past_Month_Freeze__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
+    <values>
+        <field>Call_Day_End_Hour__c</field>
+        <value xsi:type="xsd:double">24.0</value>
+    </values>
+    <values>
+        <field>Call_Day_Start_Hour__c</field>
+        <value xsi:type="xsd:double">0.0</value>
+    </values>
+    <values>
+        <field>Catch_All_Brands__c</field>
+        <value xsi:type="xsd:string">Other</value>
+    </values>
+    <values>
         <field>Expenses_Module_Enabled__c</field>
         <value xsi:type="xsd:boolean">true</value>
     </values>
     <values>
+        <field>Follow_Up_Call_Hour__c</field>
+        <value xsi:type="xsd:double">10.0</value>
+    </values>
+    <values>
         <field>Go_Online_URL__c</field>
         <value xsi:type="xsd:string">/lightning/page/home</value>
+    </values>
+    <values>
+        <field>Group_Call_Mirrored_Fields__c</field>
+        <value xsi:type="xsd:string">Visit_Date__c,Start_Time__c,End_Time__c,Activity_Type__c,Call_Type__c,Call_Status__c,Record_Status__c,Record_Type_Label__c,Rep__c,Territory__c,HCO__c,Discussion_Summary__c</value>
+    </values>
+    <values>
+        <field>Group_Calls_Enabled__c</field>
+        <value xsi:type="xsd:boolean">true</value>
     </values>
     <values>
         <field>HCP_HCO_Cache_Limit__c</field>
@@ -19,12 +47,48 @@
         <value xsi:type="xsd:boolean">true</value>
     </values>
     <values>
-        <field>Published_Reports_Folder_Name__c</field>
-        <value xsi:type="xsd:string">Mobile_Reports</value>
+        <field>Lock_Segmentation_On_Freeze__c</field>
+        <value xsi:type="xsd:boolean">false</value>
     </values>
     <values>
-        <field>Sample_Tag_Alert_Regex__c</field>
-        <value xsi:type="xsd:string">^[0-9]{10}$</value>
+        <field>Non_Working_Days__c</field>
+        <value xsi:type="xsd:string">Sunday</value>
+    </values>
+    <values>
+        <field>Plan_Freeze_Enabled__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>Plan_Freeze_Min_Calls__c</field>
+        <value xsi:type="xsd:double">1.0</value>
+    </values>
+    <values>
+        <field>Plan_Vs_Actual_Grace_Days__c</field>
+        <value xsi:type="xsd:double">14.0</value>
+    </values>
+    <values>
+        <field>Planner_Call_Minutes__c</field>
+        <value xsi:type="xsd:double">30.0</value>
+    </values>
+    <values>
+        <field>Planner_Default_Call_Type__c</field>
+        <value xsi:type="xsd:string">Detailing</value>
+    </values>
+    <values>
+        <field>Planner_Gap_Minutes__c</field>
+        <value xsi:type="xsd:double">30.0</value>
+    </values>
+    <values>
+        <field>Planner_Slot_Step_Minutes__c</field>
+        <value xsi:type="xsd:double">30.0</value>
+    </values>
+    <values>
+        <field>Published_Dashboards_Folder_Name__c</field>
+        <value xsi:type="xsd:string">Mobile_Dashboards</value>
+    </values>
+    <values>
+        <field>Published_Reports_Folder_Name__c</field>
+        <value xsi:type="xsd:string">Mobile_Reports</value>
     </values>
     <values>
         <field>Sync_Log_Retention_Days__c</field>

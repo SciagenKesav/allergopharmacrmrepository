@@ -5,6 +5,7 @@ export const ACCEPT = ALLOWED_EXT.map((e) => '.' + e).join(',');
 
 export const CATEGORY_HINTS = {
     'Unlock Submitted Call': 'A submitted call has a mistake and you need to correct it.',
+    'Unlock Monthly Plan': 'Your frozen monthly call plan needs to change.',
     'Data Correction': 'A doctor, hospital or account detail is wrong.',
     'Sync Problem': 'Data is not syncing, or something went missing.',
     'App Issue': 'The app crashed, froze or is showing something wrong.',

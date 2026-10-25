@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Acaroid_Qualification__c</fullName>
+    <label>Acaroid Qualification</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>MultiselectPicklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>MBBS</fullName>
+                <default>false</default>
+                <label>MBBS</label>
+            </value>
+            <value>
+                <fullName>MD</fullName>
+                <default>false</default>
+                <label>MD</label>
+            </value>
+            <value>
+                <fullName>DNB</fullName>
+                <default>false</default>
+                <label>DNB</label>
+            </value>
+            <value>
+                <fullName>DM</fullName>
+                <default>false</default>
+                <label>DM</label>
+            </value>
+            <value>
+                <fullName>DCH</fullName>
+                <default>false</default>
+                <label>DCH</label>
+            </value>
+            <value>
+                <fullName>MS (ENT)</fullName>
+                <default>false</default>
+                <label>MS (ENT)</label>
+            </value>
+            <value>
+                <fullName>DLO</fullName>
+                <default>false</default>
+                <label>DLO</label>
+            </value>
+            <value>
+                <fullName>Fellowship - Allergy</fullName>
+                <default>false</default>
+                <label>Fellowship - Allergy</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+    <visibleLines>8</visibleLines>
+</CustomField>

@@ -57,10 +57,10 @@
         <editHeading>true</editHeading>
         <label>Quantities</label>
         <layoutColumns>
-            <!-- D11 (Phase 0 hotfix): Initial_Quantity__c removed from this layout;
-                 deprecated, read-only (see the field's own description and the
-                 permission-set FLS grant). Stock enters only through Receipt or
-                 Transfer-In. -->
+            <layoutItems>
+                <behavior>Required</behavior>
+                <field>Initial_Quantity__c</field>
+            </layoutItems>
             <layoutItems>
                 <behavior>Edit</behavior>
                 <field>Available_Quantity__c</field>
@@ -126,6 +126,8 @@
         <customLabel>false</customLabel>
         <detailHeading>false</detailHeading>
         <editHeading>false</editHeading>
+        <layoutColumns/>
+        <layoutColumns/>
         <layoutColumns/>
         <style>CustomLinks</style>
     </layoutSections>

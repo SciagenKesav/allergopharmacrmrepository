@@ -1,15 +1,14 @@
 import { LightningElement, api, wire } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import { deleteRecord, updateRecord } from 'lightning/uiRecordApi';
-import { getObjectInfo } from 'lightning/uiObjectInfoApi';
+import { deleteRecord } from 'lightning/uiRecordApi';
 import getAccountDetail from '@salesforce/apex/SciagenAccountController.getAccountDetail';
 import isKeyAccountManager from '@salesforce/apex/SciagenAccountController.isKeyAccountManager';
 import submitEditDcr from '@salesforce/apex/SciagenAccountController.submitEditDcr';
 import getAccountHierarchy from '@salesforce/apex/SciagenAccountController.getAccountHierarchy';
-import unassignFromMyTerritory from '@salesforce/apex/SciagenAccountTerritoryController.unassignFromMyTerritory';
-import { BRAND, pillStyle, CLASSIFICATION_COLOR, TIER_COLOR, DCR_STATUS_COLOR, PREFERENCE_COLOR, callStatusColor } from 'c/sciagenColors';
-import SCIAGEN_ACCOUNT_OBJECT from '@salesforce/schema/Sciagen_Account__c';
+import unassignFromMyTerritory from '@salesforce/apex/AccountTerritoryUnassignController.unassignFromMyTerritory';
+import { BRAND, pillStyle, CLASSIFICATION_COLOR, TIER_COLOR, DCR_STATUS_COLOR, PREFERENCE_COLOR, callStatusColor,
+         ACAROID_READINESS_COLOR, ACAROID_CAN_ADMINISTER_COLOR, ACAROID_TIER_COLOR } from 'c/sciagenColors';
 
 const SECTIONS = [
     { key: 'profile', label: 'Profile', icon: 'utility:contact' },
@@ -19,18 +18,19 @@ const SECTIONS = [
     { key: 'activity', label: 'Activity', icon: 'utility:call' },
     { key: 'related', label: 'Related', icon: 'utility:relate' },
     { key: 'hierarchy', label: 'Hierarchy', icon: 'utility:hierarchy' },
-    { key: 'navigation', label: 'Navigation', icon: 'utility:location' },
     { key: 'dcr', label: 'DCR', icon: 'utility:edit_form' },
 ];
 
-// Hierarchy tree pill coloring — matches accountBrowser's affiliationRows convention (HCO=violet, HCP=primary).
-function typeStyle(type) {
-    return pillStyle(type === 'HCO' ? BRAND.violet : BRAND.primary);
-}
+const HCP_EDIT_FIELDS = [
+    'Name', 'Prefix__c', 'First_Name__c', 'Last_Name__c', 'Primary_Country__c', 'HCP_Type__c', 'Specialty__c',
+    'Focus_Area__c', 'License_Number__c', 'Licensing_Body__c', 'Phone__c', 'Email__c', 'Account_Code__c',
+];
+const HCO_EDIT_FIELDS = [
+    'Name', 'HCO_Type__c', 'Speciality__c', 'Billing_Street__c', 'Billing_City__c', 'Billing_State__c',
+    'Billing_Country__c', 'Billing_Postal_Code__c', 'Website__c', 'Phone__c', 'Email__c', 'Account_Code__c',
+];
 
-// Hierarchy graph node icon — same HCO=violet/HCP=primary convention as
-// typeStyle above, but a solid circular avatar (not a translucent pill),
-// matching the org-chart node style used in the Hierarchy tab.
+// Hierarchy graph node icon: HCO = violet / HCP = primary, a solid circular avatar in each node pill.
 function nodeIconName(type) {
     return type === 'HCO' ? 'utility:company' : 'utility:user';
 }
@@ -38,7 +38,48 @@ function nodeIconStyle(type) {
     return `background-color:#${type === 'HCO' ? BRAND.violet : BRAND.primary};`;
 }
 
+// Compact quick-edit set only — the full Acaroid capture experience (every
+// rep-owned field, grouped by section) lives on the iPad; this covers just
+// the fields that most directly move the score/tier so a manager or rep at
+// a desk can make a quick correction.
+// Every rep-editable HCP field the iPad app's Acaroid capture form writes
+// (AcaroidTargetingView.swift's HCP field dict) — kept in sync with that list
+// and with REP_ACCOUNT_FIELDS in the Salesforce permission-set generator, so
+// a rep sees exactly the same capture fields on both platforms.
+const ACAROID_HCP_EDIT_FIELDS = [
+    'Acaroid_Subspecialty_Interest__c', 'Acaroid_Practice_Setting__c', 'Acaroid_AR_Patients_Week__c',
+    'Acaroid_Asthma_Patients_Week__c', 'Acaroid_HCP_Paed_Share_Pct__c', 'Acaroid_Eligible_Asthma_Share_Pct__c',
+    'Acaroid_HCP_Affordability_Band__c', 'Acaroid_Practises_AIT__c', 'Acaroid_AIT_Patients_On_Therapy__c',
+    'Acaroid_Current_AIT_Product__c', 'Acaroid_Allergy_Testing_Freq__c', 'Acaroid_Allergy_Test_Types__c',
+    'Acaroid_AIT_Training__c', 'Acaroid_SCIT_Attitude__c', 'Acaroid_Key_Barriers__c', 'Acaroid_Adoption_Stage__c',
+    'Acaroid_Own_Clinic_Fridge__c', 'Acaroid_Own_Clinic_Emergency_Kit__c', 'Acaroid_Society_Memberships__c',
+    'Acaroid_Society_Office_Bearer__c', 'Acaroid_Is_Teaching_Faculty__c', 'Acaroid_Referral_Network_Size__c',
+    'Acaroid_Preferred_Channel__c', 'Acaroid_Patients_Initiated__c', 'Acaroid_HCP_Active_Patients__c',
+    'Acaroid_Patients_Referred__c', 'Acaroid_Last_Initiation_Date__c',
+];
+// Every rep-editable HCO field the iPad app's Acaroid capture form writes,
+// across its main capture screen and its separate Readiness Audit screen —
+// same sync note as ACAROID_HCP_EDIT_FIELDS above.
+const ACAROID_HCO_EDIT_FIELDS = [
+    'Acaroid_Has_Allergy_Dept__c', 'Acaroid_Has_Pulmonology_Dept__c', 'Acaroid_Has_Paed_Resp_Dept__c',
+    'Acaroid_Has_ENT_Dept__c', 'Acaroid_Allergy_Testing__c', 'Acaroid_AIT_Offered__c', 'Acaroid_AIT_Product_Source__c',
+    'Acaroid_Est_AIT_Patients__c', 'Acaroid_Est_AR_Asthma_OPD_Month__c', 'Acaroid_HCO_Paed_Share_Pct__c',
+    'Acaroid_Payer_Mix__c', 'Acaroid_HCO_Affordability_Band__c', 'Acaroid_HCO_Active_Patients__c',
+    'Acaroid_New_Initiations_MTD__c', 'Acaroid_Patients_Updosing__c', 'Acaroid_Patients_Maintenance__c',
+    'Acaroid_Vials_In_Stock__c', 'Acaroid_Earliest_Inuse_Expiry__c', 'Acaroid_Storage_Location__c',
+    'Acaroid_Has_2_8C_Fridge__c', 'Acaroid_Has_Emergency_Kit__c', 'Acaroid_Anaphylaxis_Trained_Staff__c',
+    'Acaroid_Has_Observation_Area__c', 'Acaroid_Temp_Monitoring__c', 'Acaroid_Fridge_Power_Backup__c',
+    'Acaroid_Fridge_Capacity_Vials__c', 'Acaroid_Readiness_Audit_Date__c',
+];
+
+
 export default class AccountDetail extends NavigationMixin(LightningElement) {
+    // "Unassign from Territory": removes only the link to the running user's own territory
+    // (AccountTerritoryUnassignService); the account record is never deleted.
+    isConfirmingUnassign = false;
+    isUnassigning = false;
+    unassignCommentInput = '';
+
     _recordId;
     record;
     isLoading = false;
@@ -46,6 +87,8 @@ export default class AccountDetail extends NavigationMixin(LightningElement) {
     isSaving = false;
     isEditingSegmentation = false;
     isSavingSegmentation = false;
+    isEditingAcaroid = false;
+    isSavingAcaroid = false;
     isEditingProfileSummary = false;
     isSavingProfileSummary = false;
     showAddOfficeWindow = false;
@@ -54,36 +97,10 @@ export default class AccountDetail extends NavigationMixin(LightningElement) {
     showCallReportPanel = false;
     showAddAffiliation = false;
     isSavingAffiliation = false;
-    editingAffiliationId = null;
-    showCvrView = false;
-    viewingCvrId = null;
     error;
     activeSection = 'profile';
     hierarchy;
     isHierarchyLoading = false;
-
-    // Drives whether the Edit affordances on this page render at all — reflects
-    // the running user's actual object permission (profile + permission sets),
-    // e.g. a Standard Platform User / Sales Rep with read-only access to
-    // Sciagen_Account__c. Checking real permission here (rather than hardcoding
-    // a profile-name check) means this stays correct if access is ever changed.
-    @wire(getObjectInfo, { objectApiName: SCIAGEN_ACCOUNT_OBJECT })
-    accountObjectInfo;
-
-    get canEdit() {
-        return this.accountObjectInfo?.data?.updateable ?? false;
-    }
-
-    // "Unassign from Territory" — available to every user (see
-    // SciagenAccountTerritoryController's doc comment). Never deletes the
-    // Account record itself: a Business Unit Head's own request applies
-    // immediately; anyone else's instead files a DCR for a Business Unit
-    // Head to approve before anything is actually removed. A comment is
-    // required either way — it's filed as the thread's first DCR_Comment__c
-    // for a Business Admin to read/reply to from the DCR Review Queue.
-    isConfirmingUnassign = false;
-    isUnassigning = false;
-    unassignCommentInput = '';
 
     @api
     get recordId() {
@@ -103,12 +120,67 @@ export default class AccountDetail extends NavigationMixin(LightningElement) {
         this.showCallReportPanel = false;
         this.showAddAffiliation = false;
         this.isSavingAffiliation = false;
-        this.editingAffiliationId = null;
-        this.showCvrView = false;
-        this.viewingCvrId = null;
         this.activeSection = 'profile';
         this.hierarchy = undefined;
         this.loadDetail();
+    }
+
+    // MARK: - Unassign from Territory
+
+    handleOpenUnassignConfirm() {
+        this.isConfirmingUnassign = true;
+        this.unassignCommentInput = '';
+    }
+
+    handleCloseUnassignConfirm() {
+        this.isConfirmingUnassign = false;
+        this.unassignCommentInput = '';
+    }
+
+    handleUnassignCommentChange(event) {
+        this.unassignCommentInput = event.target.value;
+    }
+
+    get isUnassignConfirmDisabled() {
+        return this.isUnassigning || !this.unassignCommentInput || !this.unassignCommentInput.trim();
+    }
+
+    async handleConfirmUnassign() {
+        const comment = this.unassignCommentInput.trim();
+        if (!comment) {
+            return;
+        }
+        this.isUnassigning = true;
+        try {
+            const outcome = await unassignFromMyTerritory({ accountId: this._recordId, comment });
+            this.isConfirmingUnassign = false;
+            this.unassignCommentInput = '';
+            // outcome.immediate is always false now — the link isn't removed until a steward
+            // approves the request (see AccountTerritoryUnassignService) — but the check is kept
+            // rather than hardcoding the navigate-away below, so this LWC doesn't have to change
+            // again if that ever becomes a fast-path for some request type in the future.
+            this.dispatchEvent(new ShowToastEvent({
+                title: outcome.immediate ? 'Removed from your territory' : 'Submitted for review',
+                message: outcome.message,
+                variant: 'success',
+            }));
+            if (outcome.immediate) {
+                // The account no longer belongs to this user's territory, so send them back to
+                // the Accounts list (which reloads without it) rather than leave them on its detail.
+                this[NavigationMixin.Navigate]({
+                    type: 'standard__navItemPage',
+                    attributes: { apiName: 'Account_Browser_Page' },
+                });
+            }
+        } catch (e) {
+            this.dispatchEvent(new ShowToastEvent({
+                title: 'Couldn’t unassign from territory',
+                message: (e && e.body && e.body.message) || 'An unknown error occurred.',
+                variant: 'error',
+            }));
+        } finally {
+            this.isUnassigning = false;
+        }
     }
 
     async loadDetail() {
@@ -219,9 +291,8 @@ export default class AccountDetail extends NavigationMixin(LightningElement) {
         return p ? { ...p, iconName: nodeIconName(p.type), iconStyle: nodeIconStyle(p.type) } : null;
     }
 
-    // HCPs' "parent" node here is their Primary HCO (see getAccountHierarchy);
-    // everything else keeps the generic "Parent Account" wording. Doubles as
-    // the connector-line relationship label in the hier-tree graph.
+    // An HCP's "parent" node is its Primary HCO (see getAccountHierarchy); everything else keeps the
+    // generic "Parent Account" wording. Doubles as the relationship label on the connector line.
     get hierarchyParentLabel() {
         return this.hierarchy?.selfType === 'HCP' ? 'Primary HCO' : 'Parent Account';
     }
@@ -248,10 +319,6 @@ export default class AccountDetail extends NavigationMixin(LightningElement) {
 
     get isDcrSection() {
         return this.activeSection === 'dcr';
-    }
-
-    get isNavigationSection() {
-        return this.activeSection === 'navigation';
     }
 
     get hasAffiliations() {
@@ -282,37 +349,6 @@ export default class AccountDetail extends NavigationMixin(LightningElement) {
         return pillStyle(TIER_COLOR[this.record?.segmentation?.tier]);
     }
 
-    // MARK: - Header segmentation badges (HCP only) — mirrors
-    // AccountDetailsView.swift's header Chip row exactly: Class <A/B/C>,
-    // Tier, KOL, Priority, then HCP Type, each shown only when set. Same
-    // pillStyle() + color tokens as the rest of this file, just surfaced up
-    // in the compact-layout-style header instead of buried in Segmentation.
-    get headerBadges() {
-        if (!this.isHCP) return [];
-        const seg = this.record?.segmentation;
-        const badges = [];
-        if (seg?.classification && seg.classification !== 'Unclassified') {
-            badges.push({ key: 'classification', label: `Class ${seg.classification}`, style: pillStyle(CLASSIFICATION_COLOR[seg.classification]) });
-        }
-        if (seg?.tier && seg.tier !== 'None') {
-            badges.push({ key: 'tier', label: seg.tier, style: pillStyle(TIER_COLOR[seg.tier]) });
-        }
-        if (seg?.isKOL) {
-            badges.push({ key: 'kol', label: 'KOL', style: pillStyle(BRAND.amber) });
-        }
-        if (seg?.priority && seg.priority !== 'None') {
-            badges.push({ key: 'priority', label: seg.priority, style: pillStyle(BRAND.primary) });
-        }
-        if (this.record?.hcpType) {
-            badges.push({ key: 'hcpType', label: this.record.hcpType, style: pillStyle(BRAND.subtle) });
-        }
-        return badges;
-    }
-
-    get hasHeaderBadges() {
-        return this.headerBadges.length > 0;
-    }
-
     get hasScientificImpact() {
         const r = this.record;
         return !!(r && (r.totalArticles || r.totalCitations || r.avgCitationsPerArticle || r.avgCoauthorsPerArticle
@@ -327,13 +363,20 @@ export default class AccountDetail extends NavigationMixin(LightningElement) {
         return this.hasPublications || this.hasCongressEvents || this.hasClinicalTrials || this.hasScientificImpact || this.hasOfficeWindows;
     }
 
+    // DCR entries have their own dedicated DCR tab (dcrRows below) — showing
+    // them here too was a straight duplicate, so the Timeline only carries
+    // the kinds it's the sole home for.
+    get timelineEntries() {
+        return (this.record?.timeline || []).filter((t) => t.kind !== 'DCR');
+    }
+
     get hasTimeline() {
-        return this.record?.timeline?.length > 0;
+        return this.timelineEntries.length > 0;
     }
 
     get timelineRows() {
-        const colorByKind = { DCR: BRAND.violet, Planned: BRAND.amber, Email: BRAND.accent };
-        return (this.record?.timeline || []).map((t, index) => ({
+        const colorByKind = { Planned: BRAND.amber, Email: BRAND.accent };
+        return this.timelineEntries.map((t, index) => ({
             ...t,
             key: `${t.kind}-${index}`,
             kindStyle: pillStyle(colorByKind[t.kind] || BRAND.primary),
@@ -357,11 +400,7 @@ export default class AccountDetail extends NavigationMixin(LightningElement) {
     }
 
     get affiliationRows() {
-        return (this.record?.affiliations || []).map((a) => ({
-            ...a,
-            typeStyle: pillStyle(a.type === 'HCO' ? BRAND.violet : BRAND.primary),
-            isEditingThisRow: a.affiliationId === this.editingAffiliationId,
-        }));
+        return (this.record?.affiliations || []).map((a) => ({ ...a, typeStyle: pillStyle(a.type === 'HCO' ? BRAND.violet : BRAND.primary) }));
     }
 
     get hasDegrees() {
@@ -401,6 +440,26 @@ export default class AccountDetail extends NavigationMixin(LightningElement) {
 
     get focusAreaSummary() {
         return this.record?.focusArea || 'No focus area recorded.';
+    }
+
+    get hasProfileStats() {
+        const r = this.record;
+        return !!(r && (r.age || r.experienceYears));
+    }
+
+    // MARK: - Record Info footer (Created By / Last Modified By) — a single
+    // muted line rather than its own card; this used to live inside the
+    // Address Information card, which made "who created/edited this record"
+    // read as if it were part of the account's own address.
+    get recordInfoLine() {
+        const r = this.record;
+        if (!r) return null;
+        const parts = [];
+        if (r.createdByName) parts.push(`Created by ${r.createdByName}`);
+        if (r.lastModifiedByName) {
+            parts.push(`last modified by ${r.lastModifiedByName}${this.lastModifiedDisplay ? ` on ${this.lastModifiedDisplay}` : ''}`);
+        }
+        return parts.length ? parts.join(', ') : null;
     }
 
     handleEditProfileSummary() {
@@ -451,11 +510,9 @@ export default class AccountDetail extends NavigationMixin(LightningElement) {
         return [a.street, a.city, a.state, a.postalCode].filter(Boolean).join(', ');
     }
 
-    // MARK: - Navigation tab's map (both HCP and HCO share record.latitude/
-    // longitude — an HCO's own billing address for an HCO, its primary
-    // affiliation's HCO for an HCP, mirrored by AffiliationSyncService.cls).
-    // Same lightning-map + marker shape as accountBrowser's map view, just
-    // one pin instead of the whole filtered list.
+    // MARK: - Address Information card's map (both HCP and HCO — the
+    // underlying fields were always populated for both, this card just
+    // didn't render a map before)
 
     get hasLocation() {
         return !!(this.record && this.record.latitude != null && this.record.longitude != null);
@@ -466,18 +523,6 @@ export default class AccountDetail extends NavigationMixin(LightningElement) {
         if (!r || r.latitude == null || r.longitude == null) return [];
         const description = [r.billingStreet, r.billingCity, r.billingState, r.billingPostalCode].filter(Boolean).join(', ');
         return [{ location: { Latitude: r.latitude, Longitude: r.longitude }, title: r.name, description }];
-    }
-
-    get navigationAddress() {
-        const r = this.record;
-        if (!r) return '';
-        return [r.billingStreet, r.billingCity, r.billingState, r.billingPostalCode, r.billingCountry].filter(Boolean).join(', ');
-    }
-
-    get navigationEmptyMessage() {
-        return this.isHCP
-            ? 'No location yet — set a primary affiliation on the Related tab to inherit its address.'
-            : 'No location yet — add a billing address on this account to geocode it.';
     }
 
     // MARK: - Multichannel Consent (HCP only)
@@ -515,6 +560,10 @@ export default class AccountDetail extends NavigationMixin(LightningElement) {
         if (!raw) return null;
         const d = new Date(raw);
         return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString();
+    }
+
+    get editFields() {
+        return this.isHCP ? HCP_EDIT_FIELDS : HCO_EDIT_FIELDS;
     }
 
     handleEdit() {
@@ -592,6 +641,70 @@ export default class AccountDetail extends NavigationMixin(LightningElement) {
         return this.hasSegmentation ? 'Edit' : 'Add Segmentation';
     }
 
+    get acaroidEditFields() {
+        const names = this.isHCP ? ACAROID_HCP_EDIT_FIELDS : ACAROID_HCO_EDIT_FIELDS;
+        return names.map((name) => ({ key: name, name }));
+    }
+
+    // Card/section title — pulled from the Product master (Product__c.Brand_Name__c) via
+    // AcaroidConfig.brandName, never hardcoded, so a different brand needs no code change.
+    // The Acaroid targeting card on the Segmentation tab is switched off for now (not needed yet).
+    // Flip to true to show it again; all of its logic and fields are still in place.
+    get showAcaroidCard() { return false; }
+
+    get acaroidBrandLabel() {
+        return `${this.record?.acaroid?.brandName || 'Acaroid'} Targeting`;
+    }
+
+    get acaroidTierLabel() {
+        return this.isHCO ? 'HCO Tier' : 'Target Tier';
+    }
+
+    get hasAcaroid() {
+        return !!(this.record?.acaroid?.tier || this.record?.acaroid?.score != null);
+    }
+
+    get acaroidTierPillStyle() {
+        return pillStyle(ACAROID_TIER_COLOR?.[this.record?.acaroid?.tier]);
+    }
+
+    get acaroidReadinessPillStyle() {
+        return pillStyle(ACAROID_READINESS_COLOR?.[this.record?.acaroid?.readinessStatus]);
+    }
+
+    get acaroidCanAdministerPillStyle() {
+        return pillStyle(ACAROID_CAN_ADMINISTER_COLOR?.[this.record?.acaroid?.canAdminister]);
+    }
+
+    handleEditAcaroid() {
+        this.isEditingAcaroid = true;
+    }
+
+    handleCancelAcaroidEdit() {
+        this.isEditingAcaroid = false;
+        this.isSavingAcaroid = false;
+    }
+
+    handleAcaroidSubmit() {
+        this.isSavingAcaroid = true;
+    }
+
+    handleAcaroidSaveSuccess() {
+        this.isEditingAcaroid = false;
+        this.isSavingAcaroid = false;
+        this.dispatchEvent(new ShowToastEvent({ title: 'Saved', message: 'Acaroid targeting data updated.', variant: 'success' }));
+        this.loadDetail();
+    }
+
+    handleAcaroidSaveError(event) {
+        this.isSavingAcaroid = false;
+        this.dispatchEvent(new ShowToastEvent({
+            title: 'Couldn’t save Acaroid targeting data',
+            message: event.detail?.detail || event.detail?.message || 'Check the highlighted fields and try again.',
+            variant: 'error',
+        }));
+    }
+
     handleEditSegmentation() {
         this.isEditingSegmentation = true;
     }
@@ -651,76 +764,6 @@ export default class AccountDetail extends NavigationMixin(LightningElement) {
     handleCloseCallReportPanel() {
         this.showCallReportPanel = false;
         this.loadDetail();
-    }
-
-    // MARK: - Key Account Manager "Delete" (unassign from my territory)
-
-    handleOpenUnassignConfirm() {
-        this.isConfirmingUnassign = true;
-        this.unassignCommentInput = '';
-    }
-
-    handleCloseUnassignConfirm() {
-        this.isConfirmingUnassign = false;
-        this.unassignCommentInput = '';
-    }
-
-    handleUnassignCommentChange(event) {
-        this.unassignCommentInput = event.target.value;
-    }
-
-    get isUnassignConfirmDisabled() {
-        return this.isUnassigning || !this.unassignCommentInput || !this.unassignCommentInput.trim();
-    }
-
-    async handleConfirmUnassign() {
-        const comment = this.unassignCommentInput.trim();
-        if (!comment) {
-            return;
-        }
-        this.isUnassigning = true;
-        try {
-            const outcome = await unassignFromMyTerritory({ accountId: this._recordId, comment });
-            this.isConfirmingUnassign = false;
-            this.unassignCommentInput = '';
-            this.dispatchEvent(new ShowToastEvent({
-                title: outcome.immediate ? 'Removed from your territory' : 'Submitted for approval',
-                message: outcome.message,
-                variant: 'success',
-            }));
-            // Only navigate away when the record actually stopped showing up
-            // for this user (immediate) — a pending-approval DCR hasn't
-            // removed anything yet, so the record is still right where it was.
-            if (outcome.immediate) {
-                this[NavigationMixin.Navigate]({
-                    type: 'standard__navItemPage',
-                    attributes: { apiName: 'Account_Browser_Page' },
-                });
-            }
-        } catch (e) {
-            this.dispatchEvent(new ShowToastEvent({
-                title: 'Couldn’t unassign from territory',
-                message: e?.body?.message || 'An unknown error occurred.',
-                variant: 'error',
-            }));
-        } finally {
-            this.isUnassigning = false;
-        }
-    }
-
-    // Only real Call_Visit_Report__c rows are clickable — see CVRItem.isCVR's
-    // doc comment; the Planned_Call__c-sourced "Completed" rows merged into
-    // this same Activity list have no CVR record to open a read-only view for.
-    handleCvrRowClick(event) {
-        const { id, isCvr } = event.currentTarget.dataset;
-        if (isCvr !== 'true') { return; }
-        this.viewingCvrId = id;
-        this.showCvrView = true;
-    }
-
-    handleCloseCvrView() {
-        this.showCvrView = false;
-        this.viewingCvrId = null;
     }
 
     get hasOfficeWindows() {
@@ -818,65 +861,6 @@ export default class AccountDetail extends NavigationMixin(LightningElement) {
             message: event.detail?.detail || event.detail?.message || 'Check the highlighted fields and try again.',
             variant: 'error',
         }));
-    }
-
-    // Edit an existing affiliation row — same 3 fields as the New form
-    // (Affiliation__c only has HCO__c/HCP__c/Is_Primary__c), just bound to
-    // that row's own record-id instead of creating a new one. Distinct from
-    // handleSetPrimaryAffiliation below, which only ever flips Is_Primary__c
-    // for affiliations that don't need any other correction.
-    handleEditAffiliation(event) {
-        this.editingAffiliationId = event.currentTarget.dataset.affiliationId;
-    }
-
-    handleCancelEditAffiliation() {
-        this.editingAffiliationId = null;
-        this.isSavingAffiliation = false;
-    }
-
-    handleAffiliationEditSubmit() {
-        this.isSavingAffiliation = true;
-    }
-
-    handleAffiliationEditSaveSuccess() {
-        this.editingAffiliationId = null;
-        this.isSavingAffiliation = false;
-        this.dispatchEvent(new ShowToastEvent({ title: 'Saved', message: 'Affiliation updated.', variant: 'success' }));
-        this.loadDetail();
-    }
-
-    handleAffiliationEditSaveError(event) {
-        this.isSavingAffiliation = false;
-        this.dispatchEvent(new ShowToastEvent({
-            title: 'Couldn’t update affiliation',
-            message: event.detail?.detail || event.detail?.message || 'Check the highlighted fields and try again.',
-            variant: 'error',
-        }));
-    }
-
-    // Marks an EXISTING affiliation row primary (the New-affiliation form
-    // above already lets Is_Primary__c be set at creation — this is the
-    // other half, for affiliations that predate that choice or need to
-    // change). AffiliationSync.trigger + AffiliationSyncService handle
-    // demoting the old primary and re-mirroring address/geolocation onto
-    // this HCP; this handler just fires the one DML and reloads.
-    async handleSetPrimaryAffiliation(event) {
-        const affiliationId = event.currentTarget.dataset.affiliationId;
-        if (!affiliationId) return;
-        this.isSavingAffiliation = true;
-        try {
-            await updateRecord({ fields: { Id: affiliationId, Is_Primary__c: true } });
-            this.dispatchEvent(new ShowToastEvent({ title: 'Updated', message: 'Primary affiliation set.', variant: 'success' }));
-            this.loadDetail();
-        } catch (e) {
-            this.dispatchEvent(new ShowToastEvent({
-                title: 'Couldn’t set primary affiliation',
-                message: e.body?.message || 'Try again.',
-                variant: 'error',
-            }));
-        } finally {
-            this.isSavingAffiliation = false;
-        }
     }
 
     // Reuses the existing Hierarchy tab/tree rather than building a second

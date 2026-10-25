@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- HCP Type --></label>
+    <name>HCP_Type__c</name>
+    <picklistValues>
+        <masterLabel>Consultant</masterLabel>
+        <translation><!-- Consultant --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>General Practitioner</masterLabel>
+        <translation><!-- General Practitioner --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Other</masterLabel>
+        <translation><!-- Other --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Physician</masterLabel>
+        <translation><!-- Physician --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Specialist</masterLabel>
+        <translation><!-- Specialist --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Super Specialist</masterLabel>
+        <translation><!-- Super Specialist --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Surgeon</masterLabel>
+        <translation><!-- Surgeon --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

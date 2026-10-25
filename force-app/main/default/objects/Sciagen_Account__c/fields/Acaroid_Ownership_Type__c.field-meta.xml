@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Acaroid_Ownership_Type__c</fullName>
+    <description>Wave 1 prioritises private-pay settings.</description>
+    <label>Ownership Type</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Private - Chain</fullName>
+                <default>false</default>
+                <label>Private - Chain</label>
+            </value>
+            <value>
+                <fullName>Private - Standalone</fullName>
+                <default>false</default>
+                <label>Private - Standalone</label>
+            </value>
+            <value>
+                <fullName>Government</fullName>
+                <default>false</default>
+                <label>Government</label>
+            </value>
+            <value>
+                <fullName>Trust / Charitable</fullName>
+                <default>false</default>
+                <label>Trust / Charitable</label>
+            </value>
+            <value>
+                <fullName>Medical College</fullName>
+                <default>false</default>
+                <label>Medical College</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

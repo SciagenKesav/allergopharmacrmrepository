@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObjectTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <caseValues>
+        <plural>false</plural>
+        <value>Sciagen Account</value>
+    </caseValues>
+    <caseValues>
+        <plural>true</plural>
+        <value>Sciagen Accounts</value>
+    </caseValues>
+    <layouts>
+        <layout>Sciagen Account HCO Layout</layout>
+        <sections>
+            <label><!-- Identity --></label>
+            <section>Identity</section>
+        </sections>
+        <sections>
+            <label><!-- Organization Details --></label>
+            <section>Organization Details</section>
+        </sections>
+    </layouts>
+    <layouts>
+        <layout>Sciagen Account HCP Layout</layout>
+        <sections>
+            <label><!-- Digital &amp; Scientific Profile --></label>
+            <section>Digital &amp; Scientific Profile</section>
+        </sections>
+        <sections>
+            <label><!-- Identity --></label>
+            <section>Identity</section>
+        </sections>
+        <sections>
+            <label><!-- Professional Details --></label>
+            <section>Professional Details</section>
+        </sections>
+        <sections>
+            <label><!-- Qualifications --></label>
+            <section>Qualifications</section>
+        </sections>
+    </layouts>
+    <layouts>
+        <layout>Sciagen Account Layout</layout>
+        <sections>
+            <label><!-- Digital &amp; Scientific Profile --></label>
+            <section>Digital &amp; Scientific Profile</section>
+        </sections>
+        <sections>
+            <label><!-- HCO - Organization Details --></label>
+            <section>HCO - Organization Details</section>
+        </sections>
+        <sections>
+            <label><!-- HCP - Professional Details --></label>
+            <section>HCP - Professional Details</section>
+        </sections>
+        <sections>
+            <label><!-- HCP - Qualifications --></label>
+            <section>HCP - Qualifications</section>
+        </sections>
+        <sections>
+            <label><!-- Identity --></label>
+            <section>Identity</section>
+        </sections>
+    </layouts>
+    <recordTypes>
+        <description><!-- Hospital, clinic, or pharmacy. Drives which standard page layout (HCO fields, not HCP) shows for a record in Setup&apos;s own record view — the app&apos;s own screens always render via Type__c regardless of Record Type. --></description>
+        <label><!-- Healthcare Organization --></label>
+        <name>HCO</name>
+    </recordTypes>
+    <recordTypes>
+        <description><!-- Individual healthcare provider. Drives which standard page layout (HCP fields, not HCO) shows for a record in Setup&apos;s own record view — the app&apos;s own screens always render via Type__c regardless of Record Type. --></description>
+        <label><!-- Healthcare Professional --></label>
+        <name>HCP</name>
+    </recordTypes>
+    <startsWith>Consonant</startsWith>
+</CustomObjectTranslation>

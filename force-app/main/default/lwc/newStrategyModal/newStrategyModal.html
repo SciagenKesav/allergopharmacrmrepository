@@ -1,0 +1,48 @@
+<template>
+    <section class="modal-backdrop" onclick={handleClose}>
+        <div class="modal-panel" onclick={stopPropagation}>
+            <div class="modal-header">
+                <h3>New Strategy</h3>
+                <p class="modal-subtitle">Under {planLabel}</p>
+                <button class="close-button" title="Close" onclick={handleClose}>&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <lightning-input
+                    label="Strategy Name"
+                    required
+                    value={strategyName}
+                    onchange={handleNameChange}
+                    class="field"
+                ></lightning-input>
+
+                <lightning-textarea
+                    label="Detail"
+                    value={detail}
+                    onchange={handleDetailChange}
+                    class="field"
+                ></lightning-textarea>
+
+                <lightning-dual-listbox
+                    label="Share With"
+                    source-label="Available"
+                    selected-label="Shared With"
+                    options={shareWithOptions}
+                    value={shareWith}
+                    onchange={handleShareWithChange}
+                    class="field"
+                ></lightning-dual-listbox>
+            </div>
+
+            <div class="modal-footer">
+                <lightning-button label="Cancel" onclick={handleClose}></lightning-button>
+                <lightning-button
+                    label="Save"
+                    variant="brand"
+                    disabled={isSaveDisabled}
+                    onclick={handleSave}
+                ></lightning-button>
+            </div>
+        </div>
+    </section>
+</template>

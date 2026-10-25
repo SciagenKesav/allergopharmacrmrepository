@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ReportType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <baseObject>Call_Visit_Report__c</baseObject>
+    <category>other</category>
+    <deployed>true</deployed>
+    <description>Call Visit Reports with the CLM presentation sessions played during the call -- powers CLM Engagement (slides shown, time watched).</description>
+    <join>
+        <outerJoin>true</outerJoin>
+        <relationship>PresentationSessions__r</relationship>
+    </join>
+    <label>Call Visit Reports with Presentation Sessions</label>
+    <sections>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Visit_Date__c</field>
+            <table>Call_Visit_Report__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>HCP__c</field>
+            <table>Call_Visit_Report__c</table>
+        </columns>
+        <masterLabel>Call Visit Reports</masterLabel>
+    </sections>
+    <sections>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Presentation__c</field>
+            <table>Call_Visit_Report__c.PresentationSessions__r</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Brand__c</field>
+            <table>Call_Visit_Report__c.PresentationSessions__r</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Total_Slides__c</field>
+            <table>Call_Visit_Report__c.PresentationSessions__r</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Video_Watched_Sec__c</field>
+            <table>Call_Visit_Report__c.PresentationSessions__r</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Video_Total_Sec__c</field>
+            <table>Call_Visit_Report__c.PresentationSessions__r</table>
+        </columns>
+        <masterLabel>Presentation Sessions</masterLabel>
+    </sections>
+</ReportType>

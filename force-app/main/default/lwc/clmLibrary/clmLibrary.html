@@ -9,6 +9,7 @@
                 <lightning-input type="search" label="Search" variant="label-hidden" placeholder="Search presentations" onchange={handleSearchChange}></lightning-input>
                 <lightning-combobox label="Brand" variant="label-hidden" options={brandComboOptions} value={brand} onchange={handleBrandChange}></lightning-combobox>
                 <lightning-combobox label="Product" variant="label-hidden" options={productComboOptions} value={productId} onchange={handleProductChange}></lightning-combobox>
+                <lightning-input type="checkbox" label="Favorites Only" checked={favoritesOnly} onchange={handleToggleFavoritesOnly}></lightning-input>
             </div>
 
             <template if:true={isLoading}>
@@ -22,6 +23,14 @@
                 <div class="deck-grid">
                     <template for:each={decoratedItems} for:item="item">
                         <div key={item.id} class="deck-card" data-id={item.id} onclick={handleOpenPresentation}>
+                            <button
+                                class={item.favoriteButtonClass}
+                                title={item.favoriteLabel}
+                                data-id={item.id}
+                                onclick={handleToggleFavorite}
+                            >
+                                <lightning-icon icon-name="utility:favorite" variant={item.favoriteVariant} size="x-small"></lightning-icon>
+                            </button>
                             <span class="pill" style={item.brandStyle}>{item.brand}</span>
                             <div class="deck-name">{item.name}</div>
                             <div class="deck-subtitle">

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Specialty --></label>
+    <name>Specialty__c</name>
+    <picklistValues>
+        <masterLabel>Cardiology</masterLabel>
+        <translation><!-- Cardiology --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>ENT</masterLabel>
+        <translation><!-- ENT --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Endocrinology</masterLabel>
+        <translation><!-- Endocrinology --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>General Physician</masterLabel>
+        <translation><!-- General Physician --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Immunology</masterLabel>
+        <translation><!-- Immunology --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Internal Medicine</masterLabel>
+        <translation><!-- Internal Medicine --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Nephrology</masterLabel>
+        <translation><!-- Nephrology --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Neurology</masterLabel>
+        <translation><!-- Neurology --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Oncology</masterLabel>
+        <translation><!-- Oncology --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Other</masterLabel>
+        <translation><!-- Other --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Paediatrics</masterLabel>
+        <translation><!-- Paediatrics --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Pulmonology</masterLabel>
+        <translation><!-- Pulmonology --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

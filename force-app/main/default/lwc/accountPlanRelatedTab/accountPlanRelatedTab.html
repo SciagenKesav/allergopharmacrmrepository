@@ -24,7 +24,10 @@
 
         <div class="split-row">
             <div class="list-card">
-                <h4>Key Stakeholders</h4>
+                <div class="calls-header">
+                    <h4>Key Stakeholders</h4>
+                    <lightning-button label="Add Stakeholder" onclick={handleAddStakeholder}></lightning-button>
+                </div>
                 <template if:true={hasStakeholders}>
                     <table class="mini-table">
                         <thead>
@@ -50,29 +53,8 @@
             <div class="list-card">
                 <div class="calls-header">
                     <h4>Account Team</h4>
-                    <template if:false={showNewTeamMemberForm}>
-                        <lightning-button label="New" onclick={handleAddTeamMember}></lightning-button>
-                    </template>
+                    <lightning-button label="Add Team Member" onclick={handleAddTeamMember}></lightning-button>
                 </div>
-                <template if:true={showNewTeamMemberForm}>
-                    <lightning-record-edit-form
-                        object-api-name="Account_Team_Member__c"
-                        onsubmit={handleTeamMemberSubmit}
-                        onsuccess={handleTeamMemberSaveSuccess}
-                        onerror={handleTeamMemberSaveError}
-                    >
-                        <lightning-input-field class="slds-hide" field-name="Plan__c" value={recordId}></lightning-input-field>
-                        <div class="edit-grid">
-                            <lightning-input-field field-name="Member_Name__c"></lightning-input-field>
-                            <lightning-input-field field-name="Role__c"></lightning-input-field>
-                            <lightning-input-field field-name="Access__c"></lightning-input-field>
-                        </div>
-                        <div class="edit-actions">
-                            <lightning-button label="Cancel" onclick={handleCancelTeamMember} disabled={isSavingTeamMember}></lightning-button>
-                            <lightning-button variant="brand" type="submit" label="Save" disabled={isSavingTeamMember}></lightning-button>
-                        </div>
-                    </lightning-record-edit-form>
-                </template>
                 <template if:true={hasTeamMembers}>
                     <table class="mini-table">
                         <thead>
@@ -90,9 +72,7 @@
                     </table>
                 </template>
                 <template if:false={hasTeamMembers}>
-                    <template if:false={showNewTeamMemberForm}>
-                        <p class="empty-text">No team members added yet.</p>
-                    </template>
+                    <p class="empty-text">No team members added yet.</p>
                 </template>
             </div>
         </div>
@@ -100,32 +80,8 @@
         <div class="list-card">
             <div class="calls-header">
                 <h4>Goals</h4>
-                <template if:false={showNewGoalForm}>
-                    <lightning-button label="New" onclick={handleAddGoal}></lightning-button>
-                </template>
+                <lightning-button label="Add Goal" onclick={handleAddGoal}></lightning-button>
             </div>
-            <template if:true={showNewGoalForm}>
-                <lightning-record-edit-form
-                    object-api-name="Plan_Goal__c"
-                    onsubmit={handleGoalSubmit}
-                    onsuccess={handleGoalSaveSuccess}
-                    onerror={handleGoalSaveError}
-                >
-                    <lightning-input-field class="slds-hide" field-name="Plan__c" value={recordId}></lightning-input-field>
-                    <div class="edit-grid">
-                        <lightning-input-field field-name="Title__c"></lightning-input-field>
-                        <lightning-input-field field-name="Metric__c"></lightning-input-field>
-                        <lightning-input-field field-name="Target__c"></lightning-input-field>
-                        <lightning-input-field field-name="Current__c"></lightning-input-field>
-                        <lightning-input-field field-name="Unit__c"></lightning-input-field>
-                        <lightning-input-field field-name="Due_Date__c"></lightning-input-field>
-                    </div>
-                    <div class="edit-actions">
-                        <lightning-button label="Cancel" onclick={handleCancelGoal} disabled={isSavingGoal}></lightning-button>
-                        <lightning-button variant="brand" type="submit" label="Save" disabled={isSavingGoal}></lightning-button>
-                    </div>
-                </lightning-record-edit-form>
-            </template>
             <template if:true={hasGoals}>
                 <table class="mini-table">
                     <thead>
@@ -146,9 +102,7 @@
                 </table>
             </template>
             <template if:false={hasGoals}>
-                <template if:false={showNewGoalForm}>
-                    <p class="empty-text">No goals added yet.</p>
-                </template>
+                <p class="empty-text">No goals added yet.</p>
             </template>
         </div>
 
@@ -174,7 +128,7 @@
                 <template if:true={hasCalls}>
                     <table class="mini-table">
                         <thead>
-                            <tr><th>Type</th><th>Account</th><th>Call Type</th><th>Date</th><th>Status</th><th></th><th></th></tr>
+                            <tr><th>Type</th><th>Account</th><th>Call Type</th><th>Date</th><th>Status</th><th></th></tr>
                         </thead>
                         <tbody>
                             <template for:each={callRows} for:item="c">
@@ -184,14 +138,6 @@
                                     <td class="muted">{c.callType}</td>
                                     <td class="muted">{c.dateLabel}</td>
                                     <td class="muted">{c.status}</td>
-                                    <td>
-                                        <button
-                                            class="link-button"
-                                            data-id={c.id}
-                                            data-kind={c.kind}
-                                            onclick={handleViewCall}
-                                        >View Call Report</button>
-                                    </td>
                                     <td>
                                         <button
                                             class="unlink-button"
@@ -219,6 +165,33 @@
                 onclose={handleCloseAssociateModal}
                 onlinked={handleCallLinked}
             ></c-associate-call-modal>
+        </template>
+
+        <template if:true={showStakeholderModal}>
+            <c-new-stakeholder-modal
+                plan-id={recordId}
+                plan-name={planName}
+                onclose={handleCloseStakeholderModal}
+                oncreated={handleStakeholderCreated}
+            ></c-new-stakeholder-modal>
+        </template>
+
+        <template if:true={showTeamMemberModal}>
+            <c-new-team-member-modal
+                plan-id={recordId}
+                plan-name={planName}
+                onclose={handleCloseTeamMemberModal}
+                oncreated={handleTeamMemberCreated}
+            ></c-new-team-member-modal>
+        </template>
+
+        <template if:true={showGoalModal}>
+            <c-new-goal-modal
+                plan-id={recordId}
+                plan-name={planName}
+                onclose={handleCloseGoalModal}
+                oncreated={handleGoalCreated}
+            ></c-new-goal-modal>
         </template>
     </div>
 </template>

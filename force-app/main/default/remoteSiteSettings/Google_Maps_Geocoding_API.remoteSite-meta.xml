@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RemoteSiteSetting xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Google Maps Geocoding API — used by HCOGeocodingQueueable to turn an HCO&apos;s billing address into Geolocation__c coordinates.</description>
+    <disableProtocolSecurity>false</disableProtocolSecurity>
+    <isActive>true</isActive>
+    <url>https://maps.googleapis.com</url>
+</RemoteSiteSetting>

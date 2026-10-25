@@ -79,11 +79,6 @@
     padding: 1rem 0;
 }
 
-.gas-table-wrap {
-    width: 100%;
-    overflow-x: auto;
-}
-
 .gas-table {
     width: 100%;
     border-collapse: collapse;
@@ -101,11 +96,4 @@
     border-bottom: 1px solid #f0f0f0;
     padding: 0.4rem 0.5rem;
     white-space: nowrap;
-}
-
-.gas-street {
-    max-width: 220px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    cursor: default;
 }

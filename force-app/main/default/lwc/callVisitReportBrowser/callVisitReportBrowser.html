@@ -12,6 +12,7 @@
                         <lightning-button label="Today" onclick={handleToday}></lightning-button>
                         <lightning-button label="›" onclick={handleNext}></lightning-button>
                     </lightning-button-group>
+                    <lightning-button label="Start from Planned Call" icon-name="utility:event" onclick={handleOpenPlannedCallPicker}></lightning-button>
                     <lightning-button variant="brand" label="New Call Report" icon-name="utility:add" onclick={handleNewReport}></lightning-button>
                 </div>
             </div>
@@ -19,6 +20,14 @@
             <div class="filter-bar">
                 <lightning-input type="search" label="Search" variant="label-hidden" placeholder="Search by HCP or HCO name" onchange={handleSearchChange}></lightning-input>
                 <lightning-combobox label="Status" variant="label-hidden" options={statusOptions} value={status} onchange={handleStatusChange}></lightning-combobox>
+            </div>
+
+            <div class="date-filter-row">
+                <lightning-input type="date" label="From" variant="label-inline" value={customFromDate} onchange={handleFromDateChange}></lightning-input>
+                <lightning-input type="date" label="To" variant="label-inline" value={customToDate} onchange={handleToDateChange}></lightning-input>
+                <template if:true={hasCustomRange}>
+                    <lightning-button label="Clear Dates" onclick={handleClearCustomRange}></lightning-button>
+                </template>
             </div>
 
             <template if:true={isLoading}>
@@ -48,9 +57,41 @@
                 record-id={editingId}
                 default-hcp-id={formDefaultHcpId}
                 default-hco-id={formDefaultHcoId}
+                source-planned-call-id={formSourcePlannedCallId}
                 onrecordcreated={handleRecordCreated}
                 onclose={handleCloseDetail}
             ></c-call-visit-report-detail>
+        </template>
+
+        <template if:true={showPlannedCallPicker}>
+            <section class="modal-backdrop">
+                <div class="modal" role="dialog" aria-modal="true" aria-label="Start from Planned Call">
+                    <div class="modal-header">
+                        <h2>Start from Planned Call</h2>
+                        <lightning-button-icon icon-name="utility:close" alternative-text="Close" onclick={handleClosePlannedCallPicker}></lightning-button-icon>
+                    </div>
+                    <div class="modal-body">
+                        <template if:true={isLoadingPlannedCalls}>
+                            <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+                        </template>
+                        <template if:false={isLoadingPlannedCalls}>
+                            <template if:false={hasOpenPlannedCalls}>
+                                <div class="empty-state">No planned calls without a report yet.</div>
+                            </template>
+                            <ul class="report-list">
+                                <template for:each={openPlannedCalls} for:item="pc">
+                                    <li key={pc.id} class="report-row" data-id={pc.id} onclick={handleStartFromPlannedCall}>
+                                        <div class="report-main">
+                                            <span class="report-name">{pc.displayName}</span>
+                                            <span class="report-subtitle">{pc.dateLabel} · {pc.callType}</span>
+                                        </div>
+                                    </li>
+                                </template>
+                            </ul>
+                        </template>
+                    </div>
+                </div>
+            </section>
         </template>
     </div>
 </template>

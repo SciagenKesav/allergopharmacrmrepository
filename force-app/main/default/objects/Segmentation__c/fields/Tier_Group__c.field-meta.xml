@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Tier_Group__c</fullName>
+    <description>Tier__c collapsed per the Reports Module spec&apos;s Segment Analysis rule: an HCP with no real tier assigned (Tier__c = &apos;None&apos;) counts as Bronze for reporting, rather than forming its own group. Only covers HCPs that have a Segmentation__c record at all -- an HCP with no Segmentation__c record shows as its own blank group in an outer-joined report, same as any other &quot;no related record&quot; case.</description>
+    <externalId>false</externalId>
+    <formula>IF(ISPICKVAL(Tier__c, &quot;None&quot;), &quot;Bronze&quot;, TEXT(Tier__c))</formula>
+    <label>Tier Group</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

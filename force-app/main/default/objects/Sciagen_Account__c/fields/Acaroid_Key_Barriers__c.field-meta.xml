@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Acaroid_Key_Barriers__c</fullName>
+    <description>Drives call objectives / content selection in CLM.</description>
+    <label>Key Barriers</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>MultiselectPicklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Patient cost</fullName>
+                <default>false</default>
+                <label>Patient cost</label>
+            </value>
+            <value>
+                <fullName>Cold-chain handling</fullName>
+                <default>false</default>
+                <label>Cold-chain handling</label>
+            </value>
+            <value>
+                <fullName>Anaphylaxis concern</fullName>
+                <default>false</default>
+                <label>Anaphylaxis concern</label>
+            </value>
+            <value>
+                <fullName>30-min observation time</fullName>
+                <default>false</default>
+                <label>30-min observation time</label>
+            </value>
+            <value>
+                <fullName>Prefers SLIT</fullName>
+                <default>false</default>
+                <label>Prefers SLIT</label>
+            </value>
+            <value>
+                <fullName>Evidence awareness</fullName>
+                <default>false</default>
+                <label>Evidence awareness</label>
+            </value>
+            <value>
+                <fullName>Patient adherence</fullName>
+                <default>false</default>
+                <label>Patient adherence</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+    <visibleLines>7</visibleLines>
+</CustomField>

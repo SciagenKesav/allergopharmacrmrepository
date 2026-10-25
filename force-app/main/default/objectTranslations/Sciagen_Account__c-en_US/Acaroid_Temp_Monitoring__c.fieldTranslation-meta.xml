@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Temperature Monitoring --></label>
+    <name>Acaroid_Temp_Monitoring__c</name>
+    <picklistValues>
+        <masterLabel>Digital data logger</masterLabel>
+        <translation><!-- Digital data logger --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Manual log</masterLabel>
+        <translation><!-- Manual log --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>None</masterLabel>
+        <translation><!-- None --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

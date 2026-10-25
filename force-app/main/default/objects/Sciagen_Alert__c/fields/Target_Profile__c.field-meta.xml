@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Target_Profile__c</fullName>
-    <description>Profile Id (not a Lookup — Salesforce Metadata API does not support custom Lookup fields to the Profile object), set when Audience_Type__c = &apos;Profile&apos;.</description>
+    <description>Comma-delimited list of Profile Ids, wrapped in leading/trailing commas (&quot;,id1,id2,&quot;) for safe LIKE &apos;%,id,%&apos; matching (not a Lookup — Salesforce Metadata API does not support custom Lookup fields to the Profile object, and a single Lookup couldn&apos;t hold more than one Id regardless), set when Audience_Type__c = &apos;Profile&apos;.</description>
     <externalId>false</externalId>
-    <label>Target Profile Id</label>
-    <length>18</length>
+    <label>Target Profile Ids</label>
+    <length>255</length>
     <required>false</required>
     <trackTrending>false</trackTrending>
     <type>Text</type>

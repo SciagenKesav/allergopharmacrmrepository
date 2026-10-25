@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>HCP_Tier_To_Potential_Map__c</fullName>
+    <defaultValue>&quot;A:High;B:Medium;C:Low;Referral:Low;Not Targeted:Unknown&quot;</defaultValue>
+    <description>Semicolon-separated Acaroid_Target_Tier__c:Segmentation__c.Potential__c pairs (e.g. &quot;A:High;B:Medium&quot;). When an HCP is scored, every rep&apos;s existing Segmentation__c row for that HCP has its Potential__c set from this map -- a value not listed here is left unchanged.</description>
+    <externalId>false</externalId>
+    <label>HCP Target Tier to Potential Map</label>
+    <length>255</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

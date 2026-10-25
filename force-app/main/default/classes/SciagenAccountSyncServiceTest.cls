@@ -332,9 +332,10 @@ private class SciagenAccountSyncServiceTest {
         req.subjectAccountId = hcp().Id;
         req.subjectName = 'Dr. Test Sync';
         req.summary = '• Phone: 111 → 222';
-        req.fieldDiffs = new Map<String, Map<String, String>>{
-            'phone' => new Map<String, String>{ 'current' => '111', 'requested' => '222' }
-        };
+        SciagenAccountSyncService.FieldDiff phoneDiffValue = new SciagenAccountSyncService.FieldDiff();
+        phoneDiffValue.current = '111';
+        phoneDiffValue.requested = '222';
+        req.fieldDiffs = new Map<String, SciagenAccountSyncService.FieldDiff>{ 'phone' => phoneDiffValue };
 
         SciagenAccountSyncService.AccountSyncPushRequest payload = new SciagenAccountSyncService.AccountSyncPushRequest();
         payload.records = new List<SciagenAccountSyncService.AccountUpsertRequest>{ req };
@@ -462,5 +463,43 @@ private class SciagenAccountSyncServiceTest {
 
         System.assertEquals(false, result.success);
         System.assertEquals(400, RestContext.response.statusCode);
+    }
+
+    /**
+     * Regression test for a real production incident: an edit-mode sync (fieldDiffs
+     * populated) 400'd on every real device call, even though doSyncUp() called directly
+     * with the same data passed every existing test. The difference is JSON.deserialize()
+     * itself — syncUp()'s actual REST entry point — which every *other* syncUp test here
+     * bypasses by building the request object in Apex. This one goes through the real
+     * path: a literal JSON string body, parsed by syncUp() exactly like a live iPad call.
+     * See AccountUpsertRequest.FieldDiff's doc comment for why the old `Object`-typed
+     * fieldDiffs field made JSON.deserialize() throw "Apex Type unsupported in JSON:
+     * Object" here specifically, while every doSyncUp()-direct test stayed green.
+     */
+    @isTest
+    static void syncUp_viaRestEntryPoint_withFieldDiffs_succeeds() {
+        String jsonBody = '{"records":[' +
+            '{"localId":"local-new","type":"HCP","mode":"new","relatedHCOId":"' + hco().Id + '",' +
+            '"subjectName":"Dr. Rest Path New","fields":{"firstName":"Rest","lastName":"Path"}},' +
+            '{"localId":"local-edit","type":"HCP","mode":"edit","subjectAccountId":"' + hcp().Id + '",' +
+            '"subjectName":"Dr. Test Sync","fieldDiffs":{"phone":{"current":"111","requested":"222"}}}' +
+            ']}';
+
+        RestRequest req = new RestRequest();
+        req.requestURI = '/services/apexrest/sciagen/v1/accounts';
+        req.httpMethod = 'POST';
+        req.requestBody = Blob.valueOf(jsonBody);
+        RestContext.request = req;
+        RestContext.response = new RestResponse();
+
+        Test.startTest();
+        SciagenAccountSyncService.SyncUpResult result = SciagenAccountSyncService.syncUp();
+        Test.stopTest();
+
+        System.assertEquals(true, result.success, 'A batch with both a new-mode and an edit-mode (fieldDiffs) record must parse and succeed');
+        System.assertEquals(null, RestContext.response.statusCode, 'No exception means the 400-on-exception branch in syncUp() never runs');
+        System.assertEquals(2, result.results.size());
+        System.assertEquals(true, result.results[0].success, 'new-mode record');
+        System.assertEquals(true, result.results[1].success, 'edit-mode (fieldDiffs) record');
     }
 }

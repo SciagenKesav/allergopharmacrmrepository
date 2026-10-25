@@ -5,8 +5,21 @@
         <enabled>true</enabled>
     </classAccesses>
     <description>Full access to manage the Promotional Item catalog (create, edit, delete, load data). For Admin and Business Admin.</description>
-    <hasActivationRequired>false</hasActivationRequired>
-    <label>Promotional Item Admin</label>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Promo_Drop__c.Promotional_Item__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Promotional_Item__c.Active__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Promotional_Item__c.Description__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
         <field>Promotional_Item__c.Item_Code__c</field>
@@ -14,7 +27,7 @@
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
-        <field>Promotional_Item__c.Description__c</field>
+        <field>Promotional_Item__c.Max_Qty_Per_Call__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
@@ -29,16 +42,6 @@
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
-        <field>Promotional_Item__c.Max_Qty_Per_Call__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
-    <fieldPermissions>
-        <editable>true</editable>
-        <field>Promotional_Item__c.Active__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
-    <fieldPermissions>
-        <editable>true</editable>
         <field>Promotional_Item__c.Valid_From__c</field>
         <readable>true</readable>
     </fieldPermissions>
@@ -47,11 +50,8 @@
         <field>Promotional_Item__c.Valid_To__c</field>
         <readable>true</readable>
     </fieldPermissions>
-    <fieldPermissions>
-        <editable>true</editable>
-        <field>Promo_Drop__c.Promotional_Item__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>Promotional Item Admin</label>
     <objectPermissions>
         <allowCreate>true</allowCreate>
         <allowDelete>true</allowDelete>

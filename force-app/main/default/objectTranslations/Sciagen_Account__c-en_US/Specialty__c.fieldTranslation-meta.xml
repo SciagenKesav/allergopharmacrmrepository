@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Specialty --></label>
+    <name>Specialty__c</name>
+    <picklistValues>
+        <masterLabel>Allergology</masterLabel>
+        <translation><!-- Allergology --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Allergy &amp; Immunology</masterLabel>
+        <translation><!-- Allergy &amp; Immunology --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Dermatology</masterLabel>
+        <translation><!-- Dermatology --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>General Medicine</masterLabel>
+        <translation><!-- General Medicine --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Nurse</masterLabel>
+        <translation><!-- Nurse --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Others</masterLabel>
+        <translation><!-- Others --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Otorhinolaryngology (ENT)</masterLabel>
+        <translation><!-- Otorhinolaryngology (ENT) --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Paediatric Pulmonology</masterLabel>
+        <translation><!-- Paediatric Pulmonology --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Paediatrics</masterLabel>
+        <translation><!-- Paediatrics --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Pulmonology</masterLabel>
+        <translation><!-- Pulmonology --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

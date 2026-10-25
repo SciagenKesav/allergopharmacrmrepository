@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Allergy Testing Capability --></label>
+    <name>Acaroid_Allergy_Testing__c</name>
+    <picklistValues>
+        <masterLabel>Component-resolved (Der p 1/2/23)</masterLabel>
+        <translation><!-- Component-resolved (Der p 1/2/23) --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>None</masterLabel>
+        <translation><!-- None --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Skin Prick Test (in-house)</masterLabel>
+        <translation><!-- Skin Prick Test (in-house) --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Specific IgE (in-house)</masterLabel>
+        <translation><!-- Specific IgE (in-house) --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Specific IgE (outsourced)</masterLabel>
+        <translation><!-- Specific IgE (outsourced) --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

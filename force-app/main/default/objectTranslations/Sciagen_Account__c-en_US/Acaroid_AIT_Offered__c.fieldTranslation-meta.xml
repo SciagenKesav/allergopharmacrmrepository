@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- AIT Currently Offered --></label>
+    <name>Acaroid_AIT_Offered__c</name>
+    <picklistValues>
+        <masterLabel>None</masterLabel>
+        <translation><!-- None --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>SCIT</masterLabel>
+        <translation><!-- SCIT --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>SCIT + SLIT</masterLabel>
+        <translation><!-- SCIT + SLIT --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>SLIT</masterLabel>
+        <translation><!-- SLIT --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

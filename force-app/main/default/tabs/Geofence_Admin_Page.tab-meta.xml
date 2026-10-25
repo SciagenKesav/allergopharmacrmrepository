@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomTab xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Turn geofenced check-in on or off, choose whether it blocks, and set the default and per-HCO radius used by the iPad app.</description>
+    <flexiPage>Geofence_Admin_Page</flexiPage>
+    <label>Geofence Settings</label>
+    <motif>Custom63: Chip</motif>
+</CustomTab>

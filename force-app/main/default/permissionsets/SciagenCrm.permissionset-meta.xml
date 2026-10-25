@@ -27,11 +27,6 @@
     <description>Sciagen Crm user permissions</description>
     <fieldPermissions>
         <editable>true</editable>
-        <field>Planned_Call__c.Call_Category__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
-    <fieldPermissions>
-        <editable>true</editable>
         <field>Account_Plan__c.Active__c</field>
         <readable>true</readable>
     </fieldPermissions>
@@ -753,6 +748,11 @@
     <fieldPermissions>
         <editable>true</editable>
         <field>Plan_Activity__c.Manual_Complete__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Planned_Call__c.Call_Category__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>

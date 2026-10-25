@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Acaroid_AIT_Product_Source__c</fullName>
+    <description>Competitive intelligence; drives switch messaging.</description>
+    <label>Current AIT Product Source</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Local extract</fullName>
+                <default>false</default>
+                <label>Local extract</label>
+            </value>
+            <value>
+                <fullName>Imported product</fullName>
+                <default>false</default>
+                <label>Imported product</label>
+            </value>
+            <value>
+                <fullName>Compounded in-house</fullName>
+                <default>false</default>
+                <label>Compounded in-house</label>
+            </value>
+            <value>
+                <fullName>None</fullName>
+                <default>false</default>
+                <label>None</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

@@ -5,9 +5,4 @@
     <confirmationTokenRequired>false</confirmationTokenRequired>
     <description>The UCPMP 2024 annual marketing expenditure disclosure (Annexure), filled from the sample ledger.</description>
     <label>UCPMP Disclosure Form</label>
-    <packageVersions>
-        <majorNumber>1</majorNumber>
-        <minorNumber>7</minorNumber>
-        <namespace>sf_com_apps</namespace>
-    </packageVersions>
 </ApexPage>

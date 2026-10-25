@@ -104,6 +104,46 @@ public with sharing class RCPAController {
         return results;
     }
 
+    // MARK: - Create
+
+    /// Backs newRcpaAuditModal's "New RCPA Audit" button. Defaults to the rep's own primary
+    /// territory when none is picked, so RCPAAuditTerritorySharingService (keyed directly off
+    /// Territory__c) shares the new audit correctly from the moment it's created.
+    @AuraEnabled
+    public static Id createAudit(Id chemistId, Id territoryId, String auditDate) {
+        if (chemistId == null) {
+            AuraHandledException ex = new AuraHandledException('Select a chemist before saving.');
+            ex.setMessage('Select a chemist before saving.');
+            throw ex;
+        }
+        Id territory = territoryId;
+        if (territory == null) {
+            List<User_Territory__c> mine = [
+                SELECT Territory__c FROM User_Territory__c
+                WHERE User__c = :UserInfo.getUserId() AND Territory__c != null
+                WITH USER_MODE
+                ORDER BY Is_Primary__c DESC
+                LIMIT 1
+            ];
+            if (!mine.isEmpty()) territory = mine[0].Territory__c;
+        }
+        RCPA_Audit__c audit = new RCPA_Audit__c(
+            Chemist__c = chemistId,
+            Territory__c = territory,
+            Audit_Date__c = String.isBlank(auditDate) ? Date.today() : Date.valueOf(auditDate),
+            Status__c = 'Draft',
+            Rep__c = UserInfo.getName()
+        );
+        try {
+            Database.insert(audit, AccessLevel.USER_MODE);
+        } catch (DmlException e) {
+            AuraHandledException ex = new AuraHandledException(e.getDmlMessage(0));
+            ex.setMessage(e.getDmlMessage(0));
+            throw ex;
+        }
+        return audit.Id;
+    }
+
     // Reuses SciagenAccountController's territory query rather than duplicating it —
     // both browsers filter against the same Territory__c list.
     @AuraEnabled(cacheable=true)
@@ -122,17 +162,21 @@ public with sharing class RCPAController {
     public class SKUOption {
         @AuraEnabled public Id id;
         @AuraEnabled public String name;
+        // Product__c.Parent_Molecule__c -- lets the audit form's POB picker show only
+        // the SKUs that belong to the molecule(s) being audited.
+        @AuraEnabled public String molecule;
     }
 
     @AuraEnabled(cacheable=true)
     public static List<SKUOption> getSKUCatalog() {
         List<SKUOption> options = new List<SKUOption>();
         for (Product__c p : [
-            SELECT Id, Name, SKUCode__c FROM Product__c WHERE Level__c = 'SKU' AND Active__c = true WITH USER_MODE ORDER BY Name
+            SELECT Id, Name, SKUCode__c, Parent_Molecule__c FROM Product__c WHERE Level__c = 'SKU' AND Active__c = true WITH USER_MODE ORDER BY Name
         ]) {
             SKUOption o = new SKUOption();
             o.id = p.Id;
             o.name = String.isNotBlank(p.SKUCode__c) ? p.SKUCode__c : p.Name;
+            o.molecule = p.Parent_Molecule__c;
             options.add(o);
         }
         return options;

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ReportType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <baseObject>Sales_Target__c</baseObject>
+    <category>other</category>
+    <deployed>true</deployed>
+    <description>Sales targets by product, territory and period -- the Target side of the Sales/Samples Achievement % (Actual / Target).</description>
+    <label>Sales Target V2</label>
+    <sections>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Name</field>
+            <table>Sales_Target__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Product__c</field>
+            <table>Sales_Target__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Territory__c</field>
+            <table>Sales_Target__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Period__c</field>
+            <table>Sales_Target__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Target_Units__c</field>
+            <table>Sales_Target__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Target_Value__c</field>
+            <table>Sales_Target__c</table>
+        </columns>
+        <masterLabel>Sales Targets</masterLabel>
+    </sections>
+</ReportType>

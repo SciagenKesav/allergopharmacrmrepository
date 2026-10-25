@@ -70,6 +70,10 @@
             </div>
 
             <div class="detail-pane">
+                <template if:false={showForm}>
+                    <div class="empty-detail">Select an alert to edit it, or click "New Alert" to create one.</div>
+                </template>
+                <template if:true={showForm}>
                 <div class="form-card">
                     <h3>{formHeading}</h3>
                     <lightning-input
@@ -113,27 +117,24 @@
                     ></lightning-combobox>
 
                     <template if:true={isProfileAudience}>
-                        <lightning-combobox
-                            label="Profile"
-                            data-field="targetProfileId"
-                            value={form.targetProfileId}
+                        <lightning-dual-listbox
+                            label="Profiles"
+                            source-label="Available"
+                            selected-label="Targeted"
                             options={profileOptions}
-                            placeholder="Select a profile..."
-                            onchange={handleFieldChange}
-                        ></lightning-combobox>
+                            value={form.targetProfileIds}
+                            onchange={handleProfilesChange}
+                        ></lightning-dual-listbox>
                     </template>
 
                     <template if:true={isUserAudience}>
                         <lightning-input
-                            label="User"
+                            label="Add User"
                             type="search"
                             placeholder="Search by name..."
                             value={userSearchTerm}
                             onchange={handleUserSearchChange}
                         ></lightning-input>
-                        <template if:true={form.targetUserLabel}>
-                            <div class="selected-user">Selected: {form.targetUserLabel}</div>
-                        </template>
                         <template if:true={hasUserResults}>
                             <ul class="user-results">
                                 <template for:each={userOptions} for:item="u">
@@ -141,18 +142,16 @@
                                 </template>
                             </ul>
                         </template>
-                    </template>
-
-                    <template if:true={isMultipleUsersAudience}>
-                        <lightning-dual-listbox
-                            label="Target Users"
-                            source-label="Available Users"
-                            selected-label="Target Users"
-                            options={activeUserOptions}
-                            value={form.targetUserIds}
-                            onchange={handleTargetUsersChange}
-                            size="8"
-                        ></lightning-dual-listbox>
+                        <template if:true={hasSelectedUsers}>
+                            <ul class="selected-user-chips">
+                                <template for:each={selectedUserRows} for:item="u">
+                                    <li key={u.id} class="user-chip">
+                                        {u.name}
+                                        <button data-id={u.id} onclick={handleRemoveUser} title="Remove">&times;</button>
+                                    </li>
+                                </template>
+                            </ul>
+                        </template>
                     </template>
 
                     <div class="field-row">
@@ -186,6 +185,7 @@
                         </template>
                     </div>
                 </div>
+                </template>
             </div>
         </div>
     </div>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Domestic Sales Revenue (INR) --></label>
+    <name>Domestic_Sales_Revenue_INR__c</name>
+</CustomFieldTranslation>

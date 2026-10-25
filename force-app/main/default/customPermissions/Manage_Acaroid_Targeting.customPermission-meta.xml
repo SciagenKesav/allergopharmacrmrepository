@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomPermission xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Can set Acaroid HCO/HCP Tier Overrides and edit Marketing/KAM/Medical/Supply Chain-owned Acaroid fields.</description>
+    <isLicensed>false</isLicensed>
+    <label>Manage Acaroid Targeting</label>
+</CustomPermission>

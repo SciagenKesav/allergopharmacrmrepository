@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Reason Type --></label>
+    <name>Reason_Type__c</name>
+    <picklistValues>
+        <masterLabel>Cold Chain</masterLabel>
+        <translation><!-- Cold Chain --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Licence</masterLabel>
+        <translation><!-- Licence --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Limit</masterLabel>
+        <translation><!-- Limit --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Lot Or Stock</masterLabel>
+        <translation><!-- Lot Or Stock --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Other</masterLabel>
+        <translation><!-- Other --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Restricted Product</masterLabel>
+        <translation><!-- Restricted Product --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Signature</masterLabel>
+        <translation><!-- Signature --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <help><!-- This call was made to a group of HCPs. Each attendee has their own individual call linked to the same group call. --></help>
+    <label><!-- Group Call --></label>
+    <name>Is_Group_Call__c</name>
+</CustomFieldTranslation>

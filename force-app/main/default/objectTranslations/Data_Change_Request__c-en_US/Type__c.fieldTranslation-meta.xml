@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Type --></label>
+    <name>Type__c</name>
+    <picklistValues>
+        <masterLabel>Edit HCO</masterLabel>
+        <translation><!-- Edit HCO --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Edit HCP</masterLabel>
+        <translation><!-- Edit HCP --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>New HCO</masterLabel>
+        <translation><!-- New HCO --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>New HCP</masterLabel>
+        <translation><!-- New HCP --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Territory Unassign</masterLabel>
+        <translation><!-- Territory Unassign --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

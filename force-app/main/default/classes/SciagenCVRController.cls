@@ -51,12 +51,6 @@ public with sharing class SciagenCVRController {
         @AuraEnabled public Id productId;
         @AuraEnabled public String productName;
         @AuraEnabled public Integer qty;
-        // Phase 0 (SM-CC-01/02/05): surfaced so a rep can see what was
-        // captured for a cold-chain product — cvrSampleDrops.js now captures
-        // these on the add/edit form, where before this row was unreadable
-        // back and the form never rendered them at all.
-        @AuraEnabled public String coldChainTagNumber;
-        @AuraEnabled public String coldChainStatus;
     }
 
     public class AttendeeItem {
@@ -71,6 +65,16 @@ public with sharing class SciagenCVRController {
         @AuraEnabled public String userName;
     }
 
+    public class DetailPriorityItem {
+        @AuraEnabled public Id id;
+        @AuraEnabled public Integer priority;
+        @AuraEnabled public Id productId;
+        @AuraEnabled public String productName;
+        @AuraEnabled public String source;
+        @AuraEnabled public Integer timeSpentSec;
+        @AuraEnabled public Integer slidesShown;
+    }
+
     public class CVRDetail {
         @AuraEnabled public Id id;
         @AuraEnabled public String name;
@@ -83,7 +87,6 @@ public with sharing class SciagenCVRController {
         @AuraEnabled public String callStatus;
         @AuraEnabled public String recordStatus;
         @AuraEnabled public String activityType;
-        @AuraEnabled public String rep;
         @AuraEnabled public Id territoryId;
         @AuraEnabled public String territoryName;
         @AuraEnabled public Id planId;
@@ -102,6 +105,7 @@ public with sharing class SciagenCVRController {
         @AuraEnabled public List<SampleDropItem> sampleDrops;
         @AuraEnabled public List<AttendeeItem> attendees;
         @AuraEnabled public List<InternalAttendeeItem> internalAttendees;
+        @AuraEnabled public List<DetailPriorityItem> detailPriorities;
     }
 
     /// Not cacheable — re-invoked after every create/edit/status-change, same
@@ -157,7 +161,7 @@ public with sharing class SciagenCVRController {
     public static CVRDetail getCVRDetail(Id cvrId) {
         List<Call_Visit_Report__c> matches = [
             SELECT Id, Name, HCP__c, HCP__r.Name, HCO__c, HCO__r.Name, Visit_Date__c, Call_Type__c,
-                   Call_Status__c, Record_Status__c, Activity_Type__c, Rep__c, Territory__c, Territory__r.Name,
+                   Call_Status__c, Record_Status__c, Activity_Type__c, Territory__c, Territory__r.Name,
                    Plan__c, Plan__r.Name, Pre_Call_Notes__c, Discussion_Summary__c, Next_Call_Notes__c,
                    Next_Visit_Date__c, Start_Time__c, End_Time__c, Signature_Captured__c, Email_Sent__c,
                    Linked_Event_Count__c
@@ -183,7 +187,6 @@ public with sharing class SciagenCVRController {
         detail.callStatus = c.Call_Status__c;
         detail.recordStatus = c.Record_Status__c;
         detail.activityType = c.Activity_Type__c;
-        detail.rep = c.Rep__c;
         detail.territoryId = c.Territory__c;
         detail.territoryName = c.Territory__c != null ? c.Territory__r.Name : null;
         detail.planId = c.Plan__c;
@@ -233,7 +236,7 @@ public with sharing class SciagenCVRController {
 
         detail.sampleDrops = new List<SampleDropItem>();
         for (Sample_Drop__c sd : [
-            SELECT Id, Product__c, Product__r.Name, Product__r.SKUCode__c, Qty__c, Cold_Chain_Tag_Number__c, Cold_Chain_Status__c
+            SELECT Id, Product__c, Product__r.Name, Qty__c
             FROM Sample_Drop__c
             WHERE CVR__c = :cvrId
             WITH USER_MODE
@@ -242,14 +245,8 @@ public with sharing class SciagenCVRController {
             SampleDropItem item = new SampleDropItem();
             item.id = sd.Id;
             item.productId = sd.Product__c;
-            // SKUCode__c (Name + SKU__c formula) is the display label reps
-            // pick from and should see back — Name is only a fallback for a
-            // product with no SKUCode__c value.
-            item.productName = sd.Product__c == null ? null
-                : (String.isNotBlank(sd.Product__r.SKUCode__c) ? sd.Product__r.SKUCode__c : sd.Product__r.Name);
+            item.productName = sd.Product__c != null ? sd.Product__r.Name : null;
             item.qty = sd.Qty__c == null ? null : sd.Qty__c.intValue();
-            item.coldChainTagNumber = sd.Cold_Chain_Tag_Number__c;
-            item.coldChainStatus = sd.Cold_Chain_Status__c;
             detail.sampleDrops.add(item);
         }
 
@@ -283,6 +280,26 @@ public with sharing class SciagenCVRController {
             detail.internalAttendees.add(item);
         }
 
+        // Read-only on the web: the order is captured on the iPad Call Report.
+        detail.detailPriorities = new List<DetailPriorityItem>();
+        for (CVR_Detail_Priority__c dp : [
+            SELECT Id, Priority__c, Product__c, Product_Name__c, Source__c, Time_Spent_Sec__c, Slides_Shown__c
+            FROM CVR_Detail_Priority__c
+            WHERE CVR__c = :cvrId
+            WITH USER_MODE
+            ORDER BY Priority__c, CreatedDate
+        ]) {
+            DetailPriorityItem item = new DetailPriorityItem();
+            item.id = dp.Id;
+            item.priority = dp.Priority__c == null ? null : dp.Priority__c.intValue();
+            item.productId = dp.Product__c;
+            item.productName = dp.Product_Name__c;
+            item.source = dp.Source__c;
+            item.timeSpentSec = dp.Time_Spent_Sec__c == null ? 0 : dp.Time_Spent_Sec__c.intValue();
+            item.slidesShown = dp.Slides_Shown__c == null ? 0 : dp.Slides_Shown__c.intValue();
+            detail.detailPriorities.add(item);
+        }
+
         return detail;
     }
 
@@ -293,8 +310,7 @@ public with sharing class SciagenCVRController {
     @AuraEnabled
     public static void submitCallReport(Id cvrId) {
         List<Call_Visit_Report__c> matches = [
-            SELECT Id, OwnerId, Record_Status__c, Visit_Date__c
-            FROM Call_Visit_Report__c WHERE Id = :cvrId WITH USER_MODE LIMIT 1
+            SELECT Id, OwnerId, Record_Status__c FROM Call_Visit_Report__c WHERE Id = :cvrId WITH USER_MODE LIMIT 1
         ];
         if (matches.isEmpty()) {
             throw new AuraHandledException('Call Visit Report not found or not accessible.');
@@ -302,9 +318,10 @@ public with sharing class SciagenCVRController {
         if (matches[0].OwnerId != UserInfo.getUserId()) {
             throw new AuraHandledException('Only the owning rep can submit this call report.');
         }
-        if (isPastSubmissionDeadline(matches[0].Visit_Date__c)) {
-            throw new AuraHandledException('This call is dated ' + matches[0].Visit_Date__c.format() +
-                ', and the submission deadline for that month has passed. Contact your admin if you believe this is an error.');
+
+        Integer attendeeCount = [SELECT COUNT() FROM CVR_Attendee__c WHERE CVR__c = :cvrId];
+        if (attendeeCount == 0) {
+            throw new AuraHandledException('Add at least one attendee before submitting this call report.');
         }
 
         List<Key_Message__c> keyMessages = [
@@ -320,51 +337,5 @@ public with sharing class SciagenCVRController {
         if (!keyMessages.isEmpty()) {
             Database.update(keyMessages, AccessLevel.USER_MODE);
         }
-    }
-
-    /// Call_Backdate_Limit__c is a Hierarchy Custom Setting — getInstance()
-    /// with no argument resolves User > Profile > Org-default automatically
-    /// for the running user, same effective precedence the iOS app resolves
-    /// by hand over REST (SalesforceRestDataService.resolveHierarchySetting).
-    /// Also governs how far a draft/saved call report stays editable before
-    /// callVisitReportDetail.js locks it read-only, matching iOS's RootView
-    /// isCVREditable.
-    @AuraEnabled(cacheable=true)
-    public static Integer getCallBackdateLimitDays() {
-        Call_Backdate_Limit__c setting = Call_Backdate_Limit__c.getInstance();
-        return (setting != null && setting.Days__c != null) ? Integer.valueOf(setting.Days__c) : 30;
-    }
-
-    private static final List<String> MONTH_FIELD_NAMES = new List<String>{
-        'January__c', 'February__c', 'March__c', 'April__c', 'May__c', 'June__c',
-        'July__c', 'August__c', 'September__c', 'October__c', 'November__c', 'December__c'
-    };
-
-    /// Call_Submission_Restriction__c is a Hierarchy Custom Setting — same
-    /// User > Profile > Org resolution as Call_Backdate_Limit__c above. Each
-    /// month field holds the day of the *following* month by which a call
-    /// dated in that month must be Submitted (e.g. December__c = 10 means a
-    /// December call can't be Submitted past January 10th); a blank field
-    /// means that month has no deadline. Clamps an out-of-range deadline day
-    /// (e.g. an admin setting January__c = 31, but February only has 28/29
-    /// days) to the deadline month's actual last day instead of throwing.
-    private static Boolean isPastSubmissionDeadline(Date visitDate) {
-        if (visitDate == null) {
-            return false;
-        }
-        Call_Submission_Restriction__c setting = Call_Submission_Restriction__c.getInstance();
-        if (setting == null) {
-            return false;
-        }
-        Object rawDeadlineDay = setting.get(MONTH_FIELD_NAMES[visitDate.month() - 1]);
-        if (rawDeadlineDay == null) {
-            return false;
-        }
-        Integer deadlineDay = Integer.valueOf((Decimal) rawDeadlineDay);
-        Date deadlineMonthFirst = Date.newInstance(visitDate.year(), visitDate.month(), 1).addMonths(1);
-        Integer daysInDeadlineMonth = Date.daysInMonth(deadlineMonthFirst.year(), deadlineMonthFirst.month());
-        Date deadline = Date.newInstance(deadlineMonthFirst.year(), deadlineMonthFirst.month(),
-            Math.min(deadlineDay, daysInDeadlineMonth));
-        return Date.today() > deadline;
     }
 }

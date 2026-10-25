@@ -1,15 +1,15 @@
-import { LightningElement, api, wire } from 'lwc';
+import { LightningElement, api } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { updateRecord } from 'lightning/uiRecordApi';
 import getCVRDetail from '@salesforce/apex/SciagenCVRController.getCVRDetail';
 import submitCallReport from '@salesforce/apex/SciagenCVRController.submitCallReport';
-import getCallBackdateLimitDays from '@salesforce/apex/SciagenCVRController.getCallBackdateLimitDays';
 import getSessionsForCVR from '@salesforce/apex/SciagenCLMController.getSessionsForCVR';
 import { pillStyle, callStatusColor } from 'c/sciagenColors';
 
 /// Per-CVR editor — composes cvrHeaderForm with five Master-Detail child list
 /// components (Key Messages/Promo Drops/Attendees/Internal Attendees/
-/// Presentation Sessions). The children only render once a CVR Id exists
+/// Presentation Sessions), plus a read-only Detailing Priority list (the
+/// order is captured on the iPad). The children only render once a CVR Id exists
 /// (Master-Detail children can't be created without their parent). See the
 /// "Call Visit Report — Salesforce LWC Feature" and "CLM — Library + Session
 /// Logging" plans for the full mapping.
@@ -36,29 +36,6 @@ export default class CallVisitReportDetail extends LightningElement {
     presentationSessions = [];
     isLoading = false;
     isSubmitting = false;
-
-    // Hierarchy Custom Setting (User > Profile > Org default) — same one
-    // iOS resolves for its own "how many days back can this be edited"
-    // check (RootView.swift's isCVREditable / store.callBackdateLimitDays),
-    // wired here so both apps enforce the identical window.
-    @wire(getCallBackdateLimitDays) wiredBackdateLimit;
-
-    get callBackdateLimitDays() {
-        return this.wiredBackdateLimit?.data ?? 30;
-    }
-
-    // Date-only comparison, built the same "parse as local midnight" way
-    // scheduleWeekGrid.js's drop-time fix does — appending T00:00:00 avoids
-    // the UTC-parses-as-midnight-then-shifts-back-a-day trap a bare
-    // "YYYY-MM-DD" string hits in negative-offset timezones.
-    get isPastEditWindow() {
-        if (!this.detail?.visitDate) { return false; }
-        const visit = new Date(`${this.detail.visitDate}T00:00:00`);
-        const cutoff = new Date();
-        cutoff.setDate(cutoff.getDate() - this.callBackdateLimitDays);
-        cutoff.setHours(0, 0, 0, 0);
-        return visit < cutoff;
-    }
 
     async loadDetail() {
         if (!this._recordId) {
@@ -115,6 +92,17 @@ export default class CallVisitReportDetail extends LightningElement {
         return this.detail?.internalAttendees || [];
     }
 
+    get detailPriorityRows() {
+        return (this.detail?.detailPriorities || []).map((r) => ({
+            ...r,
+            sourceLabel: r.source === 'CLM' ? 'From CLM' : 'Added',
+        }));
+    }
+
+    get hasDetailPriorities() {
+        return this.detailPriorityRows.length > 0;
+    }
+
     get presentationSessionRows() {
         return this.presentationSessions || [];
     }
@@ -124,11 +112,11 @@ export default class CallVisitReportDetail extends LightningElement {
     }
 
     get canSubmit() {
-        return this.hasRecord && this.detail && this.detail.recordStatus !== 'Submitted' && !this.isPastEditWindow;
+        return this.hasRecord && this.detail && this.detail.recordStatus !== 'Submitted';
     }
 
     get isLocked() {
-        return this.hasRecord && (this.detail?.recordStatus === 'Submitted' || this.isPastEditWindow);
+        return this.hasRecord && this.detail?.recordStatus === 'Submitted';
     }
 
     async handleHeaderSave(event) {

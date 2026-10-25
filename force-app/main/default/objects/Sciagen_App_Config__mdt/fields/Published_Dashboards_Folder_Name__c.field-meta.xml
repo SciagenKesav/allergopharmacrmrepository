@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Published_Dashboards_Folder_Name__c</fullName>
+    <description>Developer Name of the dashboard folder whose dashboards the iPad shows under Reports → Published Dashboards. Share the folder (and the folder of the dashboards&apos; source reports) with the users who should see them; set each dashboard to run as the logged-in user so every rep sees their own territory.</description>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <label>Published Dashboards Folder Name</label>
+    <length>80</length>
+    <required>false</required>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

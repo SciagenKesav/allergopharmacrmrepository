@@ -10,19 +10,19 @@
         <valueSetDefinition>
             <sorted>false</sorted>
             <value>
-                <fullName>A</fullName>
+                <fullName>V1</fullName>
                 <default>false</default>
-                <label>A</label>
+                <label>V1</label>
             </value>
             <value>
-                <fullName>B</fullName>
+                <fullName>V2</fullName>
                 <default>false</default>
-                <label>B</label>
+                <label>V2</label>
             </value>
             <value>
-                <fullName>C</fullName>
+                <fullName>V3</fullName>
                 <default>false</default>
-                <label>C</label>
+                <label>V3</label>
             </value>
             <value>
                 <fullName>Unclassified</fullName>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObjectTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <caseValues>
+        <plural>false</plural>
+        <value>Device Reset Request</value>
+    </caseValues>
+    <caseValues>
+        <plural>true</plural>
+        <value>Device Reset Requests</value>
+    </caseValues>
+    <layouts>
+        <layout>Device Reset Request Layout</layout>
+        <sections>
+            <label><!-- One-Time Code (Manager Only) --></label>
+            <section>One-Time Code (Manager Only)</section>
+        </sections>
+        <sections>
+            <label><!-- Request Information --></label>
+            <section>Request Information</section>
+        </sections>
+    </layouts>
+    <startsWith>Consonant</startsWith>
+</CustomObjectTranslation>

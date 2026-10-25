@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Return Reason --></label>
+    <name>Return_Reason__c</name>
+    <picklistValues>
+        <masterLabel>Damaged</masterLabel>
+        <translation><!-- Damaged --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Excess</masterLabel>
+        <translation><!-- Excess --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Expired</masterLabel>
+        <translation><!-- Expired --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Other</masterLabel>
+        <translation><!-- Other --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Recall</masterLabel>
+        <translation><!-- Recall --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Promotional Item --></label>
+    <name>Promotional_Item__c</name>
+    <relationshipLabel><!-- Promotional Item Drops --></relationshipLabel>
+</CustomFieldTranslation>

@@ -17,18 +17,28 @@
  * class IS the access-control mechanism for RCPA_Audit__c, so it must
  * compute sharing independent of whatever access the running user already
  * has.
+ *
+ * Walks Territory__c's Parent_Territory__c hierarchy via TerritoryHierarchyUtil, same as
+ * TerritorySharingService: a manager assigned to a parent territory sees audits tagged with
+ * any of its child territories too.
+ *
+ * See TerritorySharingService for why the final delete runs at AccessLevel.SYSTEM_MODE
+ * while the final insert instead defers any INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY
+ * failure to DeferredShareInsertQueueable: that error fires whenever the parent record was
+ * itself just inserted earlier in the same transaction, and SYSTEM_MODE does not bypass it.
  */
 public without sharing class RCPAAuditTerritorySharingService {
 
     private static final String SHARE_ACCESS_LEVEL = 'Edit';
     private static final String SHARE_ROW_CAUSE = 'Manual';
 
-    /** Recomputes shares for every RCPA_Audit__c currently assigned to any of the given territories. */
+    /** Recomputes shares for every RCPA_Audit__c currently assigned to any of the given territories or their descendants. */
     public static void resyncForTerritories(Set<Id> territoryIds) {
         if (territoryIds == null || territoryIds.isEmpty()) return;
 
+        Set<Id> expandedTerritoryIds = TerritoryHierarchyUtil.withDescendants(territoryIds);
         Set<Id> auditIds = new Set<Id>();
-        for (RCPA_Audit__c a : [SELECT Id FROM RCPA_Audit__c WHERE Territory__c IN :territoryIds]) {
+        for (RCPA_Audit__c a : [SELECT Id FROM RCPA_Audit__c WHERE Territory__c IN :expandedTerritoryIds]) {
             auditIds.add(a.Id);
         }
         resyncForAudits(auditIds);
@@ -54,15 +64,23 @@ public without sharing class RCPAAuditTerritorySharingService {
             }
         }
 
+        // A user assigned to a PARENT territory should also see audits for every child, so
+        // resolve each audit's territory to itself plus every ancestor before matching users.
+        Map<Id, Set<Id>> ancestorsByTerritory = TerritoryHierarchyUtil.ancestorsByTerritory(allTerritoryIds);
+        Set<Id> allRelevantTerritoryIds = new Set<Id>();
+        for (Set<Id> ancestors : ancestorsByTerritory.values()) {
+            allRelevantTerritoryIds.addAll(ancestors);
+        }
+
         // territory -> set of user ids assigned to it (skip admins — Salesforce
         // rejects share rows for users who already have system-wide access via
         // their profile, same reasoning as TerritorySharingService)
         Map<Id, Set<Id>> usersByTerritory = new Map<Id, Set<Id>>();
-        if (!allTerritoryIds.isEmpty()) {
+        if (!allRelevantTerritoryIds.isEmpty()) {
             for (User_Territory__c ut : [
                 SELECT Territory__c, User__c
                 FROM User_Territory__c
-                WHERE Territory__c IN :allTerritoryIds AND User__c != null AND User__r.Profile.PermissionsViewAllData = false
+                WHERE Territory__c IN :allRelevantTerritoryIds AND User__c != null AND User__r.IsActive = true AND User__r.Profile.PermissionsViewAllData = false
             ]) {
                 if (!usersByTerritory.containsKey(ut.Territory__c)) {
                     usersByTerritory.put(ut.Territory__c, new Set<Id>());
@@ -78,12 +96,14 @@ public without sharing class RCPAAuditTerritorySharingService {
         for (Id auditId : auditIds) {
             Id territoryId = territoryByAudit.get(auditId);
             if (territoryId == null) continue;
-            Set<Id> users = usersByTerritory.get(territoryId);
-            if (users == null) continue;
             Id ownerId = ownerByAudit.get(auditId);
-            for (Id userId : users) {
-                if (userId == ownerId) continue;
-                desiredPairs.add(auditId + ':' + userId);
+            for (Id relevantTerritoryId : ancestorsByTerritory.get(territoryId)) {
+                Set<Id> users = usersByTerritory.get(relevantTerritoryId);
+                if (users == null) continue;
+                for (Id userId : users) {
+                    if (userId == ownerId) continue;
+                    desiredPairs.add(auditId + ':' + userId);
+                }
             }
         }
 
@@ -115,7 +135,40 @@ public without sharing class RCPAAuditTerritorySharingService {
             ));
         }
 
-        if (!toDelete.isEmpty()) delete toDelete;
-        if (!toInsert.isEmpty()) insert toInsert;
+        if (!toDelete.isEmpty()) Database.delete(toDelete, AccessLevel.SYSTEM_MODE);
+        insertDeferringCrossReferenceFailures(toInsert);
+    }
+
+    /**
+     * Inserts the given shares at SYSTEM_MODE; any that fail specifically with
+     * INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY are retried in a later transaction via
+     * DeferredShareInsertQueueable instead of failing the caller's DML. Any other failure
+     * still throws.
+     */
+    private static void insertDeferringCrossReferenceFailures(List<RCPA_Audit__Share> toInsert) {
+        if (toInsert.isEmpty()) return;
+
+        Database.SaveResult[] results = Database.insert(toInsert, false, AccessLevel.SYSTEM_MODE);
+        List<SObject> deferred = new List<SObject>();
+        for (Integer i = 0; i < results.size(); i++) {
+            if (results[i].isSuccess()) continue;
+
+            Boolean isCrossReferenceTiming = false;
+            for (Database.Error err : results[i].getErrors()) {
+                if (err.getStatusCode() == StatusCode.INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY) {
+                    isCrossReferenceTiming = true;
+                }
+            }
+
+            if (isCrossReferenceTiming) {
+                deferred.add(toInsert[i]);
+            } else {
+                throw new DmlException(results[i].getErrors()[0].getMessage());
+            }
+        }
+
+        if (!deferred.isEmpty()) {
+            System.enqueueJob(new DeferredShareInsertQueueable(deferred));
+        }
     }
 }

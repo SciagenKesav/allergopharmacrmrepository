@@ -3,8 +3,6 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import getDCRDetail from '@salesforce/apex/DCRReviewController.getDCRDetail';
 import approveDCR from '@salesforce/apex/DCRReviewController.approveDCR';
 import rejectDCR from '@salesforce/apex/DCRReviewController.rejectDCR';
-import getComments from '@salesforce/apex/DCRReviewController.getComments';
-import addComment from '@salesforce/apex/DCRReviewController.addComment';
 import { pillStyle, DCR_STATUS_COLOR } from 'c/sciagenColors';
 
 export default class DcrReviewDetail extends LightningElement {
@@ -15,11 +13,8 @@ export default class DcrReviewDetail extends LightningElement {
     error;
     isRejecting = false;
     rejectionReasonInput = '';
-
-    comments = [];
-    isLoadingComments = false;
-    isReplying = false;
-    replyInput = '';
+    isApproving = false;
+    approvalCommentInput = '';
 
     @api
     get recordId() {
@@ -29,9 +24,9 @@ export default class DcrReviewDetail extends LightningElement {
         this._recordId = value;
         this.isRejecting = false;
         this.rejectionReasonInput = '';
-        this.replyInput = '';
+        this.isApproving = false;
+        this.approvalCommentInput = '';
         this.loadDetail();
-        this.loadComments();
     }
 
     async loadDetail() {
@@ -50,56 +45,16 @@ export default class DcrReviewDetail extends LightningElement {
         }
     }
 
-    async loadComments() {
-        if (!this._recordId) {
-            this.comments = [];
-            return;
-        }
-        this.isLoadingComments = true;
-        try {
-            const raw = await getComments({ dcrId: this._recordId });
-            this.comments = (raw || []).map((c) => ({
-                ...c,
-                cssClass: c.authorRole === 'Business Admin' ? 'comment-bubble comment-admin' : 'comment-bubble comment-requester',
-            }));
-        } catch (e) {
-            this.toast('Couldn’t load comments', reduceError(e), 'error');
-        } finally {
-            this.isLoadingComments = false;
-        }
-    }
-
-    get hasComments() {
-        return this.comments.length > 0;
-    }
-
-    handleReplyChange(event) {
-        this.replyInput = event.target.value;
-    }
-
-    async handleSendReply() {
-        const body = this.replyInput.trim();
-        if (!body) {
-            return;
-        }
-        this.isReplying = true;
-        try {
-            await addComment({ dcrId: this._recordId, body });
-            this.replyInput = '';
-            await this.loadComments();
-        } catch (e) {
-            this.toast('Couldn’t send reply', reduceError(e), 'error');
-        } finally {
-            this.isReplying = false;
-        }
-    }
-
     get statusPillStyle() {
         return pillStyle(DCR_STATUS_COLOR[this.record?.status]);
     }
 
     get isPending() {
         return this.record?.status === 'Pending Approval';
+    }
+
+    get isIdle() {
+        return !this.isApproving && !this.isRejecting;
     }
 
     get hasPhoto() {
@@ -129,6 +84,10 @@ export default class DcrReviewDetail extends LightningElement {
         return !!this.record?.rejectionReason;
     }
 
+    get hasApprovalComment() {
+        return !!this.record?.approvalComment;
+    }
+
     get hasFlatFields() {
         return !!this.record && !this.record.isDiff && (this.record.flatFields || []).length > 0;
     }
@@ -137,9 +96,27 @@ export default class DcrReviewDetail extends LightningElement {
         return !!this.record && this.record.isDiff && (this.record.diffFields || []).length > 0;
     }
 
-    handleApprove() {
+    handleShowApprove() {
+        this.isApproving = true;
+    }
+
+    handleCancelApprove() {
+        this.isApproving = false;
+        this.approvalCommentInput = '';
+    }
+
+    handleApprovalCommentChange(event) {
+        this.approvalCommentInput = event.target.value;
+    }
+
+    handleConfirmApprove() {
+        // Unlike Reject, a comment here is optional — a steward can still approve with
+        // one click and nothing typed; the box is there for when they want to leave a note.
+        const comment = this.approvalCommentInput.trim();
         this.runAction(async () => {
-            await approveDCR({ dcrId: this._recordId });
+            await approveDCR({ dcrId: this._recordId, comment: comment || null });
+            this.isApproving = false;
+            this.approvalCommentInput = '';
             this.toast('Approved', 'Data change request approved.', 'success');
         });
     }

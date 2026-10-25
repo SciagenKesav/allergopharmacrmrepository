@@ -1,19 +1,47 @@
 /**
  * One-time sample-data loader for the Sciagen CRM demo, built on Sciagen_Account__c
  * (the custom Account object that replaced Standard Account in the Custom Account
- * Object migration). Invoke via anonymous Apex: SciagenAccountSeeder.seed();
+ * Object migration).
  * Not test-covered on purpose — this is a data-loading utility, not shipped logic.
- * @isTest marks it as exactly that to Salesforce: its 466 lines are excluded from
+ * @isTest marks it as exactly that to Salesforce: its lines are excluded from
  * the org-wide code coverage calculation entirely, instead of silently counting
  * as uncovered "shipped" code and dragging every real deploy's coverage gate down
  * (this alone was the difference between 70% and 75%+ org-wide coverage).
- * Anonymous Apex can still invoke its public static methods same as before.
+ * IMPORTANT: despite that, Salesforce does NOT allow Anonymous Apex to call an
+ * @isTest class's methods ("Cannot call test methods in non-test context") — to
+ * actually run seed() or seedAllergyFocusSpecialists() and persist real data,
+ * temporarily delete the @isTest annotation below, deploy, execute the
+ * anonymous Apex, then restore @isTest and redeploy.
  */
 @isTest
 public with sharing class SciagenAccountSeeder {
 
+    public class SeederException extends Exception {}
+
+    /** Lets the guard test simulate a production org from inside this Developer Edition org. */
+    @TestVisible private static Boolean simulateProduction = false;
+
+    /**
+     * Every seed/cleanup entry point deletes or creates org-wide demo data (cleanup() empties ~25
+     * objects). Refuse unless this is a sandbox, scratch or Developer Edition org AND the running
+     * user has Modify All Data -- so the class is harmless even if someone removes @isTest to run it
+     * in production (QA-47).
+     */
+    @TestVisible
+    private static void requireNonProductionAdmin() {
+        Organization org = [SELECT IsSandbox, OrganizationType FROM Organization LIMIT 1];
+        Boolean nonProduction = !simulateProduction && (org.IsSandbox == true || org.OrganizationType == 'Developer Edition');
+        if (!nonProduction) {
+            throw new SeederException('SciagenAccountSeeder only runs in a sandbox, scratch or Developer Edition org.');
+        }
+        if (!SciagenAccess.hasModifyAllData()) {
+            throw new SeederException('SciagenAccountSeeder needs a user with Modify All Data.');
+        }
+    }
+
     /** Deletes everything this seeder creates, in reverse dependency order, so seed() can be re-run cleanly. */
     public static void cleanup() {
+        requireNonProductionAdmin();
         delete [SELECT Id FROM POB_Line__c];
         delete [SELECT Id FROM RCPA_Competitor__c];
         delete [SELECT Id FROM RCPA_Line__c];
@@ -73,6 +101,7 @@ public with sharing class SciagenAccountSeeder {
     }
 
     public static void seed() {
+        requireNonProductionAdmin();
         List<String> errors = new List<String>();
 
         // ============================================================
@@ -364,11 +393,7 @@ public with sharing class SciagenAccountSeeder {
                 plannedCalls.add(new Planned_Call__c(
                     Name = 'Planned Call ' + (i + 1),
                     Event_Title__c = 'Visit - ' + hcpAccounts[Math.mod(i, hcpAccounts.size())].Name,
-                    // Fixed at 11 AM, not DateTime.now() — office hours
-                    // (PlannedCallOfficeHoursValidator) would otherwise
-                    // randomly reject this insert depending on what time of
-                    // day the seeder happens to run.
-                    Call_DateTime__c = Datetime.newInstance(Date.today().addDays(i + 1), Time.newInstance(11, 0, 0, 0)),
+                    Call_DateTime__c = DateTime.now().addDays(i + 1),
                     HCP__c = hcpAccounts[Math.mod(i, hcpAccounts.size())].Id,
                     HCO__c = hcoAccounts[Math.mod(i, hcoAccounts.size())].Id,
                     Call_Type__c = callTypes[Math.mod(i, callTypes.size())],
@@ -707,5 +732,395 @@ public with sharing class SciagenAccountSeeder {
                 System.debug('ERROR: ' + err);
             }
         }
+    }
+
+    /**
+     * Additive, standalone demo-data top-up for AllergoPharma: ENT, Paediatrics,
+     * and extra Pulmonology HCPs/HCOs — the three specialties most relevant to an
+     * allergy-immunotherapy portfolio (allergic rhinitis/sinusitis, childhood
+     * allergy/asthma, respiratory allergy) but absent from the original seed()
+     * dataset above. Safe to call on an already-seeded org: does NOT touch
+     * cleanup()/seed()'s existing records, and no-ops if it's already been run
+     * (checked by Name). New accounts pick up their territory from the existing
+     * AccountTerritoryAutoAssign trigger (owner = running user), not a manual
+     * Account_Territory__c insert.
+     * Invoke via anonymous Apex: SciagenAccountSeeder.seedAllergyFocusSpecialists();
+     */
+    public static void seedAllergyFocusSpecialists() {
+        requireNonProductionAdmin();
+        if (!(new List<Sciagen_Account__c>([SELECT Id FROM Sciagen_Account__c WHERE Name = 'Dr. Neeraj Kohli' LIMIT 1])).isEmpty()) {
+            System.debug('SKIPPED: seedAllergyFocusSpecialists() already run.');
+            return;
+        }
+
+        List<Sciagen_Account__c> hcos = new List<Sciagen_Account__c>{
+            new Sciagen_Account__c(
+                Type__c = 'HCO', Name = 'Sunshine ENT & Allergy Clinic', HCO_Type__c = 'Clinic', Speciality__c = 'ENT',
+                Billing_Street__c = 'Greater Kailash', Billing_City__c = 'South Delhi', Billing_State__c = 'Delhi',
+                Billing_Country__c = 'India', Billing_Postal_Code__c = '110048',
+                Phone__c = '9111700001', Email__c = 'info@sunshineentallergy.example.com',
+                Website__c = 'https://www.sunshineentallergy.example.com',
+                Geolocation__Latitude__s = 28.548, Geolocation__Longitude__s = 77.243
+            ),
+            new Sciagen_Account__c(
+                Type__c = 'HCO', Name = 'Little Steps Children\'s Hospital', HCO_Type__c = 'Hospital', Speciality__c = 'Paediatrics',
+                Billing_Street__c = 'Sector 44', Billing_City__c = 'Gurugram', Billing_State__c = 'Haryana',
+                Billing_Country__c = 'India', Billing_Postal_Code__c = '122003',
+                Phone__c = '9111700002', Email__c = 'info@littlestepschildrens.example.com',
+                Website__c = 'https://www.littlestepschildrens.example.com',
+                Geolocation__Latitude__s = 28.460, Geolocation__Longitude__s = 77.026
+            )
+        };
+        insert hcos;
+        Id sunshineEnt = hcos[0].Id;
+        Id littleSteps = hcos[1].Id;
+
+        // { Prefix, First, Last, Specialty, HCP_Type, Focus Area, City }
+        List<Object[]> hcpData = new List<Object[]>{
+            new Object[]{ 'Dr.', 'Neeraj', 'Kohli', 'ENT', 'Consultant', 'Allergic Rhinitis & Sinus Surgery', 'South Delhi' },
+            new Object[]{ 'Dr.', 'Ritu', 'Bhalla', 'ENT', 'Physician', 'Paediatric ENT & Allergy', 'Gurugram' },
+            new Object[]{ 'Dr.', 'Farhan', 'Ahmed', 'ENT', 'Surgeon', 'Otolaryngology & Sinus Surgery', 'Noida' },
+            new Object[]{ 'Dr.', 'Meenakshi', 'Chawla', 'ENT', 'Specialist', 'Allergic Rhinitis', 'South Delhi' },
+            new Object[]{ 'Dr.', 'Ananya', 'Kapoor', 'Paediatrics', 'Consultant', 'Paediatric Allergy & Asthma', 'South Delhi' },
+            new Object[]{ 'Dr.', 'Rohit', 'Malhotra', 'Paediatrics', 'Physician', 'Paediatric Pulmonology', 'South Delhi' },
+            new Object[]{ 'Dr.', 'Simran', 'Kaur', 'Paediatrics', 'Specialist', 'Childhood Eczema & Food Allergy', 'Gurugram' },
+            new Object[]{ 'Dr.', 'Aarav', 'Sethi', 'Paediatrics', 'General Practitioner', 'Paediatric Immunology', 'Noida' },
+            new Object[]{ 'Dr.', 'Kunal', 'Bhatia', 'Pulmonology', 'Consultant', 'Asthma & COPD', 'South Delhi' },
+            new Object[]{ 'Dr.', 'Naina', 'Chopra', 'Pulmonology', 'Specialist', 'Occupational & Allergic Asthma', 'Delhi' }
+        };
+
+        List<Sciagen_Account__c> hcpAccounts = new List<Sciagen_Account__c>();
+        Integer i = 0;
+        for (Object[] row : hcpData) {
+            i++;
+            hcpAccounts.add(new Sciagen_Account__c(
+                Type__c = 'HCP',
+                Name = (String) row[0] + ' ' + (String) row[1] + ' ' + (String) row[2],
+                Prefix__c = (String) row[0], First_Name__c = (String) row[1], Last_Name__c = (String) row[2],
+                Specialty__c = (String) row[3], HCP_Type__c = (String) row[4], Focus_Area__c = (String) row[5],
+                Billing_City__c = (String) row[6], Billing_State__c = ((String) row[6] == 'Gurugram' ? 'Haryana' : ((String) row[6] == 'Noida' ? 'Uttar Pradesh' : 'Delhi')),
+                Billing_Country__c = 'India',
+                Phone__c = '98' + String.valueOf(20000000 + i).right(8),
+                Email__c = ((String) row[1]).toLowerCase() + '.' + ((String) row[2]).toLowerCase().deleteWhitespace() + '@example.com',
+                License_Number__c = 'LIC-' + String.valueOf(2000 + i),
+                Licensing_Body__c = 'MCI'
+            ));
+        }
+
+        // Same deterministic enrichment approach as seed()'s HCP block above, so
+        // these records aren't bare next to the rest of the demo dataset.
+        List<String> entPaedsDegrees = new List<String>{ 'MBBS', 'MS (ENT)', 'DNB (ENT)', 'MD (Paediatrics)', 'DCH', 'DM (Pulmonology)' };
+        List<String> reachFlags = new List<String>{ 'Local', 'Regional', 'Global' };
+        Integer hi = 0;
+        for (Sciagen_Account__c hcp : hcpAccounts) {
+            hi++;
+            hcp.Age__c = 34 + Math.mod(hi * 3, 24);
+            hcp.Experience_Years__c = 6 + Math.mod(hi * 2, 18);
+            hcp.Degree_1__c = entPaedsDegrees[Math.mod(hi, entPaedsDegrees.size())];
+            if (Math.mod(hi, 3) == 0) {
+                hcp.Degree_2__c = 'Fellowship in Paediatric Allergy';
+            }
+            hcp.Graduation_Year__c = 1998 + Math.mod(hi * 2, 20);
+            hcp.Licensing_Year__c = hcp.Graduation_Year__c.intValue() + 1;
+            if (Math.mod(hi, 2) == 0) {
+                hcp.LinkedIn_URL__c = 'https://linkedin.com/in/dr-' + ((String) hcpData[hi - 1][2]).toLowerCase();
+            }
+            Integer articles = Math.mod(hi * 4, 30);
+            hcp.Total_Articles__c = articles;
+            hcp.Total_Citations__c = articles * (8 + Math.mod(hi, 12));
+            hcp.Avg_Citations_Per_Article__c = articles > 0
+                ? (Decimal.valueOf(hcp.Total_Citations__c.intValue()) / articles).setScale(1)
+                : 0;
+            hcp.Reach_Flag__c = reachFlags[Math.mod(hi, reachFlags.size())];
+            hcp.Emerging_Expert__c = Math.mod(hi, 4) == 0;
+            hcp.External_Ids__c = '{"MCI":"MCI-' + (9500 + hi) + '","NPI":"' + (1000005000L + hi) + '"}';
+        }
+        insert hcpAccounts;
+        System.debug('OK: allergy-focus HCPs = ' + hcpAccounts.size() + ', HCOs = ' + hcos.size());
+
+        // Affiliate the new-clinic-adjacent HCPs so the Account Hierarchy graph
+        // has something to show for this group too.
+        List<Affiliation__c> affiliations = new List<Affiliation__c>{
+            new Affiliation__c(Name = 'Affiliation', HCP__c = hcpAccounts[0].Id, HCO__c = sunshineEnt), // Kohli
+            new Affiliation__c(Name = 'Affiliation', HCP__c = hcpAccounts[3].Id, HCO__c = sunshineEnt), // Chawla
+            new Affiliation__c(Name = 'Affiliation', HCP__c = hcpAccounts[4].Id, HCO__c = littleSteps),  // Kapoor
+            new Affiliation__c(Name = 'Affiliation', HCP__c = hcpAccounts[5].Id, HCO__c = littleSteps)   // Malhotra
+        };
+        insert affiliations;
+
+        // Mark the two strongest names per specialty as KOL, matching the
+        // Is_KOL__c / Emerging_Expert__c badges already used across the rest of
+        // the demo dataset (Segmentation__c drives the KOL badge; Emerging_Expert__c
+        // above drives the other one directly on the account).
+        List<Segmentation__c> segs = new List<Segmentation__c>{
+            new Segmentation__c(Name = 'Segmentation - ' + hcpAccounts[0].Name, HCP__c = hcpAccounts[0].Id, Classification__c = 'V3', Tier__c = 'Gold', Priority__c = 'Priority 1', Potential__c = 'High', Is_KOL__c = true),
+            new Segmentation__c(Name = 'Segmentation - ' + hcpAccounts[4].Name, HCP__c = hcpAccounts[4].Id, Classification__c = 'V3', Tier__c = 'Gold', Priority__c = 'Priority 1', Potential__c = 'High', Is_KOL__c = true),
+            new Segmentation__c(Name = 'Segmentation - ' + hcpAccounts[8].Name, HCP__c = hcpAccounts[8].Id, Classification__c = 'V2', Tier__c = 'Silver', Priority__c = 'Priority 2', Potential__c = 'High', Is_KOL__c = true)
+        };
+        insert segs;
+        System.debug('OK: Affiliation__c=' + affiliations.size() + ' Segmentation__c=' + segs.size());
+    }
+
+    /**
+     * Real, richly-populated Account Plans for the Account Plans demo — one per
+     * allergy-relevant specialty (Pulmonology / ENT / Paediatrics), all built on
+     * Allergopharma SLIT (the actual Product__c in this org for House Dust Mite /
+     * Grass Pollen immunotherapy — the same real-world product the "ACAROID"
+     * CLM decks detail), not a placeholder product name.
+     *
+     * The Pulmonology plan ENRICHES the existing "Max Account plan" on Max Super
+     * Speciality Hospital / Dr. Ajit Man Singh (already the account used in the
+     * demo runbook) after removing the two leftover placeholder child records
+     * found on it ("Strategy" / "Dr. Verification Test") from earlier manual
+     * testing. The ENT and Paediatrics plans are newly created on Sunshine ENT &
+     * Allergy Clinic and Little Steps Children's Hospital (see
+     * seedAllergyFocusSpecialists() above).
+     *
+     * Does not touch the other stray Draft plans already in this org ("Min
+     * Account Plan", "product account plan", the duplicate "Key Account Plan"
+     * rows) — those are left for a human to review/delete.
+     *
+     * Invoke via anonymous Apex (after temporarily removing @isTest — see the
+     * note above the class declaration): SciagenAccountSeeder.seedAllergyFocusAccountPlans();
+     */
+    public static void seedAllergyFocusAccountPlans() {
+        requireNonProductionAdmin();
+        if (!(new List<Plan_Goal__c>([SELECT Id FROM Plan_Goal__c WHERE Title__c = 'Grow SLIT Referrals' LIMIT 1])).isEmpty()) {
+            System.debug('SKIPPED: seedAllergyFocusAccountPlans() already run.');
+            return;
+        }
+
+        Map<String, Id> hcpIdByName = new Map<String, Id>();
+        for (Sciagen_Account__c a : [
+            SELECT Id, Name FROM Sciagen_Account__c
+            WHERE Name IN ('Dr. Ajit Man Singh', 'Dr. Neeraj Kohli', 'Dr. Meenakshi Chawla', 'Dr. Ananya Kapoor', 'Dr. Rohit Malhotra')
+        ]) {
+            hcpIdByName.put(a.Name, a.Id);
+        }
+
+        Map<String, Id> hcoIdByName = new Map<String, Id>();
+        for (Sciagen_Account__c a : [
+            SELECT Id, Name FROM Sciagen_Account__c
+            WHERE Name IN ('Max Super Speciality Hospital', 'Sunshine ENT & Allergy Clinic', 'Little Steps Children\'s Hospital')
+        ]) {
+            hcoIdByName.put(a.Name, a.Id);
+        }
+
+        Id repUserId = UserInfo.getUserId();
+        Id kamUserId = repUserId;
+        for (User u : [SELECT Id FROM User WHERE Name = 'Janani' LIMIT 1]) {
+            kamUserId = u.Id;
+        }
+
+        Date fyStart = Date.newInstance(2026, 1, 1);
+        Date fyEnd = Date.newInstance(2026, 12, 31);
+        String appliedProducts = 'Allergopharma SLIT (House Dust Mite Drops, Grass Pollen Drops)';
+
+        // ---- 1. Enrich the existing Max Super Speciality Hospital plan ----
+        List<Account_Plan__c> existingMaxPlans = [
+            SELECT Id FROM Account_Plan__c
+            WHERE HCO__c = :hcoIdByName.get('Max Super Speciality Hospital') AND HCP__c = :hcpIdByName.get('Dr. Ajit Man Singh')
+            LIMIT 1
+        ];
+        Account_Plan__c maxPlan = existingMaxPlans.isEmpty() ? new Account_Plan__c(
+            HCO__c = hcoIdByName.get('Max Super Speciality Hospital'),
+            HCP__c = hcpIdByName.get('Dr. Ajit Man Singh')
+        ) : existingMaxPlans[0];
+
+        maxPlan.Name = 'Max Super Speciality Hospital — FY26 Allergy & Respiratory Plan';
+        maxPlan.Plan_Title__c = 'Max Super Speciality Hospital — FY26 Allergy & Respiratory Plan';
+        maxPlan.Status__c = 'Active';
+        maxPlan.Type__c = 'Territory';
+        maxPlan.Stage__c = 'Partnership';
+        maxPlan.Health__c = 'Good';
+        maxPlan.Division__c = 'Immunology';
+        maxPlan.Start_Date__c = fyStart;
+        maxPlan.End_Date__c = fyEnd;
+        maxPlan.Applied_Products__c = appliedProducts;
+        maxPlan.Objective__c = 'Grow Allergopharma SLIT adoption among Dr. Ajit Man Singh\'s pulmonology patients with allergic asthma/rhinitis comorbidity, using him as the department\'s reference KOL for immunotherapy in respiratory allergy.';
+        maxPlan.Key_Initiatives__c = '1. Weekly detailing on comorbid allergic-asthma patients using the ACAROID CLM deck.\n2. Nominate Dr. Singh to speak at the Q3 regional CME on SLIT in respiratory allergy.\n3. Distribute SLIT patient-starter kits through the hospital\'s allergy day-care unit.';
+        maxPlan.Strengths__c = 'Dr. Singh is an early adopter of immunotherapy and already refers patients for skin-prick testing.';
+        maxPlan.Weaknesses__c = 'Low awareness of SLIT among junior pulmonology residents at the hospital.';
+        maxPlan.Opportunities__c = 'Hospital is opening a dedicated allergy day-care unit this quarter.';
+        maxPlan.Threats__c = 'A competing HDM immunotherapy brand is running a hospital-sponsored resident training program.';
+        upsert maxPlan;
+
+        // Remove the two leftover placeholder child records found on this plan
+        // during earlier feature testing — a bare "Strategy" and a "Dr.
+        // Verification Test" stakeholder, neither with any real content.
+        delete [SELECT Id FROM Plan_Strategy__c WHERE Plan__c = :maxPlan.Id AND Strategy_Name__c = 'Strategy'];
+        delete [SELECT Id FROM Plan_Stakeholder__c WHERE Plan__c = :maxPlan.Id AND Stakeholder_Name__c = 'Dr. Verification Test'];
+
+        // ---- 2. New plan: Sunshine ENT & Allergy Clinic ----
+        Account_Plan__c entPlan = new Account_Plan__c(
+            HCO__c = hcoIdByName.get('Sunshine ENT & Allergy Clinic'),
+            HCP__c = hcpIdByName.get('Dr. Neeraj Kohli'),
+            Name = 'Sunshine ENT & Allergy Clinic — FY26 ENT Allergy Plan',
+            Plan_Title__c = 'Sunshine ENT & Allergy Clinic — FY26 ENT Allergy Plan',
+            Status__c = 'Active', Type__c = 'Territory', Stage__c = 'Mid', Health__c = 'Good', Division__c = 'Immunology',
+            Start_Date__c = fyStart, End_Date__c = fyEnd, Applied_Products__c = appliedProducts,
+            Objective__c = 'Establish Allergopharma SLIT as the first-line immunotherapy recommendation for allergic rhinitis and chronic sinusitis patients seen by Dr. Neeraj Kohli and Dr. Meenakshi Chawla.',
+            Key_Initiatives__c = '1. Co-detail with the clinic\'s two ENT specialists on allergic rhinitis referral pathways.\n2. Run a patient information evening on SLIT for chronic sinusitis sufferers.\n3. Track referrals into the clinic\'s in-house skin-prick testing service.',
+            Strengths__c = 'Clinic is independent and can adopt new protocols faster than a hospital department.',
+            Weaknesses__c = 'Small patient volume compared to hospital-based ENT departments.',
+            Opportunities__c = 'Clinic is expanding to a second South Delhi location this year.',
+            Threats__c = 'Patients often self-medicate with OTC antihistamines before seeking specialist care.'
+        );
+        insert entPlan;
+
+        // ---- 3. New plan: Little Steps Children's Hospital ----
+        Account_Plan__c paedsPlan = new Account_Plan__c(
+            HCO__c = hcoIdByName.get('Little Steps Children\'s Hospital'),
+            HCP__c = hcpIdByName.get('Dr. Ananya Kapoor'),
+            Name = 'Little Steps Children\'s Hospital — FY26 Paediatric Allergy Plan',
+            Plan_Title__c = 'Little Steps Children\'s Hospital — FY26 Paediatric Allergy Plan',
+            Status__c = 'Active', Type__c = 'Territory', Stage__c = 'Early', Health__c = 'Good', Division__c = 'Immunology',
+            Start_Date__c = fyStart, End_Date__c = fyEnd, Applied_Products__c = appliedProducts,
+            Objective__c = 'Support Dr. Ananya Kapoor and Dr. Rohit Malhotra in introducing SLIT as a disease-modifying option for children with allergic asthma and eczema, ahead of the peak pollen season.',
+            Key_Initiatives__c = '1. Age-appropriate SLIT dosing detailing for the paediatric allergy and paediatric pulmonology teams.\n2. Parent-facing education material for the hospital\'s allergy clinic waiting room.\n3. Joint case-review session with Dr. Kapoor and Dr. Malhotra each quarter.',
+            Strengths__c = 'Hospital has a dedicated paediatric allergy clinic day, making detailing easy to schedule.',
+            Weaknesses__c = 'Parents are often hesitant about starting immunotherapy in young children.',
+            Opportunities__c = 'Hospital is publishing a local case series on childhood allergic rhinitis this year.',
+            Threats__c = 'A generic antihistamine brand runs frequent parent-facing camps at the same hospital.'
+        );
+        insert paedsPlan;
+
+        System.debug('OK: Account_Plan__c enriched/created for Max/ENT/Paediatrics');
+
+        // ---- Goals (3 per plan) ----
+        List<Plan_Goal__c> goals = new List<Plan_Goal__c>();
+        for (Account_Plan__c p : new List<Account_Plan__c>{ maxPlan, entPlan, paedsPlan }) {
+            Decimal startTarget = p.Id == maxPlan.Id ? 25 : (p.Id == entPlan.Id ? 18 : 15);
+            Decimal startCurrent = p.Id == maxPlan.Id ? 9 : (p.Id == entPlan.Id ? 5 : 3);
+            goals.add(new Plan_Goal__c(Name = 'Grow SLIT Referrals', Title__c = 'Grow SLIT Referrals', Plan__c = p.Id, Metric__c = 'New SLIT starts', Target__c = startTarget, Current__c = startCurrent, Unit__c = 'patients', Due_Date__c = fyEnd));
+            goals.add(new Plan_Goal__c(Name = 'Increase Visit Frequency', Title__c = 'Increase Visit Frequency', Plan__c = p.Id, Metric__c = 'Visits per quarter', Target__c = 6, Current__c = 3, Unit__c = 'visits', Due_Date__c = Date.newInstance(2026, 9, 30)));
+            goals.add(new Plan_Goal__c(Name = 'CLM Engagement', Title__c = 'CLM Engagement', Plan__c = p.Id, Metric__c = 'ACAROID CLM sessions delivered', Target__c = 8, Current__c = 3, Unit__c = 'sessions', Due_Date__c = Date.newInstance(2026, 9, 30)));
+        }
+        insert goals;
+
+        // ---- Strategies (2 per plan) ----
+        List<Plan_Strategy__c> strategies = new List<Plan_Strategy__c>();
+        strategies.add(new Plan_Strategy__c(Name = 'Allergic Asthma Detailing Focus', Strategy_Name__c = 'Allergic Asthma Detailing Focus', Plan__c = maxPlan.Id, Detail__c = 'Weekly detailing using the ACAROID CLM deck, targeting comorbid allergic-asthma patients on Dr. Singh\'s ward rounds.', Share_With__c = 'MSL;ODM'));
+        strategies.add(new Plan_Strategy__c(Name = 'Peer-to-Peer Advocacy', Strategy_Name__c = 'Peer-to-Peer Advocacy', Plan__c = maxPlan.Id, Detail__c = 'Position Dr. Singh as a speaker at the Q3 regional CME on SLIT in respiratory allergy.', Share_With__c = 'MSL'));
+        strategies.add(new Plan_Strategy__c(Name = 'Allergic Rhinitis Referral Pathway', Strategy_Name__c = 'Allergic Rhinitis Referral Pathway', Plan__c = entPlan.Id, Detail__c = 'Co-detail with both ENT specialists on routing chronic sinusitis and allergic rhinitis patients into skin-prick testing, then SLIT.', Share_With__c = 'MSL;PSS'));
+        strategies.add(new Plan_Strategy__c(Name = 'Patient Education Evening', Strategy_Name__c = 'Patient Education Evening', Plan__c = entPlan.Id, Detail__c = 'Host a clinic-sponsored patient information evening on SLIT for chronic sinusitis sufferers.', Share_With__c = 'PSS'));
+        strategies.add(new Plan_Strategy__c(Name = 'Paediatric Dosing Detailing', Strategy_Name__c = 'Paediatric Dosing Detailing', Plan__c = paedsPlan.Id, Detail__c = 'Age-appropriate SLIT dosing detailing for the paediatric allergy and paediatric pulmonology teams.', Share_With__c = 'MSL;ODM'));
+        strategies.add(new Plan_Strategy__c(Name = 'Parent Education Materials', Strategy_Name__c = 'Parent Education Materials', Plan__c = paedsPlan.Id, Detail__c = 'Place parent-facing SLIT education material in the hospital\'s allergy clinic waiting room.', Share_With__c = 'PSS'));
+        insert strategies;
+
+        // ---- Stakeholders (2 per plan, HCP-linked where a real second HCP exists) ----
+        List<Plan_Stakeholder__c> stakeholders = new List<Plan_Stakeholder__c>{
+            new Plan_Stakeholder__c(Name = 'Dr. Ajit Man Singh', Stakeholder_Name__c = 'Dr. Ajit Man Singh', Plan__c = maxPlan.Id, HCP__c = hcpIdByName.get('Dr. Ajit Man Singh'), Role__c = 'KOL', Specialty__c = 'Pulmonology', Influence__c = 'Critical', Strength__c = 'Advocate', Last_Graded__c = Date.today()),
+            new Plan_Stakeholder__c(Name = 'Dr. Rina Verghese', Stakeholder_Name__c = 'Dr. Rina Verghese — Medical Superintendent', Plan__c = maxPlan.Id, Role__c = 'Economic Buyer', Influence__c = 'High', Strength__c = 'Developing', Last_Graded__c = Date.today()),
+            new Plan_Stakeholder__c(Name = 'Dr. Neeraj Kohli', Stakeholder_Name__c = 'Dr. Neeraj Kohli', Plan__c = entPlan.Id, HCP__c = hcpIdByName.get('Dr. Neeraj Kohli'), Role__c = 'KOL', Specialty__c = 'ENT', Influence__c = 'High', Strength__c = 'Advocate', Last_Graded__c = Date.today()),
+            new Plan_Stakeholder__c(Name = 'Dr. Meenakshi Chawla', Stakeholder_Name__c = 'Dr. Meenakshi Chawla', Plan__c = entPlan.Id, HCP__c = hcpIdByName.get('Dr. Meenakshi Chawla'), Role__c = 'Influencer', Specialty__c = 'ENT', Influence__c = 'Medium', Strength__c = 'Developing', Last_Graded__c = Date.today()),
+            new Plan_Stakeholder__c(Name = 'Dr. Ananya Kapoor', Stakeholder_Name__c = 'Dr. Ananya Kapoor', Plan__c = paedsPlan.Id, HCP__c = hcpIdByName.get('Dr. Ananya Kapoor'), Role__c = 'KOL', Specialty__c = 'Paediatrics', Influence__c = 'High', Strength__c = 'Advocate', Last_Graded__c = Date.today()),
+            new Plan_Stakeholder__c(Name = 'Dr. Rohit Malhotra', Stakeholder_Name__c = 'Dr. Rohit Malhotra', Plan__c = paedsPlan.Id, HCP__c = hcpIdByName.get('Dr. Rohit Malhotra'), Role__c = 'Influencer', Specialty__c = 'Paediatrics', Influence__c = 'Medium', Strength__c = 'Developing', Last_Graded__c = Date.today())
+        };
+        insert stakeholders;
+
+        // ---- Team members (rep + KAM, linked to real Users where available) ----
+        List<Account_Team_Member__c> teamMembers = new List<Account_Team_Member__c>();
+        for (Account_Plan__c p : new List<Account_Plan__c>{ maxPlan, entPlan, paedsPlan }) {
+            teamMembers.add(new Account_Team_Member__c(Name = 'Ramakrishna Rao RV', Member_Name__c = 'Ramakrishna Rao RV', Plan__c = p.Id, Member_User__c = repUserId, Role__c = 'Sales Rep', Access__c = 'Write'));
+            teamMembers.add(new Account_Team_Member__c(Name = 'Janani', Member_Name__c = 'Janani', Plan__c = p.Id, Member_User__c = kamUserId, Role__c = 'KAM', Access__c = 'Write'));
+        }
+        insert teamMembers;
+
+        System.debug('OK: Plan_Goal__c=' + goals.size() + ' Plan_Strategy__c=' + strategies.size() + ' Plan_Stakeholder__c=' + stakeholders.size() + ' Account_Team_Member__c=' + teamMembers.size());
+    }
+
+    /**
+     * My Schedule's Map tab (CalendarPlannerView.swift) only plots a stop when
+     * the visited HCP's PRIMARY affiliated HCO has Geolocation__Latitude__s /
+     * Geolocation__Longitude__s set — if it's blank the pin silently renders at
+     * (0,0), off the coast of Africa, instead of being skipped. Every HCO in
+     * this org except the two created by seedAllergyFocusSpecialists() had a
+     * null geolocation, including Max Super Speciality Hospital (the demo's
+     * own flagship account) — this backfills real coordinates on all of them,
+     * then books a same-day multi-stop route of Planned_Call__c records so the
+     * Map tab has something to draw a route through the moment it's opened,
+     * whatever day this is run.
+     *
+     * Safe to re-run: HCO geolocation backfill only touches accounts that are
+     * still null, and the route is only booked once per calendar day (checked
+     * by HCP + call date).
+     *
+     * Invoke via anonymous Apex (after temporarily removing @isTest — see the
+     * note above the class declaration): SciagenAccountSeeder.seedTodaysMapRoute();
+     */
+    public static void seedTodaysMapRoute() {
+        requireNonProductionAdmin();
+        // ---- Backfill HCO geolocation (real-world coordinates for these hospital brands/areas) ----
+        Map<String, Decimal[]> latLngByHcoName = new Map<String, Decimal[]>{
+            'Max Super Speciality Hospital' => new Decimal[]{ 28.5273, 77.2100 },              // Saket, Delhi
+            'Pro Health Specialists, BLK-Max Super Speciality Hospital' => new Decimal[]{ 28.6448, 77.1855 }, // Pusa Road, Delhi
+            'Nanavati Max Super Speciality Hospital' => new Decimal[]{ 28.7196, 77.1909 },      // North Delhi
+            'Apollo Pharmacy' => new Decimal[]{ 28.5494, 77.2500 },                              // Nehru Place, Delhi NCR
+            'Apex Care Multispecialty Hospital' => new Decimal[]{ 12.9716, 77.5946 }             // Bengaluru
+        };
+        List<Sciagen_Account__c> hcosToFix = [
+            SELECT Id, Name FROM Sciagen_Account__c
+            WHERE Type__c = 'HCO' AND Name IN :latLngByHcoName.keySet()
+            AND (Geolocation__Latitude__s = null OR Geolocation__Longitude__s = null)
+        ];
+        for (Sciagen_Account__c hco : hcosToFix) {
+            Decimal[] latLng = latLngByHcoName.get(hco.Name);
+            hco.Geolocation__Latitude__s = latLng[0];
+            hco.Geolocation__Longitude__s = latLng[1];
+        }
+        if (!hcosToFix.isEmpty()) {
+            update hcosToFix;
+        }
+        System.debug('OK: backfilled geolocation on ' + hcosToFix.size() + ' HCO(s)');
+
+        // ---- Book today's multi-stop route (South Delhi / NCR) ----
+        Date today = Date.today();
+        Datetime todayStart = Datetime.newInstance(today, Time.newInstance(0, 0, 0, 0));
+        Datetime todayEnd = todayStart.addDays(1);
+        Set<String> hcpNamesAlreadyBookedToday = new Set<String>();
+        for (Planned_Call__c pc : [
+            SELECT HCP__r.Name FROM Planned_Call__c
+            WHERE Call_DateTime__c >= :todayStart AND Call_DateTime__c < :todayEnd AND HCP__c != null
+        ]) {
+            hcpNamesAlreadyBookedToday.add(pc.HCP__r.Name);
+        }
+
+        Map<String, Id> hcpIdByName = new Map<String, Id>();
+        Map<String, Id> hcoIdByName = new Map<String, Id>();
+        for (Sciagen_Account__c a : [
+            SELECT Id, Name, Type__c FROM Sciagen_Account__c
+            WHERE Name IN ('Dr. Neeraj Kohli', 'Dr. Ananya Kapoor', 'Dr. Meenakshi Chawla',
+                            'Sunshine ENT & Allergy Clinic', 'Little Steps Children\'s Hospital')
+        ]) {
+            if (a.Type__c == 'HCP') hcpIdByName.put(a.Name, a.Id);
+            else hcoIdByName.put(a.Name, a.Id);
+        }
+
+        // { HCP name, HCO name, hour, minute, duration min, venue }
+        List<Object[]> route = new List<Object[]>{
+            new Object[]{ 'Dr. Neeraj Kohli', 'Sunshine ENT & Allergy Clinic', 10, 0, 30, 'Sunshine ENT & Allergy Clinic, South Delhi' },
+            new Object[]{ 'Dr. Meenakshi Chawla', 'Sunshine ENT & Allergy Clinic', 11, 0, 20, 'Sunshine ENT & Allergy Clinic, South Delhi' },
+            new Object[]{ 'Dr. Ananya Kapoor', 'Little Steps Children\'s Hospital', 13, 30, 30, 'Little Steps Children\'s Hospital, Gurugram' }
+        };
+
+        List<Planned_Call__c> calls = new List<Planned_Call__c>();
+        for (Object[] stop : route) {
+            String hcpName = (String) stop[0];
+            if (hcpNamesAlreadyBookedToday.contains(hcpName)) continue; // already has a call today, don't double-book
+            calls.add(new Planned_Call__c(
+                HCP__c = hcpIdByName.get(hcpName),
+                HCO__c = hcoIdByName.get((String) stop[1]),
+                Call_DateTime__c = Datetime.newInstance(today, Time.newInstance((Integer) stop[2], (Integer) stop[3], 0, 0)),
+                Duration_Min__c = (Integer) stop[4],
+                Venue__c = (String) stop[5],
+                Call_Type__c = 'Detailing',
+                Status__c = 'Planned'
+            ));
+        }
+        if (!calls.isEmpty()) {
+            insert calls;
+        }
+        System.debug('OK: booked ' + calls.size() + ' new Planned_Call__c stop(s) for today (' + today + ')');
     }
 }

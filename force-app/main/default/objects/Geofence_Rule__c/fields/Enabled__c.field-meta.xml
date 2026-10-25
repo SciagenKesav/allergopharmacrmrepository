@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Enabled__c</fullName>
+    <defaultValue>true</defaultValue>
+    <description>Master switch for the people this rule covers. Off means no geofence check, no arrival prompt and nothing blocked.</description>
+    <label>Geofencing On</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

@@ -3,6 +3,7 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import getPresentationLibrary from '@salesforce/apex/SciagenCLMController.getPresentationLibrary';
 import getBrandOptions from '@salesforce/apex/SciagenCLMController.getBrandOptions';
 import getProductOptions from '@salesforce/apex/SciagenCLMController.getProductOptions';
+import toggleFavorite from '@salesforce/apex/SciagenCLMController.toggleFavorite';
 import { pillStyle, CLM_BRAND_COLOR } from 'c/sciagenColors';
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -15,6 +16,7 @@ export default class ClmLibrary extends LightningElement {
     searchTerm = '';
     brand = '';
     productId = '';
+    favoritesOnly = false;
 
     brandOptions = [];
     productOptions = [];
@@ -83,11 +85,37 @@ export default class ClmLibrary extends LightningElement {
     }
 
     get decoratedItems() {
-        return (this.items || []).map((item) => ({
-            ...item,
-            brandStyle: pillStyle(CLM_BRAND_COLOR[item.brand]),
-            slideCountLabel: item.slideCount === 1 ? '1 slide' : `${item.slideCount} slides`,
-        }));
+        return (this.items || [])
+            .filter((item) => !this.favoritesOnly || item.isFavorite)
+            .map((item) => ({
+                ...item,
+                brandStyle: pillStyle(CLM_BRAND_COLOR[item.brand]),
+                slideCountLabel: item.slideCount === 1 ? '1 slide' : `${item.slideCount} slides`,
+                favoriteVariant: item.isFavorite ? 'warning' : 'bare',
+                favoriteButtonClass: item.isFavorite ? 'favorite-button favorite-button-active' : 'favorite-button',
+                favoriteLabel: item.isFavorite ? 'Remove from favorites' : 'Add to favorites',
+            }));
+    }
+
+    handleToggleFavoritesOnly(event) {
+        this.favoritesOnly = event.target.checked;
+    }
+
+    async handleToggleFavorite(event) {
+        event.stopPropagation();
+        const id = event.currentTarget.dataset.id;
+        const item = this.items.find((i) => i.id === id);
+        if (!item) return;
+        const nextValue = !item.isFavorite;
+        this.items = this.items.map((i) => (i.id === id ? { ...i, isFavorite: nextValue } : i));
+        try {
+            await toggleFavorite({ presentationId: id, isFavorite: nextValue });
+        } catch (e) {
+            this.items = this.items.map((i) => (i.id === id ? { ...i, isFavorite: !nextValue } : i));
+            this.dispatchEvent(new ShowToastEvent({
+                title: 'Couldn’t update favorites', message: e.body?.message || 'Try again.', variant: 'error',
+            }));
+        }
     }
 
     get hasResults() {

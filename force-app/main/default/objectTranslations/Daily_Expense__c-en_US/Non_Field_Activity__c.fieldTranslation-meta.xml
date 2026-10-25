@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Non-Field Activity --></label>
+    <name>Non_Field_Activity__c</name>
+    <picklistValues>
+        <masterLabel>Admin Work</masterLabel>
+        <translation><!-- Admin Work --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Meeting</masterLabel>
+        <translation><!-- Meeting --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Training</masterLabel>
+        <translation><!-- Training --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Transit</masterLabel>
+        <translation><!-- Transit --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

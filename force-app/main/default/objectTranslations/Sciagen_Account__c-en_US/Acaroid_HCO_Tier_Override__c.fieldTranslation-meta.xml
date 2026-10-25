@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Tier Override --></label>
+    <name>Acaroid_HCO_Tier_Override__c</name>
+    <picklistValues>
+        <masterLabel>Not Targeted</masterLabel>
+        <translation><!-- Not Targeted --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Tier 1 - AIT Centre of Excellence</masterLabel>
+        <translation><!-- Tier 1 - AIT Centre of Excellence --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Tier 2 - Specialty AIT Site</masterLabel>
+        <translation><!-- Tier 2 - Specialty AIT Site --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Tier 3 - Referral Site</masterLabel>
+        <translation><!-- Tier 3 - Referral Site --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

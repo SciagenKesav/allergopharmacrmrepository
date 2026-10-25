@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Lock_Segmentation_On_Freeze__c</fullName>
+    <defaultValue>true</defaultValue>
+    <description>When a rep freezes the month&apos;s call plan, their doctors&apos; segmentation (class, potential, priority, tier, KOL, tags, per-product class) is locked until the month ends or a Business Admin unlocks the plan.</description>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <label>Lock Segmentation On Freeze</label>
+    <type>Checkbox</type>
+</CustomField>

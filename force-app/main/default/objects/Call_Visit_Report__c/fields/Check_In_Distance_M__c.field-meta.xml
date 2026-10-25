@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Check_In_Distance_M__c</fullName>
+    <description>Distance in metres between the rep&apos;s check-in position and the HCO, computed on the iPad (works offline) from the HCO coordinates it had cached.</description>
+    <externalId>false</externalId>
+    <label>Check-In Distance from HCO (m)</label>
+    <precision>8</precision>
+    <required>false</required>
+    <scale>1</scale>
+    <trackTrending>false</trackTrending>
+    <type>Number</type>
+    <unique>false</unique>
+</CustomField>

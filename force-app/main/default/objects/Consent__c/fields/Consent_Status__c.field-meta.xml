@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Consent_Status__c</fullName>
+    <description>Consent state evaluated as of today, per the Reports Module spec: no signature yet (or never captured) is Pending; a signed consent whose sample opt-in expiry has passed is Expired; otherwise Captured. Not scoped to any report period -- always reflects current state.</description>
+    <externalId>false</externalId>
+    <formula>IF(OR(NOT(Signed__c), ISBLANK(Signed_At__c)), &quot;Pending&quot;,
+IF(AND(NOT(ISBLANK(Sample_Opt_In_Valid_Until__c)), Sample_Opt_In_Valid_Until__c &lt; TODAY()), &quot;Expired&quot;,
+&quot;Captured&quot;))</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    <label>Consent Status</label>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

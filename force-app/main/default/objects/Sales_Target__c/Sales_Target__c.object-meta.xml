@@ -146,7 +146,6 @@
     <description>Monthly sales target, one row per SKU x Territory x Period. Loaded the same way as Sales_Transaction__c, upserting on Target_Key__c. The mobile app only ever reads this object.</description>
     <enableActivities>false</enableActivities>
     <enableBulkApi>true</enableBulkApi>
-    <enableFeeds>false</enableFeeds>
     <enableHistory>false</enableHistory>
     <enableLicensing>false</enableLicensing>
     <enableReports>false</enableReports>

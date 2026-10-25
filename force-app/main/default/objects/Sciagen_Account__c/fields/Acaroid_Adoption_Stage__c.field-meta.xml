@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Acaroid_Adoption_Stage__c</fullName>
+    <description>Auto-advances on initiation counts.</description>
+    <label>Adoption Stage</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Unaware</fullName>
+                <default>true</default>
+                <label>Unaware</label>
+            </value>
+            <value>
+                <fullName>Aware</fullName>
+                <default>false</default>
+                <label>Aware</label>
+            </value>
+            <value>
+                <fullName>Interested</fullName>
+                <default>false</default>
+                <label>Interested</label>
+            </value>
+            <value>
+                <fullName>Trial (1st patient)</fullName>
+                <default>false</default>
+                <label>Trial (1st patient)</label>
+            </value>
+            <value>
+                <fullName>Adopter (&gt;=5 patients)</fullName>
+                <default>false</default>
+                <label>Adopter (&gt;=5 patients)</label>
+            </value>
+            <value>
+                <fullName>Advocate</fullName>
+                <default>false</default>
+                <label>Advocate</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

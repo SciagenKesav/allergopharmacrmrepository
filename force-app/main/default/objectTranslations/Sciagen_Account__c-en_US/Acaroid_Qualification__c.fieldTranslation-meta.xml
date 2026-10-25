@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Acaroid Qualification --></label>
+    <name>Acaroid_Qualification__c</name>
+    <picklistValues>
+        <masterLabel>DCH</masterLabel>
+        <translation><!-- DCH --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>DLO</masterLabel>
+        <translation><!-- DLO --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>DM</masterLabel>
+        <translation><!-- DM --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>DNB</masterLabel>
+        <translation><!-- DNB --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Fellowship - Allergy</masterLabel>
+        <translation><!-- Fellowship - Allergy --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>MBBS</masterLabel>
+        <translation><!-- MBBS --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>MD</masterLabel>
+        <translation><!-- MD --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>MS (ENT)</masterLabel>
+        <translation><!-- MS (ENT) --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

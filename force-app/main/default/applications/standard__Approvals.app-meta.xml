@@ -8,11 +8,11 @@
     <label>Approvals</label>
     <navType>Console</navType>
     <tabs>standard-ApprovalsHome</tabs>
-    <tabs>Plan_Goal__c</tabs>
+    <tabs>Monthly_Call_Plan__c</tabs>
     <uiType>Lightning</uiType>
     <workspaceConfig>
         <mappings>
-            <tab>Plan_Goal__c</tab>
+            <tab>Monthly_Call_Plan__c</tab>
         </mappings>
         <mappings>
             <tab>standard-ApprovalsHome</tab>

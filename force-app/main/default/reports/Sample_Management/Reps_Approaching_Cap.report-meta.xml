@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <columns>
+        <field>Sample_Allocation__c$Allocated_To_User__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Allocation__c$Product__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Allocation__c$Allocation_Quantity__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Allocation__c$Used_Quantity__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Allocation__c$Remaining_Quantity__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Allocation__c$Utilization_Pct__c</field>
+    </columns>
+    <description>Active allocations that are 80 percent or more used.</description>
+    <format>Tabular</format>
+    <name>Reps Approaching Cap</name>
+    <params>
+        <name>co</name>
+        <value>1</value>
+    </params>
+    <reportType>Sample_Allocation_Report__c</reportType>
+    <scope>organization</scope>
+    <showDetails>true</showDetails>
+    <showGrandTotal>true</showGrandTotal>
+    <showSubTotals>true</showSubTotals>
+    <sortColumn>Sample_Allocation__c$Utilization_Pct__c</sortColumn>
+    <sortOrder>Desc</sortOrder>
+    <timeFrameFilter>
+        <dateColumn>Sample_Allocation__c$Period_End__c</dateColumn>
+        <interval>INTERVAL_CURRENT</interval>
+    </timeFrameFilter>
+</Report>

@@ -362,3 +362,6 @@
     border-top: 1px solid var(--brand-hairline);
     border-radius: 0 0 0.9rem 0.9rem;
 }
+.qty-cell-custom {
+    width: 11rem;
+}

@@ -42,6 +42,7 @@ global with sharing class SciagenBusinessPicklistService {
         global List<String> segmentationPotentials;
         global List<String> segmentationPriorities;
         global List<String> segmentationTiers;
+        global List<String> segmentationAitPreferences;
         global List<String> officeWindowPreferences;
         global List<String> keyMessageReactions;
         global List<String> cvrActivityTypes;
@@ -82,6 +83,7 @@ global with sharing class SciagenBusinessPicklistService {
         p.segmentationPotentials = activeValues('Segmentation__c', 'Potential__c');
         p.segmentationPriorities = activeValues('Segmentation__c', 'Priority__c');
         p.segmentationTiers = activeValues('Segmentation__c', 'Tier__c');
+        p.segmentationAitPreferences = activeValues('Segmentation__c', 'AIT_Preference__c');
         p.officeWindowPreferences = activeValues('Office_Window__c', 'Preference__c');
         p.keyMessageReactions = activeValues('Key_Message__c', 'Reaction__c');
         p.cvrActivityTypes = activeValues('Call_Visit_Report__c', 'Activity_Type__c');

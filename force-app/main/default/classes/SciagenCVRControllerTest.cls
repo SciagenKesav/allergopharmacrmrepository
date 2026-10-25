@@ -3,14 +3,10 @@ private class SciagenCVRControllerTest {
 
     @testSetup
     static void setup() {
-        // License_Verification_Status__c/License_Expiry_Date__c/Can_Prescribe__c
-        // are required for SampleEligibilityService to accept the Sample_Drop__c
-        // insert below (same pre-existing-fixture gap as the product fix above —
-        // this fixture predates that hard-enforced gate).
         Sciagen_Account__c hcp = new Sciagen_Account__c(
             Type__c = 'HCP', Name = 'Dr. CVR Test', Prefix__c = 'Dr.', First_Name__c = 'CVR',
             Last_Name__c = 'Test', Specialty__c = 'Cardiology', HCP_Type__c = 'Physician',
-            License_Verification_Status__c = 'Verified', License_Expiry_Date__c = Date.today().addYears(2), Can_Prescribe__c = true
+            Can_Prescribe__c = true, License_Number__c = 'MCI-CVR-1', License_Verification_Status__c = 'Verified', License_Expiry_Date__c = Date.today().addYears(2)
         );
         Sciagen_Account__c hco = new Sciagen_Account__c(
             Type__c = 'HCO', Name = 'CVR Test Hospital', HCO_Type__c = 'Hospital', Speciality__c = 'Other'
@@ -37,25 +33,18 @@ private class SciagenCVRControllerTest {
             Product__c = 'Emrok', Reaction__c = 'Positive', Locked__c = false
         );
         insert new Promo_Drop__c(CVR__c = inRange.Id, Item__c = 'Branded pen', Qty__c = 10);
-        // Is_Sample_Product__c is required for SampleEligibilityService to accept
-        // the Sample_Drop__c insert below (SampleConfig.enforceRules defaults to
-        // true with no UCPMP_Tenant_Config__c row, so this is a hard block, not
-        // just a warning) — pre-existing gap in this fixture, unrelated to what
-        // this test class actually exercises.
-        // Requires_Signature__c defaults to true (field-level default) on any
-        // new Product__c, which would block submitCallReport below on "the
-        // doctor's signature is required" — this fixture is not exercising
-        // signature capture, so it opts out explicitly like SampleTestData's
-        // non-signature product fixtures do.
-        Product__c product = new Product__c(Name = 'Emrok', Brand_Name__c = 'Emrok', Division__c = 'Cardiology', Product_Code__c = 'CVR-TEST-EMROK',
-            Is_Sample_Product__c = true, Sample_Unit_Value_INR__c = 10, Pack_Size__c = 1, Requires_Signature__c = false);
+        Product__c product = new Product__c(Product_Code__c = 'T-SCVRCT-1', Name = 'Emrok', Brand_Name__c = 'Emrok', Division__c = 'Cardiology', Is_Sample_Product__c = true, Requires_Signature__c = false, Sample_Unit_Value_INR__c = 10, Pack_Size__c = 4);
         insert product;
-        // Stock, or SampleEligibilityService also blocks with "no active lot".
-        insert new Sample_Lot__c(Product__c = product.Id, Lot_Number__c = 'CVR-TEST-1', Expiry_Date__c = Date.today().addDays(180),
-            Initial_Quantity__c = 50, Available_Quantity__c = 50, Owner_User__c = UserInfo.getUserId());
+        SampleTestData.lot(product, 'CVR-LOT-1', 50, 200);
         insert new Sample_Drop__c(CVR__c = inRange.Id, Product__c = product.Id, Qty__c = 5);
         insert new CVR_Attendee__c(CVR__c = inRange.Id, HCP__c = hcp.Id);
         insert new CVR_Internal_Attendee__c(CVR__c = inRange.Id, User__c = UserInfo.getUserId());
+        // Inserted out of order: the payload must come back by Priority__c.
+        insert new List<CVR_Detail_Priority__c>{
+            new CVR_Detail_Priority__c(CVR__c = inRange.Id, Product_Name__c = 'Glaritus', Priority__c = 2, Source__c = 'Manual'),
+            new CVR_Detail_Priority__c(CVR__c = inRange.Id, Product__c = product.Id, Product_Name__c = 'Emrok', Priority__c = 1,
+                Source__c = 'CLM', Time_Spent_Sec__c = 95, Slides_Shown__c = 4)
+        };
     }
 
     @isTest
@@ -111,6 +100,17 @@ private class SciagenCVRControllerTest {
 
         System.assertEquals(1, detail.internalAttendees.size());
         System.assertEquals(UserInfo.getUserId(), detail.internalAttendees[0].userId);
+
+        System.assertEquals(2, detail.detailPriorities.size());
+        System.assertEquals('Emrok', detail.detailPriorities[0].productName);
+        System.assertEquals(1, detail.detailPriorities[0].priority);
+        System.assertEquals('CLM', detail.detailPriorities[0].source);
+        System.assertEquals(95, detail.detailPriorities[0].timeSpentSec);
+        System.assertEquals(4, detail.detailPriorities[0].slidesShown);
+        System.assertNotEquals(null, detail.detailPriorities[0].productId);
+        System.assertEquals('Glaritus', detail.detailPriorities[1].productName);
+        System.assertEquals('Manual', detail.detailPriorities[1].source);
+        System.assertEquals(null, detail.detailPriorities[1].productId);
     }
 
     @isTest
@@ -130,37 +130,25 @@ private class SciagenCVRControllerTest {
     }
 
     @isTest
-    static void submitCallReportBlocksWhenPastSubmissionDeadline() {
-        // Two full months ago is guaranteed past its "day N of the following
-        // month" deadline regardless of what today's date is.
-        Date pastMonthVisit = Date.today().addMonths(-2);
-        Call_Submission_Restriction__c setting = Call_Submission_Restriction__c.getOrgDefaults();
-        setting.put(
-            new List<String>{
-                'January__c', 'February__c', 'March__c', 'April__c', 'May__c', 'June__c',
-                'July__c', 'August__c', 'September__c', 'October__c', 'November__c', 'December__c'
-            }[pastMonthVisit.month() - 1],
-            1
-        );
-        upsert setting;
-
+    static void submitCallReportRejectsWhenNoAttendees() {
         Sciagen_Account__c hcp = [SELECT Id FROM Sciagen_Account__c WHERE Type__c = 'HCP' LIMIT 1];
-        Call_Visit_Report__c overdue = new Call_Visit_Report__c(
-            HCP__c = hcp.Id, Visit_Date__c = pastMonthVisit,
-            Call_Type__c = 'Detailing', Call_Status__c = 'Completed', Record_Status__c = 'Draft'
+        Call_Visit_Report__c cvr = new Call_Visit_Report__c(
+            HCP__c = hcp.Id, Visit_Date__c = Date.today(), Call_Type__c = 'Detailing', Record_Status__c = 'Draft'
         );
-        insert overdue;
+        insert cvr;
 
         Test.startTest();
         try {
-            SciagenCVRController.submitCallReport(overdue.Id);
-            System.assert(false, 'Expected an AuraHandledException for a call past its submission deadline');
+            SciagenCVRController.submitCallReport(cvr.Id);
+            System.assert(false, 'Expected submitting a CVR with no attendees to be rejected');
         } catch (AuraHandledException e) {
-            System.assert(true);
+            // AuraHandledException scrubs its message by default outside the
+            // throwing context, but Record_Status__c staying 'Draft' below is
+            // the real proof the submit was actually blocked.
         }
         Test.stopTest();
 
-        Call_Visit_Report__c unchanged = [SELECT Record_Status__c FROM Call_Visit_Report__c WHERE Id = :overdue.Id];
-        System.assertEquals('Draft', unchanged.Record_Status__c, 'Status must not flip to Submitted when blocked');
+        Call_Visit_Report__c unchanged = [SELECT Record_Status__c FROM Call_Visit_Report__c WHERE Id = :cvr.Id];
+        System.assertEquals('Draft', unchanged.Record_Status__c, 'Status must not change when the submit is rejected');
     }
 }

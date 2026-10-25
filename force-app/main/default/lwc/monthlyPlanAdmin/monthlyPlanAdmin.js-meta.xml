@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <isExposed>true</isExposed>
+    <masterLabel>Monthly Plans (Business Admin)</masterLabel>
+    <description>Business Admin view of every rep's monthly call plan: frozen or draft, pending unlock requests first, and Unlock with a reason.</description>
+    <targets>
+        <target>lightning__AppPage</target>
+        <target>lightning__Tab</target>
+    </targets>
+</LightningComponentBundle>

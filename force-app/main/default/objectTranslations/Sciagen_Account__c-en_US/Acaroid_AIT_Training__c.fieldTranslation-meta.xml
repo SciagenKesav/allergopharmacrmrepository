@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- AIT Training / Certification --></label>
+    <name>Acaroid_AIT_Training__c</name>
+    <picklistValues>
+        <masterLabel>EAACI / WAO course</masterLabel>
+        <translation><!-- EAACI / WAO course --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Fellowship - Allergy</masterLabel>
+        <translation><!-- Fellowship - Allergy --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>ICAAI course</masterLabel>
+        <translation><!-- ICAAI course --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>None</masterLabel>
+        <translation><!-- None --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

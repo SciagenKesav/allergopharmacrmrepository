@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Approval Status --></label>
+    <name>Approval_Status__c</name>
+    <picklistValues>
+        <masterLabel>Approved Promotional</masterLabel>
+        <translation><!-- Approved Promotional --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Draft</masterLabel>
+        <translation><!-- Draft --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Expired</masterLabel>
+        <translation><!-- Expired --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Legal &amp; Compliance Approval</masterLabel>
+        <translation><!-- Legal &amp; Compliance Approval --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Medical Approval</masterLabel>
+        <translation><!-- Medical Approval --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Regulatory Approval</masterLabel>
+        <translation><!-- Regulatory Approval --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

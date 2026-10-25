@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Brand_Product__c</fullName>
+    <description>The Id of a Product__c record (Level = Brand) whose Brand_Name__c the UI shows everywhere it used to say &quot;Acaroid&quot; literally. Custom Settings can&apos;t hold a true Lookup, so this is the record Id as text -- copy it from the Product record&apos;s URL. Left blank, the UI falls back to &quot;Acaroid&quot;.</description>
+    <externalId>false</externalId>
+    <label>Brand Product Id (Product Master)</label>
+    <length>18</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

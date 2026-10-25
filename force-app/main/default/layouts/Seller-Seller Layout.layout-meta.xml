@@ -7,7 +7,7 @@
         <label>Information</label>
         <layoutColumns>
             <layoutItems>
-                <behavior>Required</behavior>
+                <behavior>Edit</behavior>
                 <field>PartyId</field>
             </layoutItems>
             <layoutItems>

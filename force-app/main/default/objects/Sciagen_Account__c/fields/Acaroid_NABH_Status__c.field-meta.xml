@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Acaroid_NABH_Status__c</fullName>
+    <description>Proxy for emergency / pharmacy SOP maturity.</description>
+    <label>NABH Accreditation</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Full</fullName>
+                <default>false</default>
+                <label>Full</label>
+            </value>
+            <value>
+                <fullName>Entry-level</fullName>
+                <default>false</default>
+                <label>Entry-level</label>
+            </value>
+            <value>
+                <fullName>None</fullName>
+                <default>false</default>
+                <label>None</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

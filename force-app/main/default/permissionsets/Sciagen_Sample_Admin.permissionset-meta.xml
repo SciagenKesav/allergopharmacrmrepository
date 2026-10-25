@@ -76,10 +76,6 @@
         <enabled>true</enabled>
         <name>Manage_Sample_Inventory</name>
     </customPermissions>
-    <customPermissions>
-        <enabled>true</enabled>
-        <name>Sample_Unlock_Calls</name>
-    </customPermissions>
     <description>Lets a sample administrator manage sample products, lots, warehouses, transactions, limits, allocations and UCPMP reports. Assign only to sample administrators.</description>
     <fieldPermissions>
         <editable>false</editable>
@@ -564,14 +560,6 @@
     <fieldPermissions>
         <editable>false</editable>
         <field>Sample_Lot__c.Days_To_Expiry__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
-    <fieldPermissions>
-        <!-- D11 (Phase 0 hotfix): deprecated; stock enters only through Receipt or
-             Transfer-In (SampleTransactionService), never a direct edit; kept readable
-             for historical/reporting purposes. -->
-        <editable>false</editable>
-        <field>Sample_Lot__c.Initial_Quantity__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Consent Purposes --></label>
+    <name>Consent_Purpose__c</name>
+    <picklistValues>
+        <masterLabel>Email</masterLabel>
+        <translation><!-- Email --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Mobile</masterLabel>
+        <translation><!-- Mobile --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Sample Opt-In</masterLabel>
+        <translation><!-- Sample Opt-In --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>WhatsApp</masterLabel>
+        <translation><!-- WhatsApp --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

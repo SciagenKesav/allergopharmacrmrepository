@@ -70,4 +70,12 @@
         </columns>
         <masterLabel>Call Visit Reports</masterLabel>
     </sections>
+    <sections>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>AIT_Preference__c</field>
+            <table>Sciagen_Account__c</table>
+        </columns>
+        <masterLabel>Sciagen Accounts</masterLabel>
+    </sections>
 </ReportType>

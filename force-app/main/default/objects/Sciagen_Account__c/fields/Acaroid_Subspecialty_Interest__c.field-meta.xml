@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Acaroid_Subspecialty_Interest__c</fullName>
+    <label>Sub-specialty Interest</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>MultiselectPicklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Allergy</fullName>
+                <default>false</default>
+                <label>Allergy</label>
+            </value>
+            <value>
+                <fullName>Asthma</fullName>
+                <default>false</default>
+                <label>Asthma</label>
+            </value>
+            <value>
+                <fullName>Paediatric respiratory</fullName>
+                <default>false</default>
+                <label>Paediatric respiratory</label>
+            </value>
+            <value>
+                <fullName>Rhinology</fullName>
+                <default>false</default>
+                <label>Rhinology</label>
+            </value>
+            <value>
+                <fullName>Atopic dermatitis</fullName>
+                <default>false</default>
+                <label>Atopic dermatitis</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+    <visibleLines>5</visibleLines>
+</CustomField>

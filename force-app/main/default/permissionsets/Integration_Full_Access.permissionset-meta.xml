@@ -607,11 +607,6 @@
     <description>Grants Integration users full CRUD/view-all/modify-all access to every Sciagen custom object and field, plus execute access to every Sciagen Apex class. Assign to Integration users in the Sandbox (devorg1) org.</description>
     <fieldPermissions>
         <editable>true</editable>
-        <field>Planned_Call__c.Call_Category__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
-    <fieldPermissions>
-        <editable>true</editable>
         <field>Account_Plan__c.Active__c</field>
         <readable>true</readable>
     </fieldPermissions>
@@ -2003,6 +1998,11 @@
     <fieldPermissions>
         <editable>true</editable>
         <field>Plan_Strategy__c.Share_With__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Planned_Call__c.Call_Category__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>

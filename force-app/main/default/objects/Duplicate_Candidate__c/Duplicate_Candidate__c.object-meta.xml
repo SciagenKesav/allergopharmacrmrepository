@@ -146,7 +146,6 @@
     <description>A pair of HCP or HCO records the duplicate scan believes describe the same real-world person or organisation, with the score and the reasons. A data steward reviews it and merges or dismisses it.</description>
     <enableActivities>false</enableActivities>
     <enableBulkApi>true</enableBulkApi>
-    <enableFeeds>false</enableFeeds>
     <enableHistory>false</enableHistory>
     <enableLicensing>false</enableLicensing>
     <enableReports>false</enableReports>

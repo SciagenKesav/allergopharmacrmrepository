@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Share With --></label>
+    <name>Share_With__c</name>
+    <picklistValues>
+        <masterLabel>MSL</masterLabel>
+        <translation><!-- MSL --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>NOAD</masterLabel>
+        <translation><!-- NOAD --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>ODM</masterLabel>
+        <translation><!-- ODM --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>PSS</masterLabel>
+        <translation><!-- PSS --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

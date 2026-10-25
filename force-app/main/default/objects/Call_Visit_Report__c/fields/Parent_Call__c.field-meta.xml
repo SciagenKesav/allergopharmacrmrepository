@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Parent_Call__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>On an individual call created for a group-call attendee: the group call the rep recorded (primary HCP). Blank on the group call itself and on ordinary calls. Maintained by GroupCallService.</description>
+    <inlineHelpText>The group call this individual attendee call belongs to. Edit the group call; this call follows it.</inlineHelpText>
+    <label>Parent Call</label>
+    <referenceTo>Call_Visit_Report__c</referenceTo>
+    <relationshipLabel>Group Attendee Calls</relationshipLabel>
+    <relationshipName>Group_Attendee_Calls</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

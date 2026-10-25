@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Allow_Past_Month_Freeze__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>A past month may be frozen by the rep, or unlocked by a Business Admin. Off keeps past months as they are.</description>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <label>Allow Past Month Freeze</label>
+    <type>Checkbox</type>
+</CustomField>

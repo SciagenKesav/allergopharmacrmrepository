@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Acaroid_Society_Memberships__c</fullName>
+    <label>Society Memberships</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>MultiselectPicklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>ICAAI</fullName>
+                <default>false</default>
+                <label>ICAAI</label>
+            </value>
+            <value>
+                <fullName>IAP Respiratory Chapter</fullName>
+                <default>false</default>
+                <label>IAP Respiratory Chapter</label>
+            </value>
+            <value>
+                <fullName>AOI</fullName>
+                <default>false</default>
+                <label>AOI</label>
+            </value>
+            <value>
+                <fullName>Indian Chest Society</fullName>
+                <default>false</default>
+                <label>Indian Chest Society</label>
+            </value>
+            <value>
+                <fullName>NCCP</fullName>
+                <default>false</default>
+                <label>NCCP</label>
+            </value>
+            <value>
+                <fullName>IADVL</fullName>
+                <default>false</default>
+                <label>IADVL</label>
+            </value>
+            <value>
+                <fullName>None</fullName>
+                <default>false</default>
+                <label>None</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+    <visibleLines>7</visibleLines>
+</CustomField>

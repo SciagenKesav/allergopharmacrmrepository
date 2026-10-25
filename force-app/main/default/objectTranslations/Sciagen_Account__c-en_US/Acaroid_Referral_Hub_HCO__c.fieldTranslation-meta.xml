@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Referral Hub HCO --></label>
+    <name>Acaroid_Referral_Hub_HCO__c</name>
+    <relationshipLabel><!-- Acaroid Referral HCPs --></relationshipLabel>
+</CustomFieldTranslation>

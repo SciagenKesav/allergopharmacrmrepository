@@ -49,6 +49,15 @@
     margin-top: 0.15rem;
 }
 
+.approval-comment {
+    font-size: 0.8rem;
+    color: #16A34A;
+    background: #dcfce7;
+    border-radius: 0.35rem;
+    padding: 0.4rem 0.6rem;
+    margin-top: 0.5rem;
+}
+
 .rejection-reason {
     font-size: 0.8rem;
     color: var(--brand-red);
@@ -156,67 +165,4 @@
     padding: 0.5rem;
     margin: 0.5rem 0;
     font-size: 0.8rem;
-}
-
-.comment-section {
-    border-top: 1px solid var(--brand-hairline);
-    padding-top: 1rem;
-}
-
-.comment-thread {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-    max-height: 18rem;
-    overflow-y: auto;
-    margin-bottom: 0.75rem;
-}
-
-.comment-bubble {
-    border-radius: 0.6rem;
-    padding: 0.5rem 0.7rem;
-    max-width: 85%;
-}
-
-.comment-requester {
-    align-self: flex-start;
-    background: var(--brand-bg);
-}
-
-.comment-admin {
-    align-self: flex-end;
-    background: #eef2ff;
-}
-
-.comment-meta {
-    font-size: 0.7rem;
-    color: var(--brand-subtle);
-    margin-bottom: 0.15rem;
-}
-
-.comment-role {
-    font-weight: 700;
-    color: var(--brand-ink);
-}
-
-.comment-body {
-    font-size: 0.85rem;
-    color: var(--brand-ink);
-    white-space: pre-wrap;
-}
-
-.no-comments {
-    font-size: 0.8rem;
-    color: var(--brand-subtle);
-    margin: 0 0 0.75rem;
-}
-
-.reply-composer {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.reply-send {
-    align-self: flex-end;
 }

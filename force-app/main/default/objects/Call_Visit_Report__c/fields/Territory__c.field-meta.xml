@@ -6,7 +6,6 @@
     <referenceTo>Territory__c</referenceTo>
     <relationshipName>CallVisitReports</relationshipName>
     <required>false</required>
-    <trackHistory>true</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Lookup</type>
 </CustomField>

@@ -1,0 +1,74 @@
+:host {
+    --brand-primary: #4F46E5;
+    --brand-ink: #0F172A;
+    --brand-subtle: #64748B;
+    --brand-hairline: #E2E8F0;
+    --brand-bg: #F3F4FB;
+}
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 3rem 1rem;
+    z-index: 9000;
+}
+
+.modal-panel {
+    background: #ffffff;
+    border-radius: 0.9rem;
+    width: 100%;
+    max-width: 30rem;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.25);
+}
+
+.modal-header {
+    position: relative;
+    padding: 1.25rem 1.5rem 0.75rem;
+    border-bottom: 1px solid var(--brand-hairline);
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--brand-ink);
+}
+
+.modal-subtitle {
+    margin: 0.2rem 0 0.9rem;
+    font-size: 0.8rem;
+    color: var(--brand-subtle);
+}
+
+.close-button {
+    position: absolute;
+    top: 1rem;
+    right: 1.25rem;
+    border: none;
+    background: transparent;
+    font-size: 1.4rem;
+    line-height: 1;
+    color: var(--brand-subtle);
+    cursor: pointer;
+}
+
+.modal-body {
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--brand-hairline);
+}

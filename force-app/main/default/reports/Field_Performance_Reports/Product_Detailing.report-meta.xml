@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <columns>
+        <field>Call_Visit_Report__c$HCP__c</field>
+    </columns>
+    <columns>
+        <field>Call_Visit_Report__c$Visit_Date__c</field>
+    </columns>
+    <columns>
+        <field>Call_Visit_Report__c.Detail_Priorities__r$Priority__c</field>
+    </columns>
+    <columns>
+        <aggregateTypes>Sum</aggregateTypes>
+        <field>Call_Visit_Report__c.Detail_Priorities__r$Time_Spent_Sec__c</field>
+    </columns>
+    <columns>
+        <aggregateTypes>Sum</aggregateTypes>
+        <field>Call_Visit_Report__c.Detail_Priorities__r$Slides_Shown__c</field>
+    </columns>
+    <description>Products prioritized/detailed during calls, grouped by product -- the Product Detailing tile.</description>
+    <format>Summary</format>
+    <groupingsDown>
+        <dateGranularity>Day</dateGranularity>
+        <field>Call_Visit_Report__c.Detail_Priorities__r$Product__c</field>
+        <sortOrder>Asc</sortOrder>
+    </groupingsDown>
+    <name>Product Detailing</name>
+    <params>
+        <name>co</name>
+        <value>1</value>
+    </params>
+    <reportType>Call_Visit_Reports_with_Detail_Priorities__c</reportType>
+    <scope>organization</scope>
+    <showDetails>true</showDetails>
+    <showGrandTotal>true</showGrandTotal>
+    <showSubTotals>true</showSubTotals>
+    <timeFrameFilter>
+        <dateColumn>Call_Visit_Report__c$Visit_Date__c</dateColumn>
+        <interval>INTERVAL_CURRENT</interval>
+    </timeFrameFilter>
+</Report>

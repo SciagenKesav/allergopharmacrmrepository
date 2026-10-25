@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Frozen_Call_DateTime__c</fullName>
+    <description>When the call was planned for at the moment the month was frozen. Never changes afterwards.</description>
+    <label>Frozen Date/Time</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>DateTime</type>
+</CustomField>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Procurement Model --></label>
+    <name>Acaroid_Procurement_Model__c</name>
+    <picklistValues>
+        <masterLabel>Doctor dispensing</masterLabel>
+        <translation><!-- Doctor dispensing --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Hospital pharmacy purchase</masterLabel>
+        <translation><!-- Hospital pharmacy purchase --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Patient-named supply</masterLabel>
+        <translation><!-- Patient-named supply --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

@@ -8,11 +8,11 @@
         <layoutColumns>
             <layoutItems>
                 <behavior>Required</behavior>
-                <field>Territory__c</field>
+                <field>Account__c</field>
             </layoutItems>
             <layoutItems>
                 <behavior>Required</behavior>
-                <field>Account__c</field>
+                <field>Territory__c</field>
             </layoutItems>
             <layoutItems>
                 <behavior>Required</behavior>
@@ -56,8 +56,8 @@
         <style>CustomLinks</style>
     </layoutSections>
     <miniLayout>
-        <fields>Territory__c</fields>
         <fields>Account__c</fields>
+        <fields>Territory__c</fields>
     </miniLayout>
     <showEmailCheckbox>false</showEmailCheckbox>
     <showHighlightsPanel>false</showHighlightsPanel>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Enforce_Check_In__c</fullName>
+    <defaultValue>true</defaultValue>
+    <description>On: a rep can&apos;t check in or submit a call outside the radius. Off: the distance is recorded and nothing is stopped.</description>
+    <label>Block Check-In Outside Radius</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

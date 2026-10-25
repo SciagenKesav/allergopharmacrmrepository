@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Customer_Profile__c</fullName>
+    <label>Customer Profile</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Allergist</fullName>
+                <default>false</default>
+                <label>Allergist</label>
+            </value>
+            <value>
+                <fullName>ENT Specialist</fullName>
+                <default>false</default>
+                <label>ENT Specialist</label>
+            </value>
+            <value>
+                <fullName>Pulmonologist</fullName>
+                <default>false</default>
+                <label>Pulmonologist</label>
+            </value>
+            <value>
+                <fullName>Paediatrician</fullName>
+                <default>false</default>
+                <label>Paediatrician</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

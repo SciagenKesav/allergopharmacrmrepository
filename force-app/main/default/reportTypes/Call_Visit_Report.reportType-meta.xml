@@ -58,7 +58,7 @@
         </columns>
         <columns>
             <checkedByDefault>false</checkedByDefault>
-            <field>Duration_Minutes__c</field>
+            <field>Duration_Min__c</field>
             <table>Call_Visit_Report__c</table>
         </columns>
         <columns>

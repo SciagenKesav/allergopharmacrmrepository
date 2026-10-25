@@ -5,7 +5,6 @@
     <label>Lot Number</label>
     <length>50</length>
     <required>true</required>
-    <trackHistory>true</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Text</type>
     <unique>false</unique>

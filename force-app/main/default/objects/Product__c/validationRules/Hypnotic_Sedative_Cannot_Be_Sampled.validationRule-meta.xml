@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Hypnotic_Sedative_Cannot_Be_Sampled</fullName>
+    <active>true</active>
+    <errorConditionFormula>AND(Is_Restricted__c, ISPICKVAL(Restriction_Reason__c, &apos;Hypnotic_Sedative_Tranquillizer&apos;), OR(ISBLANK(Max_Packs_Per_HCP_Per_Year__c), Max_Packs_Per_HCP_Per_Year__c &lt;&gt; 0))</errorConditionFormula>
+    <errorDisplayField>Max_Packs_Per_HCP_Per_Year__c</errorDisplayField>
+    <errorMessage>Hypnotics, sedatives and tranquillizers can&apos;t be sampled (UCPMP 5.1(ii)(f)). Set Max Packs Per HCP Per Year to 0.</errorMessage>
+</ValidationRule>

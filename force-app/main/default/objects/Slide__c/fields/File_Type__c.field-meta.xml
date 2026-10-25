@@ -44,26 +44,6 @@
                 <default>false</default>
                 <label>Audio</label>
             </value>
-            <value>
-                <fullName>PNG</fullName>
-                <default>false</default>
-                <label>PNG</label>
-            </value>
-            <value>
-                <fullName>JPEG</fullName>
-                <default>false</default>
-                <label>JPEG</label>
-            </value>
-            <value>
-                <fullName>JPG</fullName>
-                <default>false</default>
-                <label>JPG</label>
-            </value>
-            <value>
-                <fullName>TIFF</fullName>
-                <default>false</default>
-                <label>TIFF</label>
-            </value>
         </valueSetDefinition>
     </valueSet>
 </CustomField>

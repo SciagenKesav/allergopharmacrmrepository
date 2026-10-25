@@ -16,17 +16,18 @@
     <tabs>standard-Campaign</tabs>
     <tabs>standard-Task</tabs>
     <tabs>standard-Event</tabs>
+    <tabs>standard-ContentNote</tabs>
     <tabs>standard-report</tabs>
     <tabs>standard-Dashboard</tabs>
-    <tabs>standard-Feed</tabs>
-    <tabs>standard-CollaborationGroup</tabs>
     <tabs>standard-File</tabs>
-    <tabs>Plan_Goal__c</tabs>
+    <tabs>standard-EmailTemplate</tabs>
+    <tabs>standard-UserDefinedLabel</tabs>
+    <tabs>Monthly_Call_Plan__c</tabs>
     <uiType>Lightning</uiType>
     <utilityBar>LightningSalesConsole_UtilityBar</utilityBar>
     <workspaceConfig>
         <mappings>
-            <tab>Plan_Goal__c</tab>
+            <tab>Monthly_Call_Plan__c</tab>
         </mappings>
         <mappings>
             <tab>standard-Account</tab>
@@ -35,19 +36,19 @@
             <tab>standard-Campaign</tab>
         </mappings>
         <mappings>
-            <tab>standard-CollaborationGroup</tab>
+            <tab>standard-Contact</tab>
         </mappings>
         <mappings>
-            <tab>standard-Contact</tab>
+            <tab>standard-ContentNote</tab>
         </mappings>
         <mappings>
             <tab>standard-Dashboard</tab>
         </mappings>
         <mappings>
-            <tab>standard-Event</tab>
+            <tab>standard-EmailTemplate</tab>
         </mappings>
         <mappings>
-            <tab>standard-Feed</tab>
+            <tab>standard-Event</tab>
         </mappings>
         <mappings>
             <tab>standard-File</tab>
@@ -60,6 +61,9 @@
         </mappings>
         <mappings>
             <tab>standard-Task</tab>
+        </mappings>
+        <mappings>
+            <tab>standard-UserDefinedLabel</tab>
         </mappings>
         <mappings>
             <tab>standard-home</tab>

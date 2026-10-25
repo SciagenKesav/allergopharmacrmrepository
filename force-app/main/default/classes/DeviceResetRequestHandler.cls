@@ -16,6 +16,13 @@
 public with sharing class DeviceResetRequestHandler {
 
     private static final Integer OTP_VALID_HOURS = 24;
+    public static final Integer MAX_ATTEMPTS = 5;
+
+    /** Set only by DeviceResetVerifyApi around the update that records a verification attempt. */
+    public static Boolean verifying = false;
+
+    /** Fields only the approval process, the verify endpoint or an admin may change. */
+    private static final List<String> SERVER_FIELDS = new List<String>{ 'OTP__c', 'OTP_Expires__c', 'Verified__c', 'Attempts__c', 'Manager__c' };
 
     /** Populates Manager__c from the owner's User.ManagerId so the Approval
      * Process can route dynamically without a hardcoded approver. Called in
@@ -26,7 +33,44 @@ public with sharing class DeviceResetRequestHandler {
         Map<Id, User> users = new Map<Id, User>([SELECT Id, ManagerId FROM User WHERE Id IN :ownerIds]);
         for (Device_Reset_Request__c req : newRequests) {
             User u = users.get(req.OwnerId);
-            if (u != null && u.ManagerId != null) req.Manager__c = u.ManagerId;
+            // Always from the owner's User record, never from the client: the approver must not be self-chosen.
+            req.Manager__c = u == null ? null : u.ManagerId;
+            // A new request always starts clean.
+            req.Status__c = 'Pending Approval';
+            req.OTP__c = null;
+            req.OTP_Expires__c = null;
+            req.Verified__c = false;
+            req.Attempts__c = 0;
+        }
+    }
+
+    /**
+     * Before update, ahead of generateOTPOnApproval: a rep can't approve their own request (so no
+     * code is minted for them), can't mark it verified/used, and can't touch the code, its expiry,
+     * the attempt counter or the approver (QA-34 / H10). Allowed: the approver (Manager__c) -- the
+     * approval process's Set Status Approved / Rejected field updates run as that user -- the
+     * verify endpoint, and admins with Modify All Data.
+     */
+    public static void guardUpdates(List<Device_Reset_Request__c> newList, Map<Id, Device_Reset_Request__c> oldMap) {
+        if (verifying) return;
+        Boolean admin = null;
+        Id me = UserInfo.getUserId();
+        for (Device_Reset_Request__c req : newList) {
+            Device_Reset_Request__c old = oldMap.get(req.Id);
+            Boolean statusChanged = req.Status__c != old.Status__c;
+            Boolean serverFieldChanged = false;
+            for (String f : SERVER_FIELDS) {
+                if (req.get(f) != old.get(f)) { serverFieldChanged = true; break; }
+            }
+            if (!statusChanged && !serverFieldChanged) continue;
+            if (admin == null) admin = SciagenAccess.hasModifyAllData();
+            if (admin) continue;
+            Boolean approverDeciding = statusChanged && old.Manager__c != null && old.Manager__c == me
+                && (req.Status__c == 'Approved' || req.Status__c == 'Rejected') && !serverFieldChanged;
+            if (approverDeciding) continue;
+            req.addError(req.Status__c == 'Approved' && statusChanged
+                ? 'Only your manager can approve a device reset request.'
+                : 'This device reset request can only be changed by the approval process or the reset-code check.');
         }
     }
 
@@ -60,10 +104,22 @@ public with sharing class DeviceResetRequestHandler {
             Device_Reset_Request__c old = oldMap.get(req.Id);
             Boolean justApproved = req.Status__c == 'Approved' && old.Status__c != 'Approved';
             if (justApproved && String.isBlank(req.OTP__c)) {
-                req.OTP__c = String.valueOf(Integer.valueOf(Math.random() * 1000000)).leftPad(6, '0');
+                req.OTP__c = newCode();
                 req.OTP_Expires__c = System.now().addHours(OTP_VALID_HOURS);
+                req.Attempts__c = 0;
             }
         }
+    }
+
+    /** Six random digits from the platform CSPRNG (Crypto.getRandomInteger), without modulo bias. */
+    @TestVisible
+    private static String newCode() {
+        final Integer bound = 2147000000;   // largest multiple of 1,000,000 below 2^31
+        Integer r;
+        do {
+            r = Crypto.getRandomInteger() & 2147483647;
+        } while (r >= bound);
+        return String.valueOf(Math.mod(r, 1000000)).leftPad(6, '0');
     }
 
     /** Fires right after the code lands, so it queries back the final saved

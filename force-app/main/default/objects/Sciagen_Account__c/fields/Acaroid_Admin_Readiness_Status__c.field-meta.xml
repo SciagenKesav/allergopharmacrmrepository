@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Acaroid_Admin_Readiness_Status__c</fullName>
+    <description>Ready = all MUST-HAVEs Yes + digital logger + distributor serviceable, audited within $CustomMetadata.Acaroid_Formula_Config__mdt.Default.Audit_Staleness_Days__c (default 180) days. Conditional = MUST-HAVEs Yes but manual log or distributor pending. Else Not Ready.</description>
+    <externalId>false</externalId>
+    <formula>IF(NOT(AND(Acaroid_Has_2_8C_Fridge__c, Acaroid_Has_Emergency_Kit__c, Acaroid_Anaphylaxis_Trained_Staff__c, Acaroid_Has_Observation_Area__c)),&apos;Not Ready&apos;,IF(OR(ISBLANK(Acaroid_Readiness_Audit_Date__c), Acaroid_Readiness_Audit_Date__c &lt; TODAY() - $CustomMetadata.Acaroid_Formula_Config__mdt.Default.Audit_Staleness_Days__c),&apos;Conditional&apos;,IF(AND(ISPICKVAL(Acaroid_Temp_Monitoring__c, &apos;Digital data logger&apos;), Acaroid_Cold_Chain_Serviceable__c), &apos;Ready&apos;, &apos;Conditional&apos;)))</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    <label>Administration Readiness Status</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

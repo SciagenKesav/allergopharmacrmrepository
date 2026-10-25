@@ -16,13 +16,6 @@
                         <template if:true={isHCP}>{record.specialty} &middot; {record.hcpType}</template>
                         <template if:true={isHCO}>{record.hcoType} &middot; {record.speciality}</template>
                     </p>
-                    <template if:true={hasHeaderBadges}>
-                        <div class="header-badges">
-                            <template for:each={headerBadges} for:item="b">
-                                <span key={b.key} class="pill" style={b.style}>{b.label}</span>
-                            </template>
-                        </div>
-                    </template>
                     <template if:true={record.territory}>
                         <span class="badge">{record.territory}</span>
                     </template>
@@ -30,16 +23,14 @@
                 <template if:false={isEditing}>
                     <div class="header-actions">
                         <lightning-button label="Call Report" icon-name="utility:call" onclick={handleAddCallReport}></lightning-button>
-                        <template if:true={canEdit}>
-                            <lightning-button label="Edit" onclick={handleEdit}></lightning-button>
-                        </template>
+                        <lightning-button label="Edit" onclick={handleEdit}></lightning-button>
                         <lightning-button label="Unassign from Territory" icon-name="utility:delete" variant="destructive-text" onclick={handleOpenUnassignConfirm}></lightning-button>
                     </div>
                 </template>
             </div>
 
-            <!-- Unassigns this Account from the running user's own territory;
-                 the Account record itself is never deleted. -->
+            <!-- Removes this account from the running user's own territory; the account
+                 record itself is never deleted. A reason is required (kept as an audit record). -->
             <template if:true={isConfirmingUnassign}>
                 <section class="modal-backdrop">
                     <div class="modal modal-small" role="dialog" aria-modal="true" aria-label="Unassign from Territory">
@@ -64,150 +55,38 @@
                 </section>
             </template>
 
-            <div class="detail-body">
-                <nav class="section-rail">
-                    <template for:each={sections} for:item="s">
-                        <button key={s.key} class={s.navClass} data-key={s.key} onclick={handleSectionSelect}>
-                            <lightning-icon icon-name={s.icon} size="x-small"></lightning-icon>
-                            <span>{s.label}</span>
-                        </button>
-                    </template>
-                </nav>
-                <div class="section-content">
-                <!-- Edit lives inside the section-content area (not as a
-                     top-level replacement of the whole page) so the section
-                     rail stays visible and this still reads as the Profile
-                     tab, not a disconnected separate edit page. -->
-                <template if:true={isEditing}>
-                    <lightning-record-edit-form
-                        record-id={recordId}
-                        object-api-name="Sciagen_Account__c"
-                        onsubmit={handleSubmit}
-                        onsuccess={handleSaveSuccess}
-                        onerror={handleSaveError}
-                    >
-                        <!-- Grouped into sections (like the standard Salesforce Account
-                             edit page's Account Information / Address Information, etc.)
-                             instead of one flat, unlabeled list of every field. -->
-                        <template if:true={isHCP}>
-                            <div class="card">
-                                <div class="card-header">
-                                    <span class="icon-badge">
-                                        <lightning-icon icon-name="utility:identity" size="x-small"></lightning-icon>
-                                    </span>
-                                    <h3>Name</h3>
-                                </div>
-                                <div class="edit-grid">
-                                    <lightning-input-field field-name="Prefix__c"></lightning-input-field>
-                                    <lightning-input-field field-name="First_Name__c"></lightning-input-field>
-                                    <lightning-input-field field-name="Last_Name__c"></lightning-input-field>
-                                    <lightning-input-field field-name="Name"></lightning-input-field>
-                                </div>
-                            </div>
-
-                            <div class="card">
-                                <div class="card-header">
-                                    <span class="icon-badge icon-badge-accent">
-                                        <lightning-icon icon-name="utility:education" size="x-small"></lightning-icon>
-                                    </span>
-                                    <h3>Professional Details</h3>
-                                </div>
-                                <div class="edit-grid">
-                                    <lightning-input-field field-name="HCP_Type__c"></lightning-input-field>
-                                    <lightning-input-field field-name="Specialty__c"></lightning-input-field>
-                                    <lightning-input-field field-name="Focus_Area__c"></lightning-input-field>
-                                    <lightning-input-field field-name="License_Number__c"></lightning-input-field>
-                                    <lightning-input-field field-name="Licensing_Body__c"></lightning-input-field>
-                                </div>
-                            </div>
-
-                            <div class="card">
-                                <div class="card-header">
-                                    <span class="icon-badge icon-badge-accent">
-                                        <lightning-icon icon-name="utility:location" size="x-small"></lightning-icon>
-                                    </span>
-                                    <h3>Address Information</h3>
-                                </div>
-                                <div class="edit-grid">
-                                    <lightning-input-field field-name="Billing_Street__c"></lightning-input-field>
-                                    <lightning-input-field field-name="Billing_City__c"></lightning-input-field>
-                                    <lightning-input-field field-name="Billing_State__c"></lightning-input-field>
-                                    <lightning-input-field field-name="Billing_Postal_Code__c"></lightning-input-field>
-                                    <lightning-input-field field-name="Billing_Country__c"></lightning-input-field>
-                                </div>
-                            </div>
-
-                            <div class="card">
-                                <div class="card-header">
-                                    <span class="icon-badge icon-badge-violet">
-                                        <lightning-icon icon-name="utility:phone_portrait" size="x-small"></lightning-icon>
-                                    </span>
-                                    <h3>Contact Information</h3>
-                                </div>
-                                <div class="edit-grid">
-                                    <lightning-input-field field-name="Phone__c"></lightning-input-field>
-                                    <lightning-input-field field-name="Email__c"></lightning-input-field>
-                                    <lightning-input-field field-name="Primary_Country__c"></lightning-input-field>
-                                    <lightning-input-field field-name="Account_Code__c"></lightning-input-field>
-                                </div>
-                            </div>
+            <template if:true={isEditing}>
+                <lightning-record-edit-form
+                                        density="comfy"
+                    record-id={recordId}
+                    object-api-name="Sciagen_Account__c"
+                    onsubmit={handleSubmit}
+                    onsuccess={handleSaveSuccess}
+                    onerror={handleSaveError}
+                >
+                    <div class="edit-grid">
+                        <template for:each={editFields} for:item="fieldName">
+                            <lightning-input-field key={fieldName} field-name={fieldName}></lightning-input-field>
                         </template>
+                    </div>
+                    <div class="edit-actions">
+                        <lightning-button label="Cancel" onclick={handleCancelEdit} disabled={isSaving}></lightning-button>
+                        <lightning-button variant="brand" type="submit" label={saveButtonLabel} disabled={isSaving}></lightning-button>
+                    </div>
+                </lightning-record-edit-form>
+            </template>
 
-                        <template if:true={isHCO}>
-                            <div class="card">
-                                <div class="card-header">
-                                    <span class="icon-badge">
-                                        <lightning-icon icon-name="utility:company" size="x-small"></lightning-icon>
-                                    </span>
-                                    <h3>Organization Details</h3>
-                                </div>
-                                <div class="edit-grid">
-                                    <lightning-input-field field-name="Name"></lightning-input-field>
-                                    <lightning-input-field field-name="HCO_Type__c"></lightning-input-field>
-                                    <lightning-input-field field-name="Speciality__c"></lightning-input-field>
-                                    <lightning-input-field field-name="Account_Code__c"></lightning-input-field>
-                                </div>
-                            </div>
-
-                            <div class="card">
-                                <div class="card-header">
-                                    <span class="icon-badge icon-badge-accent">
-                                        <lightning-icon icon-name="utility:location" size="x-small"></lightning-icon>
-                                    </span>
-                                    <h3>Address Information</h3>
-                                </div>
-                                <div class="edit-grid">
-                                    <lightning-input-field field-name="Billing_Street__c"></lightning-input-field>
-                                    <lightning-input-field field-name="Billing_City__c"></lightning-input-field>
-                                    <lightning-input-field field-name="Billing_State__c"></lightning-input-field>
-                                    <lightning-input-field field-name="Billing_Postal_Code__c"></lightning-input-field>
-                                    <lightning-input-field field-name="Billing_Country__c"></lightning-input-field>
-                                </div>
-                            </div>
-
-                            <div class="card">
-                                <div class="card-header">
-                                    <span class="icon-badge icon-badge-violet">
-                                        <lightning-icon icon-name="utility:phone_portrait" size="x-small"></lightning-icon>
-                                    </span>
-                                    <h3>Contact Information</h3>
-                                </div>
-                                <div class="edit-grid">
-                                    <lightning-input-field field-name="Phone__c"></lightning-input-field>
-                                    <lightning-input-field field-name="Email__c"></lightning-input-field>
-                                    <lightning-input-field field-name="Website__c"></lightning-input-field>
-                                </div>
-                            </div>
+            <template if:false={isEditing}>
+                <div class="detail-body">
+                    <nav class="section-rail">
+                        <template for:each={sections} for:item="s">
+                            <button key={s.key} class={s.navClass} data-key={s.key} onclick={handleSectionSelect}>
+                                <lightning-icon icon-name={s.icon} size="x-small"></lightning-icon>
+                                <span>{s.label}</span>
+                            </button>
                         </template>
-
-                        <div class="edit-actions">
-                            <lightning-button label="Cancel" onclick={handleCancelEdit} disabled={isSaving}></lightning-button>
-                            <lightning-button variant="brand" type="submit" label={saveButtonLabel} disabled={isSaving}></lightning-button>
-                        </div>
-                    </lightning-record-edit-form>
-                </template>
-
-                <template if:false={isEditing}>
+                    </nav>
+                    <div class="section-content">
                     <template if:true={showCallReportPanel}>
                         <div class="call-report-panel">
                             <c-call-visit-report-detail
@@ -228,17 +107,36 @@
                                             <lightning-icon icon-name="utility:summary" size="x-small"></lightning-icon>
                                         </span>
                                         <h3>Profile Summary</h3>
-                                        <template if:true={canEdit}>
-                                            <template if:false={isEditingProfileSummary}>
-                                                <lightning-button label="Edit" onclick={handleEditProfileSummary}></lightning-button>
-                                            </template>
+                                        <template if:false={isEditingProfileSummary}>
+                                            <lightning-button label="Edit" onclick={handleEditProfileSummary}></lightning-button>
                                         </template>
                                     </div>
                                     <template if:false={isEditingProfileSummary}>
                                         <div class="profile-summary-body">
                                             <div class="profile-avatar" title="Profile photo placeholder">{initials}</div>
-                                            <p class="profile-summary-text">{focusAreaSummary}</p>
+                                            <div class="profile-summary-main">
+                                                <p class="profile-summary-text">{focusAreaSummary}</p>
+                                                <template if:true={record.emergingExpert}>
+                                                    <span class="pill pill-primary">Emerging Expert</span>
+                                                </template>
+                                            </div>
                                         </div>
+                                        <template if:true={hasProfileStats}>
+                                            <div class="profile-stat-row">
+                                                <template if:true={record.age}>
+                                                    <div class="profile-stat">
+                                                        <span class="profile-stat-value">{record.age}</span>
+                                                        <span class="profile-stat-label">Age</span>
+                                                    </div>
+                                                </template>
+                                                <template if:true={record.experienceYears}>
+                                                    <div class="profile-stat">
+                                                        <span class="profile-stat-value">{record.experienceYears}</span>
+                                                        <span class="profile-stat-label">Years Experience</span>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </template>
                                     </template>
                                     <template if:true={isEditingProfileSummary}>
                                         <lightning-record-edit-form
@@ -277,12 +175,6 @@
                                         <span class="detail-label">Account Code</span>
                                         <span class="detail-value">{record.accountCode}</span>
                                     </div>
-                                    <template if:true={record.territory}>
-                                        <div class="detail-field">
-                                            <span class="detail-label">Territory</span>
-                                            <span class="detail-value">{record.territory}</span>
-                                        </div>
-                                    </template>
                                     <template if:true={record.website}>
                                         <div class="detail-field">
                                             <span class="detail-label">Website</span>
@@ -295,41 +187,26 @@
                                             <span class="detail-value">{record.lastVisit}</span>
                                         </div>
                                     </template>
-                                    <template if:true={lastModifiedDisplay}>
-                                        <div class="detail-field">
-                                            <span class="detail-label">Last Modified</span>
-                                            <span class="detail-value">{lastModifiedDisplay}</span>
-                                        </div>
-                                    </template>
                                     <template if:true={isHCP}>
-                                        <div class="detail-field">
-                                            <span class="detail-label">Speciality</span>
-                                            <span class="detail-value">{record.specialty}</span>
-                                        </div>
                                         <template if:true={record.focusArea}>
                                             <div class="detail-field">
                                                 <span class="detail-label">Focus Area</span>
                                                 <span class="detail-value">{record.focusArea}</span>
                                             </div>
                                         </template>
-                                        <div class="detail-field">
-                                            <span class="detail-label">License Number</span>
-                                            <span class="detail-value">{record.licenseNumber}</span>
-                                        </div>
-                                        <div class="detail-field">
-                                            <span class="detail-label">Licensing Body</span>
-                                            <span class="detail-value">{record.licensingBody}</span>
-                                        </div>
-                                        <div class="detail-field">
-                                            <span class="detail-label">Age</span>
-                                            <span class="detail-value">{record.age}</span>
-                                        </div>
-                                        <div class="detail-field">
-                                            <span class="detail-label">Experience</span>
-                                            <span class="detail-value">{record.experienceYears}</span>
-                                        </div>
                                     </template>
-                                    <template if:true={isHCO}>
+                                </div>
+                            </div>
+
+                            <template if:true={isHCO}>
+                                <div class="card">
+                                    <div class="card-header">
+                                        <span class="icon-badge">
+                                            <lightning-icon icon-name="utility:company" size="x-small"></lightning-icon>
+                                        </span>
+                                        <h3>Organization Details</h3>
+                                    </div>
+                                    <div class="detail-grid">
                                         <div class="detail-field">
                                             <span class="detail-label">HCO Type</span>
                                             <span class="detail-value">{record.hcoType}</span>
@@ -338,31 +215,15 @@
                                             <span class="detail-label">Speciality</span>
                                             <span class="detail-value">{record.speciality}</span>
                                         </div>
-                                        <div class="detail-field detail-field-wide">
-                                            <span class="detail-label">Address</span>
-                                            <span class="detail-value">{record.billingStreet}, {record.billingCity}, {record.billingState} {record.billingPostalCode} {record.billingCountry}</span>
-                                        </div>
-                                        <template if:true={record.plusCode}>
-                                            <div class="detail-field">
-                                                <span class="detail-label">Plus Code</span>
-                                                <span class="detail-value">{record.plusCode}</span>
-                                            </div>
-                                        </template>
-                                        <template if:true={record.geolocation}>
-                                            <div class="detail-field">
-                                                <span class="detail-label">Geolocation</span>
-                                                <span class="detail-value">{record.geolocation}</span>
-                                            </div>
-                                        </template>
                                         <template if:true={record.parentAccountName}>
                                             <div class="detail-field">
                                                 <span class="detail-label">Parent Account</span>
                                                 <span class="detail-value">{record.parentAccountName}</span>
                                             </div>
                                         </template>
-                                    </template>
+                                    </div>
                                 </div>
-                            </div>
+                            </template>
 
                             <template if:true={isHCP}>
                                 <div class="card">
@@ -387,6 +248,14 @@
                                             <span class="detail-value">{record.graduationYear}</span>
                                         </div>
                                         <div class="detail-field">
+                                            <span class="detail-label">License Number</span>
+                                            <span class="detail-value">{record.licenseNumber}</span>
+                                        </div>
+                                        <div class="detail-field">
+                                            <span class="detail-label">Licensing Body</span>
+                                            <span class="detail-value">{record.licensingBody}</span>
+                                        </div>
+                                        <div class="detail-field">
                                             <span class="detail-label">Licensing Year</span>
                                             <span class="detail-value">{record.licensingYear}</span>
                                         </div>
@@ -394,52 +263,46 @@
                                 </div>
                             </template>
 
-                            <template if:true={isHCP}>
-                                <div class="card">
-                                    <div class="card-header">
-                                        <span class="icon-badge icon-badge-accent">
-                                            <lightning-icon icon-name="utility:location" size="x-small"></lightning-icon>
-                                        </span>
-                                        <h3>Address Information</h3>
-                                    </div>
-                                    <div class="detail-grid">
-                                        <div class="detail-field detail-field-wide">
-                                            <span class="detail-label">Billing Address</span>
-                                            <span class="detail-value">{record.billingStreet}, {record.billingCity}, {record.billingState} {record.billingPostalCode} {record.billingCountry}</span>
-                                        </div>
-                                        <template if:true={record.primaryCountry}>
-                                            <div class="detail-field">
-                                                <span class="detail-label">Primary Country</span>
-                                                <span class="detail-value">{record.primaryCountry}</span>
-                                            </div>
-                                        </template>
-                                        <template if:true={record.plusCode}>
-                                            <div class="detail-field">
-                                                <span class="detail-label">Plus Code</span>
-                                                <span class="detail-value">{record.plusCode}</span>
-                                            </div>
-                                        </template>
-                                        <template if:true={record.geolocation}>
-                                            <div class="detail-field">
-                                                <span class="detail-label">Geolocation</span>
-                                                <span class="detail-value">{record.geolocation}</span>
-                                            </div>
-                                        </template>
-                                        <template if:true={record.createdByName}>
-                                            <div class="detail-field">
-                                                <span class="detail-label">Created By</span>
-                                                <span class="detail-value">{record.createdByName}</span>
-                                            </div>
-                                        </template>
-                                        <template if:true={record.lastModifiedByName}>
-                                            <div class="detail-field">
-                                                <span class="detail-label">Last Modified By</span>
-                                                <span class="detail-value">{record.lastModifiedByName}</span>
-                                            </div>
-                                        </template>
-                                    </div>
+                            <div class="card">
+                                <div class="card-header">
+                                    <span class="icon-badge icon-badge-accent">
+                                        <lightning-icon icon-name="utility:location" size="x-small"></lightning-icon>
+                                    </span>
+                                    <h3>Address Information</h3>
                                 </div>
-                            </template>
+                                <div class="detail-grid">
+                                    <div class="detail-field detail-field-wide">
+                                        <span class="detail-label">Billing Address</span>
+                                        <span class="detail-value">{record.billingStreet}, {record.billingCity}, {record.billingState} {record.billingPostalCode} {record.billingCountry}</span>
+                                    </div>
+                                    <template if:true={record.primaryCountry}>
+                                        <div class="detail-field">
+                                            <span class="detail-label">Primary Country</span>
+                                            <span class="detail-value">{record.primaryCountry}</span>
+                                        </div>
+                                    </template>
+                                    <template if:true={record.plusCode}>
+                                        <div class="detail-field">
+                                            <span class="detail-label">Plus Code</span>
+                                            <span class="detail-value">{record.plusCode}</span>
+                                        </div>
+                                    </template>
+                                    <template if:true={record.geolocation}>
+                                        <div class="detail-field">
+                                            <span class="detail-label">Geolocation</span>
+                                            <span class="detail-value">{record.geolocation}</span>
+                                        </div>
+                                    </template>
+                                </div>
+                                <template if:true={hasLocation}>
+                                    <lightning-map
+                                        map-markers={mapMarkers}
+                                        list-view="hidden"
+                                        zoom-level="14"
+                                        class="detail-map"
+                                    ></lightning-map>
+                                </template>
+                            </div>
 
                             <template if:true={hasDigitalPresence}>
                                 <div class="card">
@@ -553,6 +416,9 @@
                                 </div>
                             </template>
                         </div>
+                        <template if:true={recordInfoLine}>
+                            <p class="record-info-line">{recordInfoLine}</p>
+                        </template>
                     </template>
 
                     <template if:true={isTimelineSection}>
@@ -588,6 +454,7 @@
                             <template if:true={isEditingSegmentation}>
                                 <template if:true={hasSegmentation}>
                                     <lightning-record-edit-form
+                                        density="comfy"
                                         record-id={record.segmentation.id}
                                         object-api-name="Segmentation__c"
                                         onsubmit={handleSegmentationSubmit}
@@ -596,9 +463,13 @@
                                     >
                                         <div class="edit-grid">
                                             <lightning-input-field field-name="Classification__c"></lightning-input-field>
-                                            <lightning-input-field field-name="Tier__c"></lightning-input-field>
-                                            <lightning-input-field field-name="Priority__c"></lightning-input-field>
                                             <lightning-input-field field-name="Potential__c"></lightning-input-field>
+                                            <lightning-input-field field-name="Relationship__c"></lightning-input-field>
+                                            <lightning-input-field field-name="Adoption_Ladder__c"></lightning-input-field>
+                                            <lightning-input-field field-name="Prescription_Pattern__c"></lightning-input-field>
+                                            <lightning-input-field field-name="AIT_Preference__c"></lightning-input-field>
+                                            <lightning-input-field field-name="Customer_Profile__c"></lightning-input-field>
+                                            <lightning-input-field field-name="Behaviour_Segmentation__c"></lightning-input-field>
                                             <lightning-input-field field-name="Is_KOL__c"></lightning-input-field>
                                             <lightning-input-field field-name="Tags__c"></lightning-input-field>
                                         </div>
@@ -610,6 +481,7 @@
                                 </template>
                                 <template if:false={hasSegmentation}>
                                     <lightning-record-edit-form
+                                        density="comfy"
                                         object-api-name="Segmentation__c"
                                         onsubmit={handleSegmentationSubmit}
                                         onsuccess={handleSegmentationSaveSuccess}
@@ -618,9 +490,13 @@
                                         <lightning-input-field class="slds-hide" field-name="HCP__c" value={recordId}></lightning-input-field>
                                         <div class="edit-grid">
                                             <lightning-input-field field-name="Classification__c"></lightning-input-field>
-                                            <lightning-input-field field-name="Tier__c"></lightning-input-field>
-                                            <lightning-input-field field-name="Priority__c"></lightning-input-field>
                                             <lightning-input-field field-name="Potential__c"></lightning-input-field>
+                                            <lightning-input-field field-name="Relationship__c"></lightning-input-field>
+                                            <lightning-input-field field-name="Adoption_Ladder__c"></lightning-input-field>
+                                            <lightning-input-field field-name="Prescription_Pattern__c"></lightning-input-field>
+                                            <lightning-input-field field-name="AIT_Preference__c"></lightning-input-field>
+                                            <lightning-input-field field-name="Customer_Profile__c"></lightning-input-field>
+                                            <lightning-input-field field-name="Behaviour_Segmentation__c"></lightning-input-field>
                                             <lightning-input-field field-name="Is_KOL__c"></lightning-input-field>
                                             <lightning-input-field field-name="Tags__c"></lightning-input-field>
                                         </div>
@@ -640,17 +516,45 @@
                                             <span class="detail-value"><span class="pill" style={classificationPillStyle}>{record.segmentation.classification}</span></span>
                                         </div>
                                         <div class="detail-field">
-                                            <span class="detail-label">Tier</span>
-                                            <span class="detail-value"><span class="pill" style={tierPillStyle}>{record.segmentation.tier}</span></span>
-                                        </div>
-                                        <div class="detail-field">
-                                            <span class="detail-label">Priority</span>
-                                            <span class="detail-value">{record.segmentation.priority}</span>
-                                        </div>
-                                        <div class="detail-field">
                                             <span class="detail-label">Potential</span>
                                             <span class="detail-value">{record.segmentation.potential}</span>
                                         </div>
+                                        <template if:true={record.segmentation.relationship}>
+                                            <div class="detail-field">
+                                                <span class="detail-label">Relationship</span>
+                                                <span class="detail-value">{record.segmentation.relationship}</span>
+                                            </div>
+                                        </template>
+                                        <template if:true={record.segmentation.adoptionLadder}>
+                                            <div class="detail-field">
+                                                <span class="detail-label">Adoption Ladder</span>
+                                                <span class="detail-value">{record.segmentation.adoptionLadder}</span>
+                                            </div>
+                                        </template>
+                                        <template if:true={record.segmentation.prescriptionPattern}>
+                                            <div class="detail-field">
+                                                <span class="detail-label">Prescription Pattern</span>
+                                                <span class="detail-value">{record.segmentation.prescriptionPattern}</span>
+                                            </div>
+                                        </template>
+                                        <template if:true={record.segmentation.aitPreference}>
+                                            <div class="detail-field">
+                                                <span class="detail-label">AIT Preference</span>
+                                                <span class="detail-value">{record.segmentation.aitPreference}</span>
+                                            </div>
+                                        </template>
+                                        <template if:true={record.segmentation.customerProfile}>
+                                            <div class="detail-field">
+                                                <span class="detail-label">Customer Profile</span>
+                                                <span class="detail-value">{record.segmentation.customerProfile}</span>
+                                            </div>
+                                        </template>
+                                        <template if:true={record.segmentation.behaviourSegmentation}>
+                                            <div class="detail-field">
+                                                <span class="detail-label">Behaviour Segmentation</span>
+                                                <span class="detail-value">{record.segmentation.behaviourSegmentation}</span>
+                                            </div>
+                                        </template>
                                         <template if:true={record.segmentation.ownerRep}>
                                             <div class="detail-field">
                                                 <span class="detail-label">Owner Rep</span>
@@ -676,6 +580,85 @@
                                 </template>
                             </template>
                         </div>
+
+                        <!-- Acaroid targeting card hidden for now: set showAcaroidCard to true in accountDetail.js to bring it back. -->
+                        <template if:true={showAcaroidCard}>
+                        <div class="card">
+                            <div class="card-header">
+                                <lightning-icon icon-name="utility:target" size="x-small"></lightning-icon>
+                                <h3>{acaroidBrandLabel}</h3>
+                                <template if:false={isEditingAcaroid}>
+                                    <lightning-button label="Edit" onclick={handleEditAcaroid}></lightning-button>
+                                </template>
+                            </div>
+
+                            <template if:true={isEditingAcaroid}>
+                                <lightning-record-edit-form
+                                    record-id={recordId}
+                                    object-api-name="Sciagen_Account__c"
+                                    onsubmit={handleAcaroidSubmit}
+                                    onsuccess={handleAcaroidSaveSuccess}
+                                    onerror={handleAcaroidSaveError}
+                                >
+                                    <div class="edit-grid edit-grid-wide">
+                                        <template for:each={acaroidEditFields} for:item="f">
+                                            <lightning-input-field key={f.key} field-name={f.name} variant="label-stacked"></lightning-input-field>
+                                        </template>
+                                    </div>
+                                    <div class="edit-actions">
+                                        <lightning-button label="Cancel" onclick={handleCancelAcaroidEdit} disabled={isSavingAcaroid}></lightning-button>
+                                        <lightning-button variant="brand" type="submit" label="Save" disabled={isSavingAcaroid}></lightning-button>
+                                    </div>
+                                </lightning-record-edit-form>
+                            </template>
+
+                            <template if:false={isEditingAcaroid}>
+                                <template if:true={hasAcaroid}>
+                                    <div class="detail-grid">
+                                        <div class="detail-field">
+                                            <span class="detail-label">{acaroidTierLabel}</span>
+                                            <span class="detail-value"><span class="pill" style={acaroidTierPillStyle}>{record.acaroid.tier}</span></span>
+                                        </div>
+                                        <div class="detail-field">
+                                            <span class="detail-label">Score</span>
+                                            <span class="detail-value">{record.acaroid.score}</span>
+                                        </div>
+                                        <template if:true={isHCP}>
+                                            <div class="detail-field">
+                                                <span class="detail-label">Segment</span>
+                                                <span class="detail-value">{record.acaroid.segment}</span>
+                                            </div>
+                                            <div class="detail-field">
+                                                <span class="detail-label">Can Administer SCIT</span>
+                                                <span class="detail-value"><span class="pill" style={acaroidCanAdministerPillStyle}>{record.acaroid.canAdminister}</span></span>
+                                            </div>
+                                            <template if:true={record.acaroid.recommendedCallsMonth}>
+                                                <div class="detail-field">
+                                                    <span class="detail-label">Recommended Calls / Month</span>
+                                                    <span class="detail-value">{record.acaroid.recommendedCallsMonth}</span>
+                                                </div>
+                                            </template>
+                                        </template>
+                                        <template if:true={isHCO}>
+                                            <div class="detail-field">
+                                                <span class="detail-label">Admin Readiness</span>
+                                                <span class="detail-value"><span class="pill" style={acaroidReadinessPillStyle}>{record.acaroid.readinessStatus}</span></span>
+                                            </div>
+                                        </template>
+                                        <template if:true={record.acaroid.lastScoredDate}>
+                                            <div class="detail-field">
+                                                <span class="detail-label">Last Scored</span>
+                                                <span class="detail-value">{record.acaroid.lastScoredDate}</span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
+                                <template if:false={hasAcaroid}>
+                                    <div class="empty-tab">Not yet scored — capture the readiness and adoption fields on the iPad to start targeting.</div>
+                                </template>
+                            </template>
+                        </div>
+                        </template>
                     </template>
 
                     <template if:true={isEngagementSection}>
@@ -699,6 +682,7 @@
 
                                     <template if:true={showAddOfficeWindow}>
                                         <lightning-record-edit-form
+                                        density="comfy"
                                             object-api-name="Office_Window__c"
                                             onsubmit={handleOfficeWindowSubmit}
                                             onsuccess={handleOfficeWindowSaveSuccess}
@@ -733,6 +717,7 @@
                                                     </template>
                                                     <template if:true={w.isEditing}>
                                                         <lightning-record-edit-form
+                                        density="comfy"
                                                             record-id={w.id}
                                                             object-api-name="Office_Window__c"
                                                             onsubmit={handleOfficeWindowSubmit}
@@ -915,7 +900,7 @@
                             <template if:true={hasCallVisitReports}>
                                 <ul class="detail-list">
                                     <template for:each={cvrRows} for:item="cvr">
-                                        <li key={cvr.id} data-id={cvr.id} data-is-cvr={cvr.isCVR} onclick={handleCvrRowClick}>
+                                        <li key={cvr.id}>
                                             <span class="pill" style={cvr.statusStyle}>{cvr.status}</span>
                                             <strong>{cvr.callType}</strong>
                                             <span class="muted"> &middot; {cvr.visitDate}<template if:true={cvr.rep}> &middot; {cvr.rep}</template></span>
@@ -947,6 +932,7 @@
 
                             <template if:true={showAddAffiliation}>
                                 <lightning-record-edit-form
+                                        density="comfy"
                                     object-api-name="Affiliation__c"
                                     onsubmit={handleAffiliationSubmit}
                                     onsuccess={handleAffiliationSaveSuccess}
@@ -977,54 +963,13 @@
                                 <ul class="detail-list">
                                     <template for:each={affiliationRows} for:item="a">
                                         <li key={a.accountId}>
-                                            <template if:false={a.isEditingThisRow}>
-                                                <span class="pill" style={a.typeStyle}>{a.type}</span>
-                                                {a.name}
-                                                <template if:true={a.isPrimary}>
-                                                    <span class="pill pill-primary">PRIMARY</span>
-                                                </template>
-                                                <template if:false={a.isPrimary}>
-                                                    <button
-                                                        class="link-button"
-                                                        data-affiliation-id={a.affiliationId}
-                                                        onclick={handleSetPrimaryAffiliation}
-                                                        disabled={isSavingAffiliation}
-                                                    >Set as Primary</button>
-                                                </template>
-                                                <span class="muted"> ({a.subtitle})</span>
-                                                <span class="muted"><template if:true={a.phone}> &middot; {a.phone}</template><template if:true={a.city}> &middot; {a.city}</template></span>
-                                                <button
-                                                    class="link-button"
-                                                    data-affiliation-id={a.affiliationId}
-                                                    onclick={handleEditAffiliation}
-                                                >Edit</button>
+                                            <span class="pill" style={a.typeStyle}>{a.type}</span>
+                                            {a.name}
+                                            <template if:true={a.isPrimary}>
+                                                <span class="pill pill-primary">PRIMARY</span>
                                             </template>
-                                            <template if:true={a.isEditingThisRow}>
-                                                <lightning-record-edit-form
-                                                    record-id={a.affiliationId}
-                                                    object-api-name="Affiliation__c"
-                                                    onsubmit={handleAffiliationEditSubmit}
-                                                    onsuccess={handleAffiliationEditSaveSuccess}
-                                                    onerror={handleAffiliationEditSaveError}
-                                                >
-                                                    <template if:true={isHCP}>
-                                                        <div class="edit-grid">
-                                                            <lightning-input-field field-name="HCO__c"></lightning-input-field>
-                                                            <lightning-input-field field-name="Is_Primary__c"></lightning-input-field>
-                                                        </div>
-                                                    </template>
-                                                    <template if:true={isHCO}>
-                                                        <div class="edit-grid">
-                                                            <lightning-input-field field-name="HCP__c"></lightning-input-field>
-                                                            <lightning-input-field field-name="Is_Primary__c"></lightning-input-field>
-                                                        </div>
-                                                    </template>
-                                                    <div class="edit-actions">
-                                                        <lightning-button label="Cancel" onclick={handleCancelEditAffiliation} disabled={isSavingAffiliation}></lightning-button>
-                                                        <lightning-button variant="brand" type="submit" label="Save" disabled={isSavingAffiliation}></lightning-button>
-                                                    </div>
-                                                </lightning-record-edit-form>
-                                            </template>
+                                            <span class="muted"> ({a.subtitle})</span>
+                                            <span class="muted"><template if:true={a.phone}> &middot; {a.phone}</template><template if:true={a.city}> &middot; {a.city}</template></span>
                                         </li>
                                     </template>
                                 </ul>
@@ -1120,29 +1065,6 @@
                         </div>
                     </template>
 
-                    <template if:true={isNavigationSection}>
-                        <div class="card nav-card">
-                            <div class="card-header">
-                                <span class="icon-badge">
-                                    <lightning-icon icon-name="utility:location" size="x-small"></lightning-icon>
-                                </span>
-                                <h3>Navigation</h3>
-                            </div>
-                            <template if:true={hasLocation}>
-                                <div class="nav-address">{navigationAddress}</div>
-                                <lightning-map
-                                    map-markers={mapMarkers}
-                                    list-view="hidden"
-                                    zoom-level="14"
-                                    class="nav-map"
-                                ></lightning-map>
-                            </template>
-                            <template if:false={hasLocation}>
-                                <div class="empty-tab">{navigationEmptyMessage}</div>
-                            </template>
-                        </div>
-                    </template>
-
                     <template if:true={isDcrSection}>
                         <div class="card">
                             <template if:true={hasDataChangeRequests}>
@@ -1165,13 +1087,9 @@
                         </div>
                     </template>
                     </template>
-                </template>
+                    </div>
                 </div>
-            </div>
+            </template>
         </div>
-    </template>
-
-    <template if:true={showCvrView}>
-        <c-cvr-view-modal record-id={viewingCvrId} onclose={handleCloseCvrView}></c-cvr-view-modal>
     </template>
 </template>

@@ -18,10 +18,8 @@ private class AccountPlanHomeDashboardControllerTest {
 
         insert new List<Action_Item__c>{
             new Action_Item__c(Activity__c = activityA1.Id, Title__c = 'A1 Item 1', Status__c = 'Completed', Assignee__c = 'Rep One'),
-            // Due yesterday but not Completed — the one case that should count as overdue.
-            new Action_Item__c(Activity__c = activityA1.Id, Title__c = 'A1 Item 2', Status__c = 'In Progress', Assignee__c = 'Rep One', Due_Date__c = Date.today().addDays(-1)),
-            // Due next week — not overdue, confirms a future due date isn't miscounted.
-            new Action_Item__c(Activity__c = activityB1.Id, Title__c = 'B1 Item 1', Status__c = 'Postponed', Assignee__c = 'Rep Two', Due_Date__c = Date.today().addDays(7))
+            new Action_Item__c(Activity__c = activityA1.Id, Title__c = 'A1 Item 2', Status__c = 'In Progress', Assignee__c = 'Rep One'),
+            new Action_Item__c(Activity__c = activityB1.Id, Title__c = 'B1 Item 1', Status__c = 'Postponed', Assignee__c = 'Rep Two')
         };
     }
 
@@ -57,30 +55,5 @@ private class AccountPlanHomeDashboardControllerTest {
         System.assertEquals(1, buckets.get('In Progress'));
         System.assertEquals(1, buckets.get('Postponed'));
         System.assertEquals(1, buckets.get('Achieved'));
-    }
-
-    @isTest
-    static void testSearchAccountPlansComputesProgressAndActionItemCounts() {
-        Test.startTest();
-        List<AccountPlanHomeDashboardController.PlanListItem> items =
-            AccountPlanHomeDashboardController.searchAccountPlans('Dashboard Test', null, null);
-        Test.stopTest();
-
-        System.assertEquals(2, items.size());
-        Map<String, AccountPlanHomeDashboardController.PlanListItem> byTitle =
-            new Map<String, AccountPlanHomeDashboardController.PlanListItem>();
-        for (AccountPlanHomeDashboardController.PlanListItem item : items) byTitle.put(item.title, item);
-
-        AccountPlanHomeDashboardController.PlanListItem planA = byTitle.get('Dashboard Test Plan A');
-        System.assertEquals(2, planA.totalActionItems);
-        System.assertEquals(1, planA.completedActionItems);
-        System.assertEquals(1, planA.overdueActionItems, 'A1 Item 2 is open and due yesterday');
-        System.assertEquals(50, planA.progressPercent);
-
-        AccountPlanHomeDashboardController.PlanListItem planB = byTitle.get('Dashboard Test Plan B');
-        System.assertEquals(1, planB.totalActionItems);
-        System.assertEquals(0, planB.completedActionItems);
-        System.assertEquals(0, planB.overdueActionItems, 'B1 Item 1 is due next week, not overdue');
-        System.assertEquals(0, planB.progressPercent);
     }
 }

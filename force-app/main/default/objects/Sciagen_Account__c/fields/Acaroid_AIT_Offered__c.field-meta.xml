@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Acaroid_AIT_Offered__c</fullName>
+    <description>Sites already giving SCIT are the fastest switch opportunity.</description>
+    <label>AIT Currently Offered</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>SCIT</fullName>
+                <default>false</default>
+                <label>SCIT</label>
+            </value>
+            <value>
+                <fullName>SLIT</fullName>
+                <default>false</default>
+                <label>SLIT</label>
+            </value>
+            <value>
+                <fullName>SCIT + SLIT</fullName>
+                <default>false</default>
+                <label>SCIT + SLIT</label>
+            </value>
+            <value>
+                <fullName>None</fullName>
+                <default>false</default>
+                <label>None</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

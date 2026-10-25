@@ -2,7 +2,6 @@
 <CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
     <customSettingsType>Hierarchy</customSettingsType>
     <description>Thresholds and switches for HCP/HCO duplicate detection and merging. A Hierarchy Custom Setting: set the org default here, override per profile or user if needed.</description>
-    <enableFeeds>false</enableFeeds>
     <label>Duplicate Setting</label>
     <visibility>Public</visibility>
 </CustomObject>

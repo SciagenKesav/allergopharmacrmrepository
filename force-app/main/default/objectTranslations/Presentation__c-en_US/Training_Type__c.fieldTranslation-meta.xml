@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Training Type --></label>
+    <name>Training_Type__c</name>
+    <picklistValues>
+        <masterLabel>Company Communication</masterLabel>
+        <translation><!-- Company Communication --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Compliance and Policy</masterLabel>
+        <translation><!-- Compliance and Policy --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Medical</masterLabel>
+        <translation><!-- Medical --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>References</masterLabel>
+        <translation><!-- References --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

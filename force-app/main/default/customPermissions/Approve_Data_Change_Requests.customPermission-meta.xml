@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomPermission xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Lets a data steward approve or reject Data Change Requests. Without it (or Modify All Data), a status change to Approved/Rejected is refused, so a rep can&apos;t approve their own request.</description>
+    <isLicensed>false</isLicensed>
+    <label>Approve Data Change Requests</label>
+</CustomPermission>

@@ -2,7 +2,6 @@
 <CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
     <customSettingsType>Hierarchy</customSettingsType>
     <description>Per-calendar-month deadline for submitting a Call Visit Report dated in a prior month — e.g. December&apos;s field set to 10 means a call dated in December can no longer be Submitted once it&apos;s past January 10th. Each month is configured independently so, for example, a fiscal year-end month can have a tighter deadline than the rest. A blank field means that month has no submission deadline. A Hierarchy Custom Setting, same as Call_Backdate_Limit__c, so an admin can set one org-wide default and override it per-Profile or per-User from Setup with no app deploy needed.</description>
-    <enableFeeds>false</enableFeeds>
     <label>Call Submission Restriction</label>
     <visibility>Public</visibility>
 </CustomObject>

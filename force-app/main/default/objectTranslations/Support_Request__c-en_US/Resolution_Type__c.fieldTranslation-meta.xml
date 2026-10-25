@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Resolution --></label>
+    <name>Resolution_Type__c</name>
+    <picklistValues>
+        <masterLabel>Answered</masterLabel>
+        <translation><!-- Answered --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Cannot Reproduce</masterLabel>
+        <translation><!-- Cannot Reproduce --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Declined</masterLabel>
+        <translation><!-- Declined --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Duplicate</masterLabel>
+        <translation><!-- Duplicate --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Fixed</masterLabel>
+        <translation><!-- Fixed --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>No Response</masterLabel>
+        <translation><!-- No Response --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Unlocked</masterLabel>
+        <translation><!-- Unlocked --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

@@ -1,0 +1,88 @@
+<template>
+    <lightning-card title="Monthly Plans" icon-name="standard:planogram">
+        <div class="slds-p-horizontal_medium">
+            <template if:true={notAllowed}>
+                <div class="slds-notify slds-notify_alert slds-alert_warning" role="alert">
+                    You need the Unlock Monthly Plans permission (Business Admin) to use this page.
+                </div>
+            </template>
+            <template if:false={notAllowed}>
+                <div class="toolbar">
+                    <lightning-combobox class="month" label="Month" value={month} options={monthOptions} onchange={monthChanged}></lightning-combobox>
+                    <lightning-input class="search" type="search" label="Rep" placeholder="Search by rep name" value={search} onchange={searchChanged}></lightning-input>
+                    <div class="stats">
+                        <span class="stat stat-request">{data.requested} unlock requests</span>
+                        <span class="stat">{data.frozen} frozen</span>
+                        <span class="stat">{data.draft} draft</span>
+                    </div>
+                    <lightning-button-icon icon-name="utility:refresh" alternative-text="Refresh" onclick={load}></lightning-button-icon>
+                </div>
+                <p class="hint">Unlocking sets the plan back to draft and clears its baseline. The rep changes it in My Schedule → Scheduler and freezes it again; the new freeze becomes the plan for Plan vs Actual.</p>
+
+                <template if:true={loading}><lightning-spinner alternative-text="Loading" size="small"></lightning-spinner></template>
+                <template if:true={error}><div class="slds-text-color_error slds-m-vertical_small">{error}</div></template>
+
+                <template if:false={hasRows}>
+                    <div class="empty">No rep has a plan for this month yet.</div>
+                </template>
+                <template if:true={hasRows}>
+                    <div class="table-wrap">
+                        <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                            <thead>
+                                <tr>
+                                    <th>Rep</th><th>Territory</th><th>Status</th><th>Frozen at</th>
+                                    <th class="num">Calls</th><th class="num">HCPs</th><th class="num">Empty days</th>
+                                    <th>Unlock request</th><th>Unlocked</th><th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={rows} for:item="r">
+                                    <tr key={r.id} class={r.rowClass}>
+                                        <td><a data-id={r.id} onclick={openRequest}>{r.repName}</a></td>
+                                        <td>{r.territory}</td>
+                                        <td><span class={r.statusClass}>{r.status}</span></td>
+                                        <td><lightning-formatted-date-time value={r.frozenAt} year="numeric" month="short" day="numeric" hour="2-digit" minute="2-digit"></lightning-formatted-date-time></td>
+                                        <td class="num">{r.callCount}</td>
+                                        <td class="num">{r.hcpCount}</td>
+                                        <td class="num">{r.emptyDays}</td>
+                                        <td>
+                                            <template if:true={r.requestId}>
+                                                <a data-id={r.requestId} onclick={openRequest}>{r.requestNumber}</a>
+                                                <div class="note" title={r.requestNote}>{r.requestNote}</div>
+                                            </template>
+                                        </td>
+                                        <td title={r.unlockReason}>{r.unlockHistory}</td>
+                                        <td>
+                                            <template if:true={r.isFrozen}>
+                                                <lightning-button label="Unlock" icon-name="utility:unlock" data-id={r.id} onclick={startUnlock} disabled={r.disabledUnlock}></lightning-button>
+                                            </template>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </template>
+            </template>
+        </div>
+    </lightning-card>
+
+    <template if:true={dialogOpen}>
+        <section role="dialog" tabindex="-1" aria-modal="true" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <h2 class="slds-text-heading_medium">Unlock {unlockRow.repName}'s {unlockRow.month} plan</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium">
+                    <p class="slds-m-bottom_small">The plan goes back to draft and its {unlockRow.callCount} frozen calls stop being the baseline. The rep has to freeze it again. The reason is saved on the plan and sent to the rep.</p>
+                    <lightning-textarea label="Reason" required max-length="255" value={reason} onchange={reasonChanged}></lightning-textarea>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning-button label="Cancel" onclick={cancelUnlock}></lightning-button>
+                    <lightning-button class="slds-m-left_x-small" variant="brand" label="Unlock plan" onclick={confirmUnlock} disabled={confirmDisabled}></lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+</template>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <columns>
+        <field>Support_Request__c$Name</field>
+    </columns>
+    <columns>
+        <field>Support_Request__c$Subject__c</field>
+    </columns>
+    <columns>
+        <field>Support_Request__c$Requester__c</field>
+    </columns>
+    <columns>
+        <field>Support_Request__c$Assigned_To__c</field>
+    </columns>
+    <columns>
+        <field>Support_Request__c$Resolution_Type__c</field>
+    </columns>
+    <columns>
+        <aggregateTypes>Average</aggregateTypes>
+        <field>Support_Request__c$Resolution_Minutes__c</field>
+    </columns>
+    <columns>
+        <field>Support_Request__c$Reopen_Count__c</field>
+    </columns>
+    <description>Requests resolved or closed in the last 30 days with the time each took, grouped by category.</description>
+    <format>Summary</format>
+    <groupingsDown>
+        <dateGranularity>Day</dateGranularity>
+        <field>Support_Request__c$Category__c</field>
+        <sortOrder>Asc</sortOrder>
+    </groupingsDown>
+    <name>Resolved Requests, Last 30 Days</name>
+    <params>
+        <name>co</name>
+        <value>1</value>
+    </params>
+    <reportType>Support_Request_Report__c</reportType>
+    <scope>organization</scope>
+    <showDetails>true</showDetails>
+    <showGrandTotal>true</showGrandTotal>
+    <showSubTotals>true</showSubTotals>
+    <timeFrameFilter>
+        <dateColumn>Support_Request__c$Resolved_At__c</dateColumn>
+        <interval>INTERVAL_LAST30</interval>
+    </timeFrameFilter>
+</Report>

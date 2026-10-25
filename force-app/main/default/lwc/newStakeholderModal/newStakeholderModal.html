@@ -1,0 +1,54 @@
+<template>
+    <section class="modal-backdrop" onclick={handleClose}>
+        <div class="modal-panel" onclick={stopPropagation}>
+            <div class="modal-header">
+                <h3>New Stakeholder</h3>
+                <p class="modal-subtitle">Under {planLabel}</p>
+                <button class="close-button" title="Close" onclick={handleClose}>&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <lightning-input
+                    label="Stakeholder Name"
+                    required
+                    value={stakeholderName}
+                    onchange={handleNameChange}
+                    class="field"
+                ></lightning-input>
+
+                <lightning-input
+                    label="Role"
+                    value={role}
+                    onchange={handleRoleChange}
+                    class="field"
+                ></lightning-input>
+
+                <lightning-combobox
+                    label="Influence"
+                    value={influence}
+                    options={influenceOptions}
+                    onchange={handleInfluenceChange}
+                    class="field"
+                ></lightning-combobox>
+
+                <lightning-combobox
+                    label="Relationship Strength"
+                    value={strength}
+                    options={strengthOptions}
+                    onchange={handleStrengthChange}
+                    class="field"
+                ></lightning-combobox>
+            </div>
+
+            <div class="modal-footer">
+                <lightning-button label="Cancel" onclick={handleClose}></lightning-button>
+                <lightning-button
+                    label="Save"
+                    variant="brand"
+                    disabled={isSaveDisabled}
+                    onclick={handleSave}
+                ></lightning-button>
+            </div>
+        </div>
+    </section>
+</template>

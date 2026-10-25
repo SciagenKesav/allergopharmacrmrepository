@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObjectTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <caseValues>
+        <plural>false</plural>
+        <value>Sample Limit Override</value>
+    </caseValues>
+    <caseValues>
+        <plural>true</plural>
+        <value>Sample Limit Overrides</value>
+    </caseValues>
+    <startsWith>Consonant</startsWith>
+    <validationRules>
+        <errorMessage><!-- An Increase override needs the new limit. --></errorMessage>
+        <name>Increase_Needs_A_Value</name>
+    </validationRules>
+    <validationRules>
+        <errorMessage><!-- Choose the doctor or the rep the override is for. --></errorMessage>
+        <name>Override_Needs_A_Target</name>
+    </validationRules>
+    <validationRules>
+        <errorMessage><!-- Say why the override is needed. --></errorMessage>
+        <name>Reason_Is_Required</name>
+    </validationRules>
+    <validationRules>
+        <errorMessage><!-- Valid To can&apos;t be before Valid From. --></errorMessage>
+        <name>Valid_To_After_From</name>
+    </validationRules>
+</CustomObjectTranslation>

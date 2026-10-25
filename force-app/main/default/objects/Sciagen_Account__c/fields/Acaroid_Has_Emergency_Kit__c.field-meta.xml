@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Acaroid_Has_Emergency_Kit__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>MUST-HAVE. Emergency treatment must be available at every administration.</description>
+    <label>Emergency Kit incl. Adrenaline</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

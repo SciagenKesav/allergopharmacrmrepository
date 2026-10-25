@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ExternalClientApplication xmlns="http://soap.sforce.com/2006/04/metadata">
+    <contactEmail>vhkesav@gmail.com</contactEmail>
+    <description>Created for IPAD login</description>
+    <distributionState>Local</distributionState>
+    <isProtected>false</isProtected>
+    <label>IPAD APP</label>
+    <orgScopedExternalApp>00DC1000005PG9x:IPAD_APP</orgScopedExternalApp>
+</ExternalClientApplication>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Support Last Read --></label>
+    <name>Support_Last_Read_At__c</name>
+</CustomFieldTranslation>

@@ -24,11 +24,6 @@
                 <default>false</default>
                 <label>User</label>
             </value>
-            <value>
-                <fullName>Multiple Users</fullName>
-                <default>false</default>
-                <label>Multiple Users</label>
-            </value>
         </valueSetDefinition>
     </valueSet>
 </CustomField>

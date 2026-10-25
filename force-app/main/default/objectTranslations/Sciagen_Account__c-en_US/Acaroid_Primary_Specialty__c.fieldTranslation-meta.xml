@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Acaroid Primary Specialty --></label>
+    <name>Acaroid_Primary_Specialty__c</name>
+    <picklistValues>
+        <masterLabel>Allergist / Clinical Immunologist</masterLabel>
+        <translation><!-- Allergist / Clinical Immunologist --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Consulting Physician</masterLabel>
+        <translation><!-- Consulting Physician --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Dermatologist</masterLabel>
+        <translation><!-- Dermatologist --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>ENT Surgeon</masterLabel>
+        <translation><!-- ENT Surgeon --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>General Practitioner</masterLabel>
+        <translation><!-- General Practitioner --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Paediatric Pulmonologist</masterLabel>
+        <translation><!-- Paediatric Pulmonologist --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Paediatrician</masterLabel>
+        <translation><!-- Paediatrician --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Pulmonologist / Chest Physician</masterLabel>
+        <translation><!-- Pulmonologist / Chest Physician --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

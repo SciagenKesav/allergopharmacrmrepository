@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Child_Call__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>The individual Call Visit Report GroupCallService created for this attendee. Blank for the primary HCP, whose call is the group call itself.</description>
+    <label>Attendee Call</label>
+    <referenceTo>Call_Visit_Report__c</referenceTo>
+    <relationshipLabel>Group Call Attendee Links</relationshipLabel>
+    <relationshipName>Group_Attendee_Links</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Stage --></label>
+    <name>Stage__c</name>
+    <picklistValues>
+        <masterLabel>Early</masterLabel>
+        <translation><!-- Early --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Mid</masterLabel>
+        <translation><!-- Mid --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Partnership</masterLabel>
+        <translation><!-- Partnership --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Prospect</masterLabel>
+        <translation><!-- Prospect --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Synergistic</masterLabel>
+        <translation><!-- Synergistic --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

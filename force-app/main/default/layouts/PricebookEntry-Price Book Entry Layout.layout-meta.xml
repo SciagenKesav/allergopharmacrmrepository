@@ -2,8 +2,8 @@
 <Layout xmlns="http://soap.sforce.com/2006/04/metadata">
     <layoutSections>
         <customLabel>false</customLabel>
-        <detailHeading>false</detailHeading>
-        <editHeading>false</editHeading>
+        <detailHeading>true</detailHeading>
+        <editHeading>true</editHeading>
         <label>Information</label>
         <layoutColumns>
             <layoutItems>
@@ -15,37 +15,20 @@
                 <field>Pricebook2Id</field>
             </layoutItems>
             <layoutItems>
-                <behavior>Required</behavior>
-                <field>UnitPrice</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>UseStandardPrice</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Readonly</behavior>
-                <field>LastModifiedById</field>
-            </layoutItems>
-        </layoutColumns>
-        <layoutColumns>
-            <layoutItems>
                 <behavior>Edit</behavior>
                 <field>IsActive</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Required</behavior>
+                <field>UnitPrice</field>
             </layoutItems>
             <layoutItems>
                 <behavior>Readonly</behavior>
                 <field>ProductCode</field>
             </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>StandardPrice</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Readonly</behavior>
-                <field>CreatedById</field>
-            </layoutItems>
         </layoutColumns>
-        <style>TwoColumnsLeftToRight</style>
+        <layoutColumns/>
+        <style>TwoColumnsTopToBottom</style>
     </layoutSections>
     <layoutSections>
         <customLabel>false</customLabel>
@@ -55,8 +38,8 @@
         <style>CustomLinks</style>
     </layoutSections>
     <multilineLayoutFields>Product2Id</multilineLayoutFields>
-    <multilineLayoutFields>Pricebook2Id</multilineLayoutFields>
     <multilineLayoutFields>IsActive</multilineLayoutFields>
+    <multilineLayoutFields>Pricebook2Id</multilineLayoutFields>
     <multilineLayoutFields>UnitPrice</multilineLayoutFields>
     <multilineLayoutFields>ProductCode</multilineLayoutFields>
     <showEmailCheckbox>false</showEmailCheckbox>

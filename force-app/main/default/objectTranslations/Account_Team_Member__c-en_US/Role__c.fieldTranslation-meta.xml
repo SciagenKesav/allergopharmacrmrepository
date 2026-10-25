@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Role --></label>
+    <name>Role__c</name>
+    <picklistValues>
+        <masterLabel>Brand Manager</masterLabel>
+        <translation><!-- Brand Manager --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>KAM</masterLabel>
+        <translation><!-- KAM --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Key Account Manager</masterLabel>
+        <translation><!-- Key Account Manager --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>MSL</masterLabel>
+        <translation><!-- MSL --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Medical Advisor</masterLabel>
+        <translation><!-- Medical Advisor --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>RSM</masterLabel>
+        <translation><!-- RSM --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Sales Rep</masterLabel>
+        <translation><!-- Sales Rep --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

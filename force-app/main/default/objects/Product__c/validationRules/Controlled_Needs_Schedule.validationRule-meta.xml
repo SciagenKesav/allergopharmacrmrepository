@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Controlled_Needs_Schedule</fullName>
+    <active>true</active>
+    <errorConditionFormula>AND(Is_Controlled_Substance__c, ISBLANK(Controlled_Substance_Schedule__c))</errorConditionFormula>
+    <errorDisplayField>Controlled_Substance_Schedule__c</errorDisplayField>
+    <errorMessage>Enter the drug schedule for a controlled substance.</errorMessage>
+</ValidationRule>

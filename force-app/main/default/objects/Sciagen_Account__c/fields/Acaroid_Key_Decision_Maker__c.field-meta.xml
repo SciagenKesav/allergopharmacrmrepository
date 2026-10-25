@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Acaroid_Key_Decision_Maker__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>HOD / Medical Director who approves introduction.</description>
+    <label>Key Decision Maker</label>
+    <referenceTo>Sciagen_Account__c</referenceTo>
+    <relationshipLabel>Acaroid Key Decision Maker HCOs</relationshipLabel>
+    <relationshipName>Acaroid_KeyDecisionMaker_HCOs</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

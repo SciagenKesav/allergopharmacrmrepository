@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Profile_Summary__c</fullName>
+    <description>Rep-authored profile note (preferred topics, key insights), edited from the iPad HCP Profile tab.</description>
     <label>Profile Summary</label>
-    <length>2000</length>
+    <length>32768</length>
     <trackTrending>false</trackTrending>
     <type>LongTextArea</type>
-    <visibleLines>6</visibleLines>
+    <visibleLines>4</visibleLines>
 </CustomField>

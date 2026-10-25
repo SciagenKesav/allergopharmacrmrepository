@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Is_Group_Call__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>Set by GroupCallService: true on a call that had more than one HCP attendee (the parent call) and on every individual call created from it for the other attendees (the child calls, which also have Parent Call set).</description>
+    <inlineHelpText>This call was made to a group of HCPs. Each attendee has their own individual call linked to the same group call.</inlineHelpText>
+    <label>Group Call</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

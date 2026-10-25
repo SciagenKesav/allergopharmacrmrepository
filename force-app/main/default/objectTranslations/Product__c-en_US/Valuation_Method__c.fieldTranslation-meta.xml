@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Valuation Method --></label>
+    <name>Valuation_Method__c</name>
+    <picklistValues>
+        <masterLabel>Purchase Price</masterLabel>
+        <translation><!-- Purchase Price --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Stockist Price</masterLabel>
+        <translation><!-- Stockist Price --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

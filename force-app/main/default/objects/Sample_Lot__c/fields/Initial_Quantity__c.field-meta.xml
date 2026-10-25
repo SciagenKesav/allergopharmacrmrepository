@@ -1,23 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Initial_Quantity__c</fullName>
-    <description>DEPRECATED (Phase 0 hotfix, D11): removed from the page layout and set
-        read-only in FLS (Sciagen_Sample_Admin permission set). Stock enters only through
-        Receipt or Transfer-In (SampleTransactionService); SampleTransactionService.
-        landTransfersIn still sets it once, from Apex, at the moment a Transfer-In creates
-        a brand-new lot for the recipient -- that's the field doing its one legitimate
-        job, not an exception to the deprecation. Kept (not deleted) for historical/
-        reporting continuity on existing lots. notifyLargeAdjustments() no longer reads
-        this field -- it now sums Receipt and Transfer-In transactions for the lot's
-        quantity received to date instead, so a lot that has been topped up since it was
-        created is judged against its real cumulative total, not a stale creation-time
-        snapshot.</description>
     <externalId>false</externalId>
     <label>Initial Quantity (packs)</label>
     <precision>9</precision>
-    <required>false</required>
+    <required>true</required>
     <scale>0</scale>
-    <trackHistory>true</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Number</type>
     <unique>false</unique>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Next_Visit_Planned_Call__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>The follow-up Planned_Call__c auto-created from this CVR&apos;s Next_Visit_Date__c (CVRNextVisitPlannedCall trigger). Also guards against creating a second follow-up call if the CVR is saved again with the same Next_Visit_Date__c.</description>
+    <label>Next Visit Planned Call</label>
+    <referenceTo>Planned_Call__c</referenceTo>
+    <relationshipName>NextVisitSourceCVRs</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

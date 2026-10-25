@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Active_Affiliation_Statuses__c</fullName>
+    <defaultValue>&quot;Active&quot;</defaultValue>
+    <description>Semicolon-separated Affiliation__c.Acaroid_Affiliation_Status__c values treated as &quot;active&quot; when recomputing an HCO&apos;s Experienced-Physician flag and an HCP&apos;s Primary HCO/Can-Administer-SCIT from the affiliation network.</description>
+    <externalId>false</externalId>
+    <label>Active Affiliation Statuses</label>
+    <length>100</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

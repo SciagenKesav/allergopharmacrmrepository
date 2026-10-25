@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Restricted_Needs_Reason</fullName>
+    <active>true</active>
+    <errorConditionFormula>AND(Is_Restricted__c, ISPICKVAL(Restriction_Reason__c, &apos;&apos;))</errorConditionFormula>
+    <errorDisplayField>Restriction_Reason__c</errorDisplayField>
+    <errorMessage>Choose why this product is restricted.</errorMessage>
+</ValidationRule>

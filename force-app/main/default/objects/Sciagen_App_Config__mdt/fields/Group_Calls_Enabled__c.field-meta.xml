@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Group_Calls_Enabled__c</fullName>
+    <defaultValue>true</defaultValue>
+    <description>Extra HCP attendees on a call get their own attendee call (GroupCallService).</description>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <label>Group Calls Enabled</label>
+    <type>Checkbox</type>
+</CustomField>

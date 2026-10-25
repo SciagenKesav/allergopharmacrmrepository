@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Current AIT Product Source --></label>
+    <name>Acaroid_AIT_Product_Source__c</name>
+    <picklistValues>
+        <masterLabel>Compounded in-house</masterLabel>
+        <translation><!-- Compounded in-house --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Imported product</masterLabel>
+        <translation><!-- Imported product --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Local extract</masterLabel>
+        <translation><!-- Local extract --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>None</masterLabel>
+        <translation><!-- None --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

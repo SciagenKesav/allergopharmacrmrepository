@@ -1,0 +1,249 @@
+<template>
+    <div class="page">
+        <div class="page-header">
+            <h2>Geofence Settings</h2>
+            <p class="page-subtitle">Control geofenced check-in for the field team. A rep gets the first rule that applies: their own User rule, then their Territory rule, then the Organization default. Changes reach each iPad on its next sync.</p>
+        </div>
+
+        <template if:true={error}>
+            <div class="slds-notify slds-notify_alert slds-alert_error" role="alert">{error}</div>
+        </template>
+
+        <lightning-tabset>
+            <lightning-tab label="Rules">
+                <lightning-card title="Organization default" icon-name="standard:location">
+                    <div class="slds-p-horizontal_medium">
+                        <lightning-input type="toggle" label="Geofencing" checked={enabled}
+                            message-toggle-active="On" message-toggle-inactive="Off"
+                            onchange={handleEnabled}></lightning-input>
+                        <p class="hint">When off, the iPad does no geofence check: no distance test, no arrival prompt, nothing blocked. Check-in still records the rep's GPS position.</p>
+
+                        <div class="slds-m-top_medium">
+                            <lightning-input type="toggle" label="Block check-in outside the radius" checked={enforce}
+                                disabled={enforceDisabled} message-toggle-active="Block" message-toggle-inactive="Record only"
+                                onchange={handleEnforce}></lightning-input>
+                            <p class="hint">Block: a rep can't check in or submit a call from outside the radius. Record only: the check-in is saved with its distance and nothing is stopped.</p>
+                        </div>
+
+                        <div class="slds-m-top_medium radius-row">
+                            <lightning-input type="number" label="Default radius (metres)" value={defaultRadiusM}
+                                min="25" max="5000" step="1" disabled={radiusDisabled}
+                                field-level-help="Applies to every HCO that has no radius of its own. Allowed 25 to 5000."
+                                onchange={handleRadius}></lightning-input>
+                        </div>
+
+                        <div class="slds-m-vertical_medium">
+                            <lightning-button variant="brand" label="Save settings" onclick={handleSave}
+                                disabled={saveDisabled}></lightning-button>
+                            <template if:true={dirty}><span class="unsaved">Unsaved changes</span></template>
+                        </div>
+                    </div>
+                </lightning-card>
+
+                <lightning-card title="Territory and User rules" icon-name="standard:territory">
+                    <lightning-button slot="actions" variant="brand" label="New rule" onclick={openNewRule}></lightning-button>
+                    <div class="slds-p-horizontal_medium">
+                        <p class="hint">A rule overrides the organization default for one Territory or one User. A territory with no rule inherits from its parent territory. A rep in several territories gets their primary territory's rule; if the primary has none, the strictest of the others applies.</p>
+
+                        <div class="filters">
+                            <lightning-combobox label="Applies to" value={scopeFilter} options={scopeFilterOptions}
+                                onchange={handleScopeFilter}></lightning-combobox>
+                            <lightning-combobox label="Territory" value={territoryFilter} options={territoryFilterOptions}
+                                onchange={handleTerritoryFilter}
+                                field-level-help="Shows the Territory's own rule and the rules for users who belong to it."></lightning-combobox>
+                            <lightning-combobox label="Status" value={statusFilter} options={statusFilterOptions}
+                                onchange={handleStatusFilter}></lightning-combobox>
+                            <lightning-input type="search" label="Search" value={ruleTerm}
+                                placeholder="Territory, user or note" onchange={handleRuleTerm}></lightning-input>
+                        </div>
+                        <p class="count">{ruleCountText}</p>
+
+                        <template if:true={hasVisibleRules}>
+                            <div class="table-wrap">
+                                <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                                    <thead>
+                                        <tr class="slds-line-height_reset">
+                                            <th scope="col">Applies to</th>
+                                            <th scope="col">Geofencing</th>
+                                            <th scope="col">Check-in</th>
+                                            <th scope="col">Radius</th>
+                                            <th scope="col">Status</th>
+                                            <th scope="col"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template for:each={visibleRules} for:item="r">
+                                            <tr key={r.id}>
+                                                <td>
+                                                    <div class="rname">{r.appliesTo}</div>
+                                                    <div class="rdetail">{r.scopeLabel}<template if:true={r.detail}> · {r.detail}</template></div>
+                                                    <template if:true={r.note}><div class="rdetail">{r.note}</div></template>
+                                                </td>
+                                                <td>{r.onText}</td>
+                                                <td>{r.modeText}</td>
+                                                <td>{r.radiusText}</td>
+                                                <td><span class={r.statusClass}>{r.statusText}</span></td>
+                                                <td class="actions">
+                                                    <lightning-button label="Edit" data-id={r.id} onclick={openEditRule}></lightning-button>
+                                                    <lightning-button label="Delete" variant="destructive-text" data-id={r.id} onclick={handleDeleteRule}></lightning-button>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </template>
+                        <template if:false={hasVisibleRules}>
+                            <p class="hint slds-m-vertical_small">{emptyRulesText}</p>
+                        </template>
+                    </div>
+                </lightning-card>
+
+                <lightning-card title="What does a rep get?" icon-name="standard:user">
+                    <div class="slds-p-horizontal_medium">
+                        <p class="hint">Pick a user to see the setting their iPad will use and which level decided it.</p>
+                        <div class="preview-row">
+                            <lightning-record-picker label="User" placeholder="Search users" object-api-name="User"
+                                filter={activeUserFilter} onchange={handlePreviewUser}></lightning-record-picker>
+                            <lightning-button label="Check" onclick={runPreview} disabled={previewDisabled}></lightning-button>
+                        </div>
+                        <template if:true={effective}>
+                            <div class="effective">
+                                <div class="rname">{effective.userName}</div>
+                                <div>{effectiveText}</div>
+                                <div class="rdetail">Decided by: {effective.source}</div>
+                            </div>
+                        </template>
+                    </div>
+                </lightning-card>
+            </lightning-tab>
+
+            <lightning-tab label="Radius per HCO">
+                <lightning-card title="Radius per HCO" icon-name="standard:account">
+                    <div class="slds-p-horizontal_medium">
+                        <p class="hint">Give a large hospital campus its own radius. It beats every rule above. Leave blank to use the radius from the rep's rule or the default ({defaultRadiusM} m). An HCO with no map location can't be geofenced.</p>
+                        <div class="filters">
+                            <lightning-input type="search" label="HCO name or city" value={searchTerm}
+                                placeholder="Find HCO by name or city"
+                                onchange={handleSearchInput} onkeyup={handleSearchKey}></lightning-input>
+                            <lightning-combobox label="Territory" value={hcoTerritory} options={territoryFilterOptions}
+                                onchange={handleHcoTerritory}></lightning-combobox>
+                            <div class="checks">
+                                <lightning-input type="checkbox" label="Has its own radius" checked={customOnly}
+                                    onchange={handleCustomOnly}></lightning-input>
+                                <lightning-input type="checkbox" label="Missing map location" checked={missingOnly}
+                                    onchange={handleMissingOnly}></lightning-input>
+                            </div>
+                            <lightning-button label="Search" onclick={runSearch}></lightning-button>
+                        </div>
+
+                        <template if:true={hasHcos}>
+                            <div class="table-wrap">
+                                <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-m-top_small">
+                                    <thead>
+                                        <tr class="slds-line-height_reset">
+                                            <th scope="col">HCO</th>
+                                            <th scope="col">City</th>
+                                            <th scope="col">Map location</th>
+                                            <th scope="col">Radius (m)</th>
+                                            <th scope="col"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template for:each={hcos} for:item="h">
+                                            <tr key={h.id}>
+                                                <td>{h.name}</td>
+                                                <td>{h.city}</td>
+                                                <td>
+                                                    <template if:true={h.hasLocation}><lightning-badge label="On file"></lightning-badge></template>
+                                                    <template if:false={h.hasLocation}><lightning-badge label="Missing" class="missing"></lightning-badge></template>
+                                                </td>
+                                                <td class="radius-cell">
+                                                    <lightning-input type="number" variant="label-hidden" label="Radius" data-id={h.id}
+                                                        value={h.radiusText} min="25" max="5000" placeholder={defaultRadiusM}
+                                                        onchange={handleHcoRadius}></lightning-input>
+                                                </td>
+                                                <td>
+                                                    <lightning-button label="Save" data-id={h.id} onclick={saveHco} disabled={h.saveDisabled}></lightning-button>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </template>
+                        <template if:true={noHcos}>
+                            <p class="hint slds-m-top_small">No HCOs match.</p>
+                        </template>
+                    </div>
+                </lightning-card>
+            </lightning-tab>
+        </lightning-tabset>
+    </div>
+
+    <template if:true={showEditor}>
+        <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="rule-title" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <h2 id="rule-title" class="slds-modal__title slds-hyphenate">{editorTitle}</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium">
+                    <template if:true={editor.isNew}>
+                        <lightning-radio-group label="Applies to" name="ruleScope" options={scopeChoices} value={editor.scope}
+                            type="button" onchange={handleEditorScope}></lightning-radio-group>
+                        <div class="slds-m-top_small">
+                            <template if:true={editorIsTerritory}>
+                                <lightning-combobox label="Territory" value={editor.territoryId} options={territoryChoices}
+                                    placeholder="Choose a territory" required onchange={handleEditorTerritory}></lightning-combobox>
+                            </template>
+                            <template if:false={editorIsTerritory}>
+                                <lightning-record-picker label="User" placeholder="Search users" object-api-name="User"
+                                    filter={activeUserFilter} onchange={handleEditorUser}></lightning-record-picker>
+                            </template>
+                        </div>
+                    </template>
+                    <template if:false={editor.isNew}>
+                        <div class="rname">{editor.targetName}</div>
+                        <div class="rdetail">{editor.scope} rule</div>
+                    </template>
+
+                    <div class="slds-m-top_medium">
+                        <lightning-input type="toggle" label="Rule active" checked={editor.active}
+                            message-toggle-active="Active" message-toggle-inactive="Inactive"
+                            onchange={handleEditorActive}></lightning-input>
+                        <p class="hint">An inactive rule is ignored, so the rep falls through to the next level.</p>
+                    </div>
+                    <div class="slds-m-top_small">
+                        <lightning-input type="toggle" label="Geofencing" checked={editor.enabled}
+                            message-toggle-active="On" message-toggle-inactive="Off"
+                            onchange={handleEditorEnabled}></lightning-input>
+                    </div>
+                    <div class="slds-m-top_small">
+                        <lightning-input type="toggle" label="Block check-in outside the radius" checked={editor.enforce}
+                            disabled={editorOff} message-toggle-active="Block" message-toggle-inactive="Record only"
+                            onchange={handleEditorEnforce}></lightning-input>
+                    </div>
+                    <div class="slds-m-top_small radius-row">
+                        <lightning-input type="number" label="Radius (metres)" value={editor.radius} min="25" max="5000"
+                            step="1" disabled={editorOff} placeholder={defaultRadiusM}
+                            field-level-help="Leave blank to use the organization default. Allowed 25 to 5000."
+                            onchange={handleEditorRadius}></lightning-input>
+                    </div>
+                    <div class="slds-m-top_small">
+                        <lightning-input type="text" label="Note" value={editor.note} maxlength="255"
+                            placeholder="Why this rule exists" onchange={handleEditorNote}></lightning-input>
+                    </div>
+                    <template if:true={editorError}>
+                        <div class="slds-text-color_error slds-m-top_small" role="alert">{editorError}</div>
+                    </template>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning-button label="Cancel" onclick={closeEditor}></lightning-button>
+                    <lightning-button variant="brand" label="Save rule" class="slds-m-left_x-small"
+                        onclick={saveEditor} disabled={editorSaveDisabled}></lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+</template>

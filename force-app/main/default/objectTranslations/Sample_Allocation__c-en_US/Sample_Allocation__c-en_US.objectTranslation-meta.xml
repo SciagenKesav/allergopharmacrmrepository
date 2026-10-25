@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObjectTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <caseValues>
+        <plural>false</plural>
+        <value>Sample Allocation</value>
+    </caseValues>
+    <caseValues>
+        <plural>true</plural>
+        <value>Sample Allocations</value>
+    </caseValues>
+    <startsWith>Consonant</startsWith>
+    <validationRules>
+        <errorMessage><!-- Allocate to a rep or a territory. --></errorMessage>
+        <name>Allocation_Needs_A_Recipient</name>
+    </validationRules>
+    <validationRules>
+        <errorMessage><!-- Period End can&apos;t be before Period Start. --></errorMessage>
+        <name>Period_End_After_Start</name>
+    </validationRules>
+</CustomObjectTranslation>

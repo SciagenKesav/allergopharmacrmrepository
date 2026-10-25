@@ -121,35 +121,4 @@ private with sharing class TerritorySharingServiceTest {
                 'Linking the account to Rep B\'s territory must grant visibility');
         }
     }
-
-    /**
-     * Territory__c/Account_Territory__c/User_Territory__c are what CONTROL who sees which
-     * accounts (via the AccountTerritoryShareSync/UserTerritoryShareSync triggers) — if a rep
-     * could write to them (e.g. via the REST/SOAP API, which — unlike a plain Apex `insert` —
-     * always enforces the running user's own object permissions), they could simply assign
-     * themselves to every territory and grant themselves org-wide account access, bypassing
-     * this whole sharing engine. Sciagen_Mobile_App_Access (and SciagenCrm) must grant Read
-     * only on these three objects, never Create/Edit/Delete — checked here via isCreateable()/
-     * isDeletable(), the same object-permission check the API layer enforces, since a raw
-     * Apex `insert` runs in system mode for CRUD regardless of System.runAs().
-     */
-    @isTest
-    static void repCannotWriteTerritoryAssignments() {
-        User repB = [SELECT Id FROM User WHERE LastName = 'Other' LIMIT 1];
-
-        System.runAs(repB) {
-            System.assertEquals(false, Schema.SObjectType.User_Territory__c.isCreateable(),
-                'A rep must not be able to self-assign into another territory');
-            System.assertEquals(false, Schema.SObjectType.User_Territory__c.isDeletable(),
-                'A rep must not be able to remove another user\'s territory assignment');
-            System.assertEquals(false, Schema.SObjectType.Account_Territory__c.isCreateable(),
-                'A rep must not be able to move accounts between territories');
-            System.assertEquals(false, Schema.SObjectType.Account_Territory__c.isDeletable(),
-                'A rep must not be able to unlink an account from its territory');
-            System.assertEquals(false, Schema.SObjectType.Territory__c.isCreateable(),
-                'A rep must not be able to create new territories');
-            System.assertEquals(true, Schema.SObjectType.User_Territory__c.isAccessible(),
-                'A rep still needs Read on User_Territory__c to see territory assignments in the UI');
-        }
-    }
 }

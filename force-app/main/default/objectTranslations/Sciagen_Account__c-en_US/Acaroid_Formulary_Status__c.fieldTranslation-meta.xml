@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Formulary / P&amp;T Status --></label>
+    <name>Acaroid_Formulary_Status__c</name>
+    <picklistValues>
+        <masterLabel>Approved</masterLabel>
+        <translation><!-- Approved --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Not applicable</masterLabel>
+        <translation><!-- Not applicable --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Not initiated</masterLabel>
+        <translation><!-- Not initiated --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Rejected</masterLabel>
+        <translation><!-- Rejected --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Submitted</masterLabel>
+        <translation><!-- Submitted --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <columns>
+        <field>Sample_Lot__c$Product__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Lot__c$Lot_Number__c</field>
+    </columns>
+    <columns>
+        <aggregateTypes>Sum</aggregateTypes>
+        <field>Sample_Lot__c$Available_Quantity__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Lot__c$Expiry_Date__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Lot__c$Days_To_Expiry__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Lot__c$Status__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Lot__c$Rep_Territory__c</field>
+    </columns>
+    <description>Active lots and what each rep holds. Filter Rep Territory or Product, or add a Days To Expiry filter to see what is expiring.</description>
+    <format>Summary</format>
+    <groupingsDown>
+        <dateGranularity>Day</dateGranularity>
+        <field>Sample_Lot__c$Owner_User__c</field>
+        <sortOrder>Asc</sortOrder>
+    </groupingsDown>
+    <name>Inventory Status</name>
+    <params>
+        <name>co</name>
+        <value>1</value>
+    </params>
+    <reportType>Sample_Lot_Report__c</reportType>
+    <scope>organization</scope>
+    <showDetails>true</showDetails>
+    <showGrandTotal>true</showGrandTotal>
+    <showSubTotals>true</showSubTotals>
+    <timeFrameFilter>
+        <dateColumn>Sample_Lot__c$Cold_Chain_Last_Checked__c</dateColumn>
+        <interval>INTERVAL_CURRENT</interval>
+    </timeFrameFilter>
+</Report>

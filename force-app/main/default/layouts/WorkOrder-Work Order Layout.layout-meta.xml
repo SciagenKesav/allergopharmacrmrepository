@@ -27,10 +27,6 @@
                 <behavior>Edit</behavior>
                 <field>CaseId</field>
             </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>ServiceContractId</field>
-            </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>
@@ -48,10 +44,6 @@
             <layoutItems>
                 <behavior>Edit</behavior>
                 <field>AssetId</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>EntitlementId</field>
             </layoutItems>
         </layoutColumns>
         <style>TwoColumnsLeftToRight</style>
@@ -109,29 +101,14 @@
         <fields>Priority</fields>
         <fields>Status</fields>
     </miniLayout>
-    <relatedLists>
-        <fields>Name</fields>
-        <fields>ExecutionOrder</fields>
-        <relatedList>NewWorkPlans</relatedList>
-    </relatedLists>
-    <relatedLists>
-        <fields>Name</fields>
-        <fields>Status</fields>
-        <fields>ExecutionOrder</fields>
-        <relatedList>NewWorkSteps</relatedList>
-    </relatedLists>
-    <relatedLists>
-        <fields>Name</fields>
-        <fields>ExecutionOrder</fields>
-        <fields>WorkOrderLineItem</fields>
-        <relatedList>WorkPlans</relatedList>
-    </relatedLists>
-    <relatedLists>
-        <fields>Name</fields>
-        <fields>Status</fields>
-        <fields>ExecutionOrder</fields>
-        <relatedList>WorkSteps</relatedList>
-    </relatedLists>
+    <quickActionList>
+        <quickActionListItems>
+            <quickActionName>FeedItem.MobileSmartActions</quickActionName>
+        </quickActionListItems>
+        <quickActionListItems>
+            <quickActionName>FeedItem.ContentNote</quickActionName>
+        </quickActionListItems>
+    </quickActionList>
     <relatedLists>
         <fields>Name</fields>
         <fields>Asset</fields>
@@ -163,27 +140,15 @@
         <relatedList>RelatedFileList</relatedList>
     </relatedLists>
     <relatedLists>
+        <relatedList>RelatedContentNoteList</relatedList>
+    </relatedLists>
+    <relatedLists>
         <fields>Name</fields>
         <fields>Subject</fields>
         <fields>Account</fields>
         <fields>Priority</fields>
         <fields>Status</fields>
         <relatedList>ChildWorkOrders</relatedList>
-    </relatedLists>
-    <relatedLists>
-        <fields>Name</fields>
-        <fields>Contact</fields>
-        <fields>Account</fields>
-        <fields>Status</fields>
-        <fields>SchedStartTime</fields>
-        <fields>SchedEndTime</fields>
-        <fields>EarliestStartTime</fields>
-        <relatedList>ServiceAppointments</relatedList>
-    </relatedLists>
-    <relatedLists>
-        <fields>Skill</fields>
-        <fields>SkillLevel</fields>
-        <relatedList>SkillRequirements</relatedList>
     </relatedLists>
     <showEmailCheckbox>false</showEmailCheckbox>
     <showHighlightsPanel>false</showHighlightsPanel>

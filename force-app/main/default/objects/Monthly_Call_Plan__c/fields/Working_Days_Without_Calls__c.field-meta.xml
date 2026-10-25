@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Working_Days_Without_Calls__c</fullName>
+    <description>Working days of the month (not a Non-Working Day in Sciagen App Config) with no planned call when it was frozen; holidays included.</description>
+    <externalId>false</externalId>
+    <label>Working Days Without Calls</label>
+    <precision>6</precision>
+    <required>false</required>
+    <scale>0</scale>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Number</type>
+    <unique>false</unique>
+</CustomField>

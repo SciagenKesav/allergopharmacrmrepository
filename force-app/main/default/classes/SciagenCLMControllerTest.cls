@@ -1,6 +1,19 @@
 @isTest
 private class SciagenCLMControllerTest {
 
+    /// Brand__c values are org data (they differ per customer), so fixtures use
+    /// whatever the org's restricted picklists actually offer.
+    static String activeValue(Schema.SObjectField field, Integer index) {
+        List<String> values = new List<String>();
+        for (Schema.PicklistEntry e : field.getDescribe().getPicklistValues()) {
+            if (e.isActive()) values.add(e.getValue());
+        }
+        return values.isEmpty() ? null : values[Math.min(index, values.size() - 1)];
+    }
+    static String presBrand() { return activeValue(Presentation__c.Brand__c, 0); }
+    static String otherPresBrand() { return activeValue(Presentation__c.Brand__c, 1); }
+    static String slideBrand() { return activeValue(Slide__c.Brand__c, 0); }
+
     @testSetup
     static void setup() {
         Sciagen_Account__c hcp = new Sciagen_Account__c(
@@ -14,26 +27,26 @@ private class SciagenCLMControllerTest {
         );
         insert cvr;
 
-        Product__c product = new Product__c(Name = 'CLM Test Product', Brand_Name__c = 'Emrok', Division__c = 'Cardiology');
+        Product__c product = new Product__c(Product_Code__c = 'T-SCLMCT-1', Name = 'CLM Test Product', Brand_Name__c = 'Emrok', Division__c = 'Cardiology');
         insert product;
 
         Presentation__c approved = new Presentation__c(
-            Presentation_Name__c = 'Emrok Detail Deck', Brand__c = 'Emrok', Product__c = product.Id,
+            Presentation_Name__c = 'Emrok Detail Deck', Brand__c = presBrand(), Product__c = product.Id,
             Version__c = 'v1.0', Approval_Status__c = 'Approved Promotional'
         );
         Presentation__c draft = new Presentation__c(
-            Presentation_Name__c = 'Unapproved Deck', Brand__c = 'Glaritus', Approval_Status__c = 'Draft'
+            Presentation_Name__c = 'Unapproved Deck', Brand__c = otherPresBrand(), Approval_Status__c = 'Draft'
         );
         insert new List<Presentation__c>{ approved, draft };
 
         insert new List<Slide__c>{
             new Slide__c(
                 Presentation__c = approved.Id, Slide_Name__c = 'Efficacy Overview', Slide_No__c = 1,
-                File_Type__c = 'PDF', Brand__c = 'Emrok', Product__c = product.Id
+                File_Type__c = 'PDF', Brand__c = slideBrand(), Product__c = product.Id
             ),
             new Slide__c(
                 Presentation__c = approved.Id, Slide_Name__c = 'Dosing Guide', Slide_No__c = 2,
-                File_Type__c = 'PDF', Brand__c = 'Emrok', Product__c = product.Id
+                File_Type__c = 'PDF', Brand__c = slideBrand(), Product__c = product.Id
             )
         };
     }
@@ -47,16 +60,17 @@ private class SciagenCLMControllerTest {
 
         System.assertEquals(1, items.size(), 'Only the Approved Promotional deck should be returned');
         System.assertEquals('Emrok Detail Deck', items[0].name);
-        System.assertEquals('Emrok', items[0].brand);
+        System.assertEquals(presBrand(), items[0].brand);
         System.assertEquals('CLM Test Product', items[0].productName);
         System.assertEquals(2, items[0].slideCount);
+        System.assertEquals(false, items[0].isFavorite, 'Not favorited yet');
     }
 
     @isTest
     static void getPresentationLibraryFiltersByBrand() {
         Test.startTest();
         List<SciagenCLMController.PresentationListItem> matching =
-            SciagenCLMController.getPresentationLibrary(null, 'Emrok', null);
+            SciagenCLMController.getPresentationLibrary(null, presBrand(), null);
         List<SciagenCLMController.PresentationListItem> nonMatching =
             SciagenCLMController.getPresentationLibrary(null, 'Cardiace', null);
         Test.stopTest();
@@ -86,16 +100,16 @@ private class SciagenCLMControllerTest {
     /// by logPresentationSessionCreatesSessionEventsAndLockedKeyMessages below.
     @isTest
     static void getPresentationDetailReturnsHtmlSlideContent() {
-        Product__c product = new Product__c(Name = 'HTML Test Product', Brand_Name__c = 'Emrok', Division__c = 'Cardiology');
+        Product__c product = new Product__c(Product_Code__c = 'T-SCLMCT-2', Name = 'HTML Test Product', Brand_Name__c = 'Emrok', Division__c = 'Cardiology');
         insert product;
         Presentation__c preso = new Presentation__c(
-            Presentation_Name__c = 'Interactive Deck', Brand__c = 'Emrok', Product__c = product.Id,
+            Presentation_Name__c = 'Interactive Deck', Brand__c = presBrand(), Product__c = product.Id,
             Approval_Status__c = 'Approved Promotional'
         );
         insert preso;
         insert new Slide__c(
             Presentation__c = preso.Id, Slide_Name__c = 'Interactive Dosing Calculator', Slide_No__c = 1,
-            File_Type__c = 'HTML', Brand__c = 'Emrok', Product__c = product.Id,
+            File_Type__c = 'HTML', Brand__c = slideBrand(), Product__c = product.Id,
             HTML_Content__c = '<h1>Dosing Calculator</h1>'
         );
 
@@ -170,5 +184,36 @@ private class SciagenCLMControllerTest {
         Test.stopTest();
 
         System.assertEquals(true, threw, 'Logging against a Submitted CVR should be rejected');
+    }
+
+    @isTest
+    static void toggleFavoriteAddsAndRemovesAFavoriteRecord() {
+        Presentation__c preso = [SELECT Id FROM Presentation__c WHERE Presentation_Name__c = 'Emrok Detail Deck' LIMIT 1];
+
+        Test.startTest();
+        SciagenCLMController.toggleFavorite(preso.Id, true);
+        List<SciagenCLMController.PresentationListItem> afterFavoriting = SciagenCLMController.getPresentationLibrary(null, null, null);
+        Test.stopTest();
+
+        System.assertEquals(1, [SELECT COUNT() FROM Presentation_Favorite__c WHERE Presentation__c = :preso.Id AND User_Id__c = :UserInfo.getUserId()], 'One favorite row should exist after toggling on');
+        System.assertEquals(true, afterFavoriting[0].isFavorite);
+
+        SciagenCLMController.toggleFavorite(preso.Id, false);
+        List<SciagenCLMController.PresentationListItem> afterUnfavoriting = SciagenCLMController.getPresentationLibrary(null, null, null);
+
+        System.assertEquals(0, [SELECT COUNT() FROM Presentation_Favorite__c WHERE Presentation__c = :preso.Id], 'The favorite row should be removed after toggling off');
+        System.assertEquals(false, afterUnfavoriting[0].isFavorite);
+    }
+
+    @isTest
+    static void toggleFavoriteOnTwiceDoesNotCreateADuplicateRow() {
+        Presentation__c preso = [SELECT Id FROM Presentation__c WHERE Presentation_Name__c = 'Emrok Detail Deck' LIMIT 1];
+
+        Test.startTest();
+        SciagenCLMController.toggleFavorite(preso.Id, true);
+        SciagenCLMController.toggleFavorite(preso.Id, true);
+        Test.stopTest();
+
+        System.assertEquals(1, [SELECT COUNT() FROM Presentation_Favorite__c WHERE Presentation__c = :preso.Id]);
     }
 }

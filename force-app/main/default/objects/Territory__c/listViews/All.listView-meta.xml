@@ -3,6 +3,6 @@
     <fullName>All</fullName>
     <columns>NAME</columns>
     <columns>Parent_Territory__c</columns>
-    <filterScope>Everything</filterScope>
+    <filterScope>Mine</filterScope>
     <label>All</label>
 </ListView>

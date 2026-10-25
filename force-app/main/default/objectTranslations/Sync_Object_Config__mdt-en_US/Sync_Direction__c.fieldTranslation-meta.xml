@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Sync Direction --></label>
+    <name>Sync_Direction__c</name>
+    <picklistValues>
+        <masterLabel>Bi-Directional</masterLabel>
+        <translation><!-- Bi-Directional --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Salesforce to iPad Only</masterLabel>
+        <translation><!-- Salesforce to iPad Only --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>iPad to Salesforce Only</masterLabel>
+        <translation><!-- iPad to Salesforce Only --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

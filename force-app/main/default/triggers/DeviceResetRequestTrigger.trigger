@@ -7,6 +7,8 @@ trigger DeviceResetRequestTrigger on Device_Reset_Request__c (before insert, aft
         DeviceResetRequestHandler.submitForApproval(Trigger.new);
     }
     if (Trigger.isBefore && Trigger.isUpdate) {
+        // Guard first: a rep's own PATCH to Status__c = 'Approved' is rejected before any code is minted.
+        DeviceResetRequestHandler.guardUpdates(Trigger.new, Trigger.oldMap);
         DeviceResetRequestHandler.generateOTPOnApproval(Trigger.new, Trigger.oldMap);
     }
     if (Trigger.isAfter && Trigger.isUpdate) {

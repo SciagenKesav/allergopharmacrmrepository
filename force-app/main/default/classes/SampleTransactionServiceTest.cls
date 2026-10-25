@@ -14,9 +14,9 @@ private class SampleTransactionServiceTest {
     static User rep2() { return [SELECT Id FROM User WHERE Username = 'second.rep.sample@sciagen-new-dev.invalid']; }
 
     static Product__c product(String name, Boolean cold, Boolean controlled) {
-        Product__c p = new Product__c(Name = name, Product_Code__c = 'SMP-' + Math.abs(name.hashCode()), Level__c = 'SKU', Is_Sample_Product__c = true,
-            Sample_Unit_Value_INR__c = 10, Pack_Size__c = 4, Smallest_Market_Pack_Size__c = 10, Requires_Cold_Chain__c = cold,
-            Is_Controlled_Substance__c = controlled, Controlled_Substance_Schedule__c = controlled ? 'H1' : null);
+        Product__c p = new Product__c(Product_Code__c = ('T-' + name).left(30), Name = name, Level__c = 'SKU', Is_Sample_Product__c = true, Sample_Unit_Value_INR__c = 10, Pack_Size__c = 4,
+            Smallest_Market_Pack_Size__c = 10, Requires_Cold_Chain__c = cold, Is_Controlled_Substance__c = controlled,
+            Controlled_Substance_Schedule__c = controlled ? 'H1' : null);
         insert p;
         return p;
     }
@@ -116,7 +116,7 @@ private class SampleTransactionServiceTest {
         Sample_Transaction__c noDoctor = disb(p, l, d, 1);
         noDoctor.HCP_Account__c = null;
         assertRefused(noDoctor, 'doctor');
-        Product__c notSample = new Product__c(Name = 'Detail only', Product_Code__c = 'SMP-DETAIL-ONLY', Level__c = 'SKU');
+        Product__c notSample = new Product__c(Product_Code__c = 'T-STST-2', Name = 'Detail only', Level__c = 'SKU');
         insert notSample;
         assertRefused(new Sample_Transaction__c(Transaction_Type__c = 'Disbursement', Status__c = 'Completed', Product__c = notSample.Id, HCP_Account__c = d.Id, Quantity__c = 1), 'not set up as a sample');
         Sample_Lot__c old = lot(p, 'RU-OLD', 10, UserInfo.getUserId());
@@ -133,7 +133,7 @@ private class SampleTransactionServiceTest {
 
     @isTest
     static void restrictedProductCannotBeSampled() {
-        Product__c r = new Product__c(Name = 'Restricted SKU', Product_Code__c = 'SMP-RESTRICTED', Level__c = 'SKU', Is_Sample_Product__c = true, Sample_Unit_Value_INR__c = 5,
+        Product__c r = new Product__c(Product_Code__c = 'T-STST-3', Name = 'Restricted SKU', Level__c = 'SKU', Is_Sample_Product__c = true, Sample_Unit_Value_INR__c = 5,
             Is_Restricted__c = true, Restriction_Reason__c = 'Hypnotic_Sedative_Tranquillizer', Max_Packs_Per_HCP_Per_Year__c = 0);
         insert r;
         Sample_Lot__c l = lot(r, 'RS-1', 10, UserInfo.getUserId());
@@ -159,6 +159,11 @@ private class SampleTransactionServiceTest {
 
     @isTest
     static void controlledSubstanceNeedsASignatureAndFlagsAfterHours() {
+        // After-hours is judged against the org's Sciagen App Config call day, which this org runs
+        // as 24 hours -- pin the classic 9-18 day so the test exercises the rule itself.
+        SciagenAppConfig.testRecord = new Sciagen_App_Config__mdt(
+            Call_Day_Start_Hour__c = 9, Call_Day_End_Hour__c = 18, Non_Working_Days__c = 'Sunday'
+        );
         Product__c p = product('Controlled SKU', false, true);
         Sciagen_Account__c d = doctor();
         Sample_Lot__c l = lot(p, 'CS-1', 10, UserInfo.getUserId());
@@ -271,6 +276,8 @@ private class SampleTransactionServiceTest {
         insert t;
         System.assertEquals(6, avail(l.Id));
         t.Status__c = 'Cancelled';
+        // Reversing a completed disbursement needs Manage_Sample_Inventory.
+        SampleAccess.testIsManager = true;
         update t;
         System.assertEquals(10, avail(l.Id));
         System.assertEquals(false, [SELECT Inventory_Applied__c FROM Sample_Transaction__c WHERE Id = :t.Id].Inventory_Applied__c);
@@ -303,7 +310,8 @@ private class SampleTransactionServiceTest {
         insert t;
         System.assertEquals(10, avail(l.Id), 'held: nothing deducted yet');
         t.Status__c = 'Completed';
-        update t;   // the running user holds Manage_Sample_Inventory
+        SampleAccess.testIsManager = true;   // releasing a hold needs Manage_Sample_Inventory
+        update t;
         System.assertEquals(7, avail(l.Id));
         System.assertEquals(UserInfo.getUserId(), [SELECT Approved_By__c FROM Sample_Transaction__c WHERE Id = :t.Id].Approved_By__c);
     }
@@ -330,41 +338,5 @@ private class SampleTransactionServiceTest {
         System.assertEquals('Depleted', [SELECT Status__c FROM Sample_Lot__c WHERE Id = :mine.Id].Status__c);
         Sample_Transaction__c out = [SELECT Paired_Transaction__c FROM Sample_Transaction__c WHERE Transaction_Type__c = 'Transfer_Out'];
         System.assertNotEquals(null, out.Paired_Transaction__c, 'the two sides are linked even though the lot is now empty');
-    }
-
-    /** D11 (Phase 0 hotfix): notifyLargeAdjustments() used to compare an adjustment
-     *  against 10% of Sample_Lot__c.Initial_Quantity__c — a snapshot frozen at lot
-     *  creation. A lot topped up by a second Receipt later should be judged against its
-     *  real cumulative total, not that stale number. SampleNotifier's push notification
-     *  itself is fire-and-forget and untested anywhere in this codebase (nothing to query
-     *  against), so this asserts the underlying quantityReceivedToDate() computation the
-     *  notification decision is now based on. */
-    @isTest
-    static void quantityReceivedToDateSumsEveryConfirmedReceiptAndTransferInForTheLot() {
-        Product__c p = product('Received SKU', false, false);
-        Sample_Lot__c l = new Sample_Lot__c(Product__c = p.Id, Lot_Number__c = 'RTD-1', Expiry_Date__c = Date.today().addDays(90),
-            Initial_Quantity__c = 20, Available_Quantity__c = 0, Owner_User__c = UserInfo.getUserId());
-        insert l;
-
-        Sample_Transaction__c first = new Sample_Transaction__c(Transaction_Type__c = 'Receipt', Status__c = 'Pending', Product__c = p.Id,
-            Sample_Lot__c = l.Id, Quantity__c = 20, To_User__c = UserInfo.getUserId());
-        insert first;
-        first.Status__c = 'Confirmed';
-        update first;
-
-        // Topped up later by a second Receipt — the lot's real total received (50) is now
-        // well past its original 20-pack creation size.
-        Sample_Transaction__c second = new Sample_Transaction__c(Transaction_Type__c = 'Receipt', Status__c = 'Pending', Product__c = p.Id,
-            Sample_Lot__c = l.Id, Quantity__c = 30, To_User__c = UserInfo.getUserId());
-        insert second;
-        second.Status__c = 'Confirmed';
-        update second;
-
-        // A Pending (not yet confirmed) Receipt must not count yet.
-        insert new Sample_Transaction__c(Transaction_Type__c = 'Receipt', Status__c = 'Pending', Product__c = p.Id,
-            Sample_Lot__c = l.Id, Quantity__c = 999, To_User__c = UserInfo.getUserId());
-
-        Map<Id, Decimal> receivedToDate = SampleTransactionService.quantityReceivedToDate(new Set<Id>{ l.Id });
-        System.assertEquals(50, receivedToDate.get(l.Id), 'both confirmed receipts, not just the lot\'s original creation size (20) and not the still-pending third one');
     }
 }

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObjectTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <caseValues>
+        <plural>false</plural>
+        <value>Sample Lot</value>
+    </caseValues>
+    <caseValues>
+        <plural>true</plural>
+        <value>Sample Lots</value>
+    </caseValues>
+    <layouts>
+        <layout>Sample Lot Layout</layout>
+        <sections>
+            <label><!-- Lot --></label>
+            <section>Lot</section>
+        </sections>
+        <sections>
+            <label><!-- Notes --></label>
+            <section>Notes</section>
+        </sections>
+        <sections>
+            <label><!-- Quantities --></label>
+            <section>Quantities</section>
+        </sections>
+        <sections>
+            <label><!-- Storage and Cold Chain --></label>
+            <section>Storage and Cold Chain</section>
+        </sections>
+    </layouts>
+    <startsWith>Consonant</startsWith>
+    <validationRules>
+        <errorMessage><!-- Available quantity can&apos;t be negative. --></errorMessage>
+        <name>Available_Cannot_Be_Negative</name>
+    </validationRules>
+    <validationRules>
+        <errorMessage><!-- Expiry date must be after the manufactured date. --></errorMessage>
+        <name>Expiry_After_Manufacture</name>
+    </validationRules>
+    <validationRules>
+        <errorMessage><!-- A new lot must expire in the future. --></errorMessage>
+        <name>Expiry_Must_Be_Future_On_Create</name>
+    </validationRules>
+    <validationRules>
+        <errorMessage><!-- Initial quantity must be more than zero. --></errorMessage>
+        <name>Initial_Quantity_Positive</name>
+    </validationRules>
+</CustomObjectTranslation>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Item Type --></label>
+    <name>Item_Type__c</name>
+    <picklistValues>
+        <masterLabel>Bag</masterLabel>
+        <translation><!-- Bag --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Brochure / Leaflet</masterLabel>
+        <translation><!-- Brochure / Leaflet --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Calendar</masterLabel>
+        <translation><!-- Calendar --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Coffee Mug</masterLabel>
+        <translation><!-- Coffee Mug --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Gift Item</masterLabel>
+        <translation><!-- Gift Item --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Medical Aid</masterLabel>
+        <translation><!-- Medical Aid --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Notepad</masterLabel>
+        <translation><!-- Notepad --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Other</masterLabel>
+        <translation><!-- Other --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Pen</masterLabel>
+        <translation><!-- Pen --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

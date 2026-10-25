@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Enforce_Check_In__c</fullName>
+    <defaultValue>true</defaultValue>
+    <description>When checked, a rep cannot check in or submit a call from outside the HCO&apos;s geofence. When unchecked, the check-in is still recorded with its distance but nothing is blocked.</description>
+    <label>Enforce Check-In</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <columns>
+        <field>Sales_Target__c$Territory__c</field>
+    </columns>
+    <columns>
+        <field>Sales_Target__c$Period__c</field>
+    </columns>
+    <columns>
+        <aggregateTypes>Sum</aggregateTypes>
+        <field>Sales_Target__c$Target_Units__c</field>
+    </columns>
+    <columns>
+        <aggregateTypes>Sum</aggregateTypes>
+        <field>Sales_Target__c$Target_Value__c</field>
+    </columns>
+    <description>Org-wide sales targets (Territory blank) grouped by product, with target value at the live unit price -- compare against Sales by Product for Achievement % (Actual / Target). Territory-scoped targets are excluded per the Reports Module spec.</description>
+    <filter>
+        <criteriaItems>
+            <column>Sales_Target__c$Territory__c</column>
+            <columnToColumn>false</columnToColumn>
+            <isUnlocked>false</isUnlocked>
+            <operator>equals</operator>
+            <value></value>
+        </criteriaItems>
+    </filter>
+    <format>Summary</format>
+    <groupingsDown>
+        <dateGranularity>Day</dateGranularity>
+        <field>Sales_Target__c$Product__c</field>
+        <sortOrder>Asc</sortOrder>
+    </groupingsDown>
+    <name>Sales Targets by Product</name>
+    <params>
+        <name>co</name>
+        <value>1</value>
+    </params>
+    <reportType>Sales_Target_V2__c</reportType>
+    <scope>organization</scope>
+    <showDetails>true</showDetails>
+    <showGrandTotal>true</showGrandTotal>
+    <showSubTotals>true</showSubTotals>
+</Report>

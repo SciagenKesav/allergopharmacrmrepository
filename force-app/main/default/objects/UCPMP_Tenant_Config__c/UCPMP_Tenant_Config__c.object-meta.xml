@@ -2,7 +2,6 @@
 <CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
     <customSettingsType>Hierarchy</customSettingsType>
     <description>Company details and switches for UCPMP sample compliance and the annual expenditure disclosure.</description>
-    <enableFeeds>false</enableFeeds>
     <label>UCPMP Tenant Config</label>
     <visibility>Public</visibility>
 </CustomObject>

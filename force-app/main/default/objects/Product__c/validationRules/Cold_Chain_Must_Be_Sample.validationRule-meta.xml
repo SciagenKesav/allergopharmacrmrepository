@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Cold_Chain_Must_Be_Sample</fullName>
+    <active>true</active>
+    <errorConditionFormula>AND(Requires_Cold_Chain__c, NOT(Is_Sample_Product__c))</errorConditionFormula>
+    <errorDisplayField>Requires_Cold_Chain__c</errorDisplayField>
+    <errorMessage>Only sample products can be marked as cold chain.</errorMessage>
+</ValidationRule>

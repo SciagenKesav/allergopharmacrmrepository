@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Category --></label>
+    <name>Category__c</name>
+    <picklistValues>
+        <masterLabel>Access or Login</masterLabel>
+        <translation><!-- Access or Login --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>App Issue</masterLabel>
+        <translation><!-- App Issue --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Data Correction</masterLabel>
+        <translation><!-- Data Correction --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Expenses or Leave</masterLabel>
+        <translation><!-- Expenses or Leave --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>How Do I</masterLabel>
+        <translation><!-- How Do I --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Other</masterLabel>
+        <translation><!-- Other --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Samples or Inventory</masterLabel>
+        <translation><!-- Samples or Inventory --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Sync Problem</masterLabel>
+        <translation><!-- Sync Problem --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Territory or Alignment</masterLabel>
+        <translation><!-- Territory or Alignment --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Unlock Monthly Plan</masterLabel>
+        <translation><!-- Unlock Monthly Plan --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Unlock Submitted Call</masterLabel>
+        <translation><!-- Unlock Submitted Call --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

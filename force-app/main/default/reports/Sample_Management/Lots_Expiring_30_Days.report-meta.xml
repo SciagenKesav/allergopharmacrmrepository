@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <columns>
+        <field>Sample_Lot__c$Owner_User__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Lot__c$Product__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Lot__c$Lot_Number__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Lot__c$Available_Quantity__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Lot__c$Expiry_Date__c</field>
+    </columns>
+    <columns>
+        <field>Sample_Lot__c$Days_To_Expiry__c</field>
+    </columns>
+    <description>Lots with stock that expire within 30 days.</description>
+    <format>Tabular</format>
+    <name>Lots Expiring in 30 Days</name>
+    <params>
+        <name>co</name>
+        <value>1</value>
+    </params>
+    <reportType>Sample_Lot_Report__c</reportType>
+    <scope>organization</scope>
+    <showDetails>true</showDetails>
+    <showGrandTotal>true</showGrandTotal>
+    <showSubTotals>true</showSubTotals>
+    <sortColumn>Sample_Lot__c$Days_To_Expiry__c</sortColumn>
+    <sortOrder>Asc</sortOrder>
+    <timeFrameFilter>
+        <dateColumn>Sample_Lot__c$Cold_Chain_Last_Checked__c</dateColumn>
+        <interval>INTERVAL_CURRENT</interval>
+    </timeFrameFilter>
+</Report>

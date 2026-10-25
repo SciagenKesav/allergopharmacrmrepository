@@ -9,38 +9,6 @@ public without sharing class SampleDropService {
 
     private static Boolean creating = false;
 
-    // SM-CFG-05/SM-CC-04: format check for a cold-chain tag alert number.
-    // Phase 0 hotfix home is Sciagen_App_Config__mdt.Sample_Tag_Alert_Regex__c
-    // (a single field on the general shared config type) -- Phase 1 introduces
-    // the full Sample_Setting__mdt (SM-CFG-01..25) and this setting moves there.
-    private static final String DEFAULT_TAG_ALERT_REGEX = '^[0-9]{10}$';
-    private static String tagAlertRegex;
-    private static String tagAlertRegex() {
-        if (tagAlertRegex == null) {
-            Sciagen_App_Config__mdt cfg = Sciagen_App_Config__mdt.getInstance('Default');
-            tagAlertRegex = (cfg != null && String.isNotBlank(cfg.Sample_Tag_Alert_Regex__c)) ? cfg.Sample_Tag_Alert_Regex__c : DEFAULT_TAG_ALERT_REGEX;
-        }
-        return tagAlertRegex;
-    }
-
-    /**
-     * SM-... Phase 0 hotfix (the audit's governor-limit risk): this used to call
-     * SampleEligibilityService.check() once per line, which itself ran one usage() query
-     * per active Sample_Limit__c per line — a call with 15 lines and 4 active limits could
-     * run well over 100 SOQL queries and hit the governor limit outright. The eligibility
-     * check (steps 1-4: product/doctor/opt-in/lot) still runs per line below — bounded
-     * regardless of how many limits exist — but the limits step now runs once, in bulk,
-     * across every line in this trigger batch via SampleEligibilityService.checkBulk().
-     *
-     * That bulk call needs each line's onCallSameProduct/onCallAll (packs of the same
-     * product / of anything already added earlier in this same batch) computed up front,
-     * before any line's actual pass/fail outcome is known — so, unlike the old strictly
-     * sequential loop, a line that turns out to be refused (for ANY reason, cold-chain or
-     * limit) still counts toward later same-batch lines' running total here. That can only
-     * make a later line in the same batch MORE likely to warn or block, never less, so it
-     * can never let an over-limit disbursement through silently — it only changes behaviour
-     * at all when a call has two or more lines for the very same product.
-     */
     public static void beforeInsert(List<Sample_Drop__c> drops) {
         SampleConfig cfg = SampleConfig.load();
         Set<Id> callIds = new Set<Id>();
@@ -56,10 +24,22 @@ public without sharing class SampleDropService {
         Map<String, Decimal> batchSameProduct = new Map<String, Decimal>();
         Map<Id, Decimal> batchAll = new Map<Id, Decimal>();
 
-        List<SampleEligibilityService.Request> requests = new List<SampleEligibilityService.Request>();
-        Map<Integer, SampleEligibilityService.Request> reqByIndex = new Map<Integer, SampleEligibilityService.Request>();
-        for (Integer i = 0; i < drops.size(); i++) {
-            Sample_Drop__c d = drops[i];
+        // Load everything the eligibility / limit checks need once for the whole batch (QA-49).
+        Set<Id> repIds = new Set<Id>(), hcpIds = new Set<Id>(), lotIds = new Set<Id>();
+        for (Call_Visit_Report__c c : calls.values()) { repIds.add(c.OwnerId); if (c.HCP__c != null) hcpIds.add(c.HCP__c); }
+        for (Sample_Drop__c d : drops) if (d.Sample_Lot__c != null) lotIds.add(d.Sample_Lot__c);
+        productIds.remove(null);
+        SampleEligibilityService.prime(repIds, hcpIds, productIds, calls.keySet(), lotIds);
+        try {
+            checkLines(drops, calls, products, cfg, batchSameProduct, batchAll);
+        } finally {
+            SampleEligibilityService.clearPrime();
+        }
+    }
+
+    private static void checkLines(List<Sample_Drop__c> drops, Map<Id, Call_Visit_Report__c> calls, Map<Id, Product__c> products, SampleConfig cfg,
+                                   Map<String, Decimal> batchSameProduct, Map<Id, Decimal> batchAll) {
+        for (Sample_Drop__c d : drops) {
             Call_Visit_Report__c call = calls.get(d.CVR__c);
             Product__c p = products.get(d.Product__c);
             if (call == null || p == null || call.HCP__c == null) continue;
@@ -69,7 +49,6 @@ public without sharing class SampleDropService {
 
             String key = d.CVR__c + '|' + d.Product__c;
             SampleEligibilityService.Request req = new SampleEligibilityService.Request();
-            req.key = String.valueOf(i);
             req.repUserId = call.OwnerId;
             req.hcpAccountId = call.HCP__c;
             req.productId = d.Product__c;
@@ -78,22 +57,7 @@ public without sharing class SampleDropService {
             req.lotId = d.Sample_Lot__c;
             req.onCallSameProduct = batchSameProduct.containsKey(key) ? batchSameProduct.get(key) : 0;
             req.onCallAll = batchAll.containsKey(call.Id) ? batchAll.get(call.Id) : 0;
-            requests.add(req);
-            reqByIndex.put(i, req);
-
-            batchSameProduct.put(key, req.onCallSameProduct + req.quantity);
-            batchAll.put(call.Id, req.onCallAll + req.quantity);
-        }
-
-        Map<String, SampleEligibilityService.Result> results = SampleEligibilityService.checkBulk(requests);
-
-        for (Integer i = 0; i < drops.size(); i++) {
-            Sample_Drop__c d = drops[i];
-            Call_Visit_Report__c call = calls.get(d.CVR__c);
-            Product__c p = products.get(d.Product__c);
-            SampleEligibilityService.Request req = reqByIndex.get(i);
-            if (call == null || p == null || call.HCP__c == null || req == null) continue;
-            SampleEligibilityService.Result res = results.get(req.key);
+            SampleEligibilityService.Result res = SampleEligibilityService.check(req);
 
             if (d.Sample_Lot__c == null && res.lotId != null) d.Sample_Lot__c = res.lotId;
             d.Eligibility_Status__c = res.status;
@@ -104,8 +68,6 @@ public without sharing class SampleDropService {
             String problem = null;
             if (p.Requires_Cold_Chain__c == true && (String.isBlank(d.Cold_Chain_Tag_Number__c) || String.isBlank(d.Cold_Chain_Status__c))) {
                 problem = 'Cold chain product: enter the tag number and status.';
-            } else if (p.Requires_Cold_Chain__c == true && !Pattern.matches(tagAlertRegex(), d.Cold_Chain_Tag_Number__c)) {
-                problem = 'Cold chain tag alert number is not a valid format.';
             } else if (p.Requires_Cold_Chain__c == true && d.Cold_Chain_Status__c == 'Breach') {
                 problem = 'Cold chain breach detected. Cannot distribute. Return to warehouse for quality assessment.';
             } else if (res.blocked) {
@@ -121,8 +83,78 @@ public without sharing class SampleDropService {
                     d.addError(problem.left(255));
                 }
                 else { d.Eligibility_Status__c = 'Warning'; d.Eligibility_Message__c = ('Not enforced: ' + problem).left(255); }
+                continue;
             }
+            batchSameProduct.put(key, (batchSameProduct.containsKey(key) ? batchSameProduct.get(key) : 0) + req.quantity);
+            batchAll.put(call.Id, (batchAll.containsKey(call.Id) ? batchAll.get(call.Id) : 0) + req.quantity);
         }
+    }
+
+    // Written by this service (eligibility result, ledger link, value snapshot): never by a client.
+    private static final List<String> SERVER_OWNED = new List<String>{
+        'Transaction__c', 'Eligibility_Status__c', 'Eligibility_Message__c', 'Requires_Approval__c', 'Limit_Override__c',
+        'Needs_Signature__c', 'Unit_Value__c', 'Pack_Size__c'
+    };
+    // What the line is: changing these would skip the eligibility / UCPMP limit check done on insert.
+    private static final List<String> DEFINING = new List<String>{ 'CVR__c', 'Product__c', 'Sample_Lot__c', 'Qty__c' };
+    private static final List<String> DETAILS = new List<String>{ 'Cold_Chain_Tag_Number__c', 'Cold_Chain_Status__c', 'Custom_Text__c', 'Override_Reason__c' };
+
+    /**
+     * Before update. The iPad creates lines with PATCH .../Sample_Drop__c/Client_Id__c/{uuid} (QA-32), so a
+     * retry arrives as an update of the same record with the same values: that passes and does nothing
+     * (no second eligibility run, no second transaction). A real change is limited: once the line is in the
+     * ledger nothing about it changes; before that, only fewer packs or the cold-chain/text details. A
+     * different product/lot/call, or more packs, means removing the line and adding it again so the
+     * limits are checked. Admins (Modify All Data) are exempt.
+     */
+    public static void beforeUpdate(List<Sample_Drop__c> news, Map<Id, Sample_Drop__c> oldMap) {
+        if (creating) return;   // this service linking the ledger transaction
+        CallReportLockService.guardChildren(news, oldMap);
+        Boolean admin = null;
+        for (Sample_Drop__c d : news) {
+            Sample_Drop__c o = oldMap.get(d.Id);
+            List<String> changed = new List<String>();
+            for (List<String> fieldGroup : new List<List<String>>{ SERVER_OWNED, DEFINING, DETAILS }) {
+                for (String f : fieldGroup) if (changedValue(d.get(f), o.get(f))) changed.add(f);
+            }
+            if (changed.isEmpty()) continue;
+            if (admin == null) admin = SciagenAccess.hasModifyAllData();
+            if (admin) continue;
+            String problem = null;
+            if (o.Transaction__c != null) {
+                problem = 'This sample line is already in the inventory ledger and can\'t be changed.';
+            } else {
+                for (String f : changed) {
+                    if (SERVER_OWNED.contains(f)) { problem = f + ' is set by the server.'; break; }
+                    if (f == 'Qty__c' && d.Qty__c != null && o.Qty__c != null && d.Qty__c < o.Qty__c && d.Qty__c > 0) continue;
+                    if (DEFINING.contains(f)) {
+                        problem = 'To change the product, lot or add packs, remove this sample line and add it again so the sampling limits are checked.';
+                        break;
+                    }
+                }
+            }
+            if (problem != null) d.addError(problem);
+        }
+    }
+
+    /** Before delete: a line on a submitted report, or one already in the inventory ledger, stays. */
+    public static void beforeDelete(List<Sample_Drop__c> olds) {
+        CallReportLockService.guardChildren(olds, null);
+        Boolean admin = null;
+        for (Sample_Drop__c d : olds) {
+            if (d.Transaction__c == null) continue;
+            if (admin == null) admin = SciagenAccess.hasModifyAllData();
+            if (!admin) d.addError('This sample line is already in the inventory ledger and can\'t be deleted.');
+        }
+    }
+
+    private static Boolean changedValue(Object a, Object b) {
+        if (a instanceof String || b instanceof String) {
+            String sa = (String) a, sb = (String) b;
+            if (String.isBlank(sa) && String.isBlank(sb)) return false;
+            return sa == null || sb == null || !sa.equals(sb);
+        }
+        return a != b;
     }
 
     /** A line added to a call that is already submitted becomes a transaction straight away. */
@@ -145,7 +177,7 @@ public without sharing class SampleDropService {
                 SELECT Id, CVR__c, Product__c, Qty__c, Sample_Lot__c, Cold_Chain_Tag_Number__c, Cold_Chain_Status__c, Custom_Text__c, Unit_Value__c, Pack_Size__c,
                        Requires_Approval__c, Override_Reason__c, Eligibility_Message__c,
                        CVR__r.HCP__c, CVR__r.OwnerId, CVR__r.Signature_Captured__c, CVR__r.Signature_Image__c, CVR__r.Signature_Captured_At__c,
-                       CVR__r.Signature_GPS__Latitude__s, CVR__r.Signature_GPS__Longitude__s, CVR__r.Signee_Name__c, CVR__r.Start_Time__c, CVR__r.Unlock_Count__c
+                       CVR__r.Signature_GPS__Latitude__s, CVR__r.Signature_GPS__Longitude__s, CVR__r.Signee_Name__c, CVR__r.Start_Time__c
                 FROM Sample_Drop__c WHERE Id IN :dropIds AND Transaction__c = null
             ];
             if (drops.isEmpty()) return;
@@ -163,19 +195,17 @@ public without sharing class SampleDropService {
                     Cold_Chain_Tag_Number__c = d.Cold_Chain_Tag_Number__c, Cold_Chain_Status__c = d.Cold_Chain_Status__c, Custom_Text__c = d.Custom_Text__c,
                     Unit_Value_At_Transaction__c = d.Unit_Value__c, Pack_Size_At_Transaction__c = d.Pack_Size__c, Override_Reason__c = d.Override_Reason__c,
                     Eligibility_Message__c = d.Eligibility_Message__c, Performed_By__c = c.OwnerId, Performed_At__c = c.Start_Time__c == null ? System.now() : c.Start_Time__c,
-                    Device_Type__c = 'iPad',
-                    // Client_Id__c is a retry-idempotency key: a genuine retried push of THIS
-                    // submission attempt must collide (same key) so a duplicate insert is
-                    // rejected, but a fresh disbursement created after an unlock (SM-UNL-03,
-                    // SampleDropService.reverseDisbursements clears Transaction__c so this
-                    // same Sample_Drop__c row is re-processed) is a different event and must
-                    // NOT collide with the drop's earlier disbursement — otherwise the
-                    // resubmit silently fails as a "duplicate" and never re-posts. Call_Visit_Report__c.
-                    // Unlock_Count__c already exists precisely to distinguish these generations.
-                    Client_Id__c = 'DROP-' + d.Id + '-U' + (c.Unlock_Count__c == null ? 0 : c.Unlock_Count__c.intValue()));
+                    Device_Type__c = 'iPad', Client_Id__c = 'DROP-' + d.Id);
                 txns.add(t);
             }
-            List<Database.SaveResult> results = Database.insert(txns, false);
+            // Trusted origin: these hand-outs have passed the eligibility / UCPMP limit engine in beforeInsert.
+            SampleTransactionService.systemOrigin = true;
+            List<Database.SaveResult> results;
+            try {
+                results = Database.insert(txns, false);
+            } finally {
+                SampleTransactionService.systemOrigin = false;
+            }
             List<Sample_Drop__c> link = new List<Sample_Drop__c>();
             for (Integer i = 0; i < results.size(); i++) {
                 if (results[i].isSuccess()) link.add(new Sample_Drop__c(Id = drops[i].Id, Transaction__c = txns[i].Id));
@@ -221,7 +251,7 @@ public without sharing class SampleDropService {
         for (AggregateResult ar : [SELECT CVR__c c FROM Sample_Drop__c WHERE CVR__c IN :becomingSubmitted AND Needs_Signature__c = true GROUP BY CVR__c]) needSignature.add((Id) ar.get('c'));
         Set<Id> controlled = new Set<Id>();
         for (AggregateResult ar : [SELECT CVR__c c FROM Sample_Drop__c WHERE CVR__c IN :unlocking AND Product__r.Is_Controlled_Substance__c = true GROUP BY CVR__c]) controlled.add((Id) ar.get('c'));
-        Boolean manager = FeatureManagement.checkPermission('Manage_Sample_Inventory');
+        Boolean manager = SampleAccess.isManager();
         for (Call_Visit_Report__c c : news) {
             if (needSignature.contains(c.Id) && c.Signature_Captured__c != true && SampleConfig.load().enforceRules) {
                 c.addError('The doctor\'s signature is required for the samples on this call.');
@@ -242,69 +272,5 @@ public without sharing class SampleDropService {
         if (submitted.isEmpty()) return;
         Map<Id, Sample_Drop__c> drops = new Map<Id, Sample_Drop__c>([SELECT Id FROM Sample_Drop__c WHERE CVR__c IN :submitted AND Transaction__c = null]);
         if (!drops.isEmpty()) createTransactions(drops.keySet());
-    }
-
-    /**
-     * SM-UNL-01..03 (D3/D14): a call with samples leaving 'Submitted' — via either
-     * unlock path (the Support-ticket flow, SupportUnlockService.unlock, or a direct
-     * Sample Admin unlock behind Sample_Unlock_Calls) — must reverse every Disbursement
-     * it already posted, not edit them in place. Fires from SampleCallTrigger's existing
-     * after-update leg, right after beforeCallUpdate's own unlock validation already ran
-     * (and would have blocked the save entirely for an unauthorized controlled-substance
-     * unlock) — so by the time this runs, the status change is already committed and
-     * legitimate. Resubmitting later re-creates fresh Disbursements from whatever the
-     * call's sample lines say at that point (createTransactions only ever processes a
-     * Sample_Drop__c whose Transaction__c is null), so nothing here has to guess what the
-     * rep will change.
-     */
-    public static void afterCallUnlock(List<Call_Visit_Report__c> news, Map<Id, Call_Visit_Report__c> oldMap) {
-        if (oldMap == null) return;
-        Set<Id> unlockedIds = new Set<Id>();
-        for (Call_Visit_Report__c c : news) {
-            Call_Visit_Report__c o = oldMap.get(c.Id);
-            if (o != null && o.Record_Status__c == 'Submitted' && c.Record_Status__c != 'Submitted') unlockedIds.add(c.Id);
-        }
-        if (!unlockedIds.isEmpty()) reverseDisbursements(unlockedIds);
-    }
-
-    /** Reverses every posted Disbursement for these calls and frees their drop lines
-     *  (clears Sample_Drop__c.Transaction__c) so a later resubmit posts fresh ones. */
-    public static void reverseDisbursements(Set<Id> callIds) {
-        List<Sample_Drop__c> drops = [SELECT Id, Transaction__c FROM Sample_Drop__c WHERE CVR__c IN :callIds AND Transaction__c != null];
-        if (drops.isEmpty()) return;
-        Set<Id> txnIds = new Set<Id>();
-        for (Sample_Drop__c d : drops) txnIds.add(d.Transaction__c);
-
-        List<Sample_Transaction__c> originals = [
-            SELECT Id, Sample_Lot__c, Product__c, Quantity__c, HCP_Account__c, Call_Report__c, Sample_Drop__c,
-                   Pack_Size_At_Transaction__c, Unit_Value_At_Transaction__c
-            FROM Sample_Transaction__c
-            WHERE Id IN :txnIds AND Transaction_Type__c = 'Disbursement' AND Inventory_Applied__c = true
-        ];
-        if (originals.isEmpty()) return;
-
-        List<Sample_Transaction__c> reversals = new List<Sample_Transaction__c>();
-        for (Sample_Transaction__c o : originals) {
-            reversals.add(new Sample_Transaction__c(
-                Transaction_Type__c = 'Reversal', Status__c = 'Completed', Sample_Lot__c = o.Sample_Lot__c, Product__c = o.Product__c,
-                // Same magnitude as what was taken; SampleTransactionService applies it
-                // with a positive sign, restoring the lot. Pack size/unit value are
-                // copied from the original rather than left to re-default to the
-                // product's CURRENT price — an undo must match what was actually
-                // added, even if the price master has since changed.
-                Quantity__c = o.Quantity__c, Pack_Size_At_Transaction__c = o.Pack_Size_At_Transaction__c,
-                Unit_Value_At_Transaction__c = o.Unit_Value_At_Transaction__c, HCP_Account__c = o.HCP_Account__c,
-                Call_Report__c = o.Call_Report__c, Sample_Drop__c = o.Sample_Drop__c, Paired_Transaction__c = o.Id,
-                Performed_By__c = UserInfo.getUserId(), Performed_At__c = System.now(),
-                Notes__c = ('Reversal of ' + o.Id + ' — call ' + o.Call_Report__c + ' was unlocked for correction.').left(255),
-                Client_Id__c = 'REV-' + o.Id));
-        }
-        insert reversals;
-
-        List<Sample_Drop__c> clearLinks = new List<Sample_Drop__c>();
-        for (Sample_Drop__c d : drops) {
-            clearLinks.add(new Sample_Drop__c(Id = d.Id, Transaction__c = null, Eligibility_Status__c = null, Eligibility_Message__c = null));
-        }
-        update clearLinks;
     }
 }

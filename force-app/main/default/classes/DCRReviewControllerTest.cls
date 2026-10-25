@@ -18,7 +18,7 @@ private class DCRReviewControllerTest {
         };
         Data_Change_Request__c newHcp = new Data_Change_Request__c(
             Type__c = 'New HCP', Status__c = 'Pending Approval', Subject_Name__c = 'Dr. Amit Gupta',
-            Related_HCO__c = hco.Id, Submitted_By__c = 'Test Rep', Submitted_At__c = submittedAt,
+            Related_HCO__c = hco.Id, Submitted_By__c = UserInfo.getUserId(), Submitted_At__c = submittedAt,
             Fields_Payload__c = JSON.serialize(newHcpFields)
         );
 
@@ -28,17 +28,17 @@ private class DCRReviewControllerTest {
         };
         Data_Change_Request__c editHco = new Data_Change_Request__c(
             Type__c = 'Edit HCO', Status__c = 'Pending Approval', Subject_Name__c = 'DCR Test Hospital',
-            Subject_Account__c = hco.Id, Submitted_By__c = 'Test Rep', Submitted_At__c = submittedAt.addMinutes(-5),
+            Subject_Account__c = hco.Id, Submitted_By__c = UserInfo.getUserId(), Submitted_At__c = submittedAt.addMinutes(-5),
             Fields_Payload__c = JSON.serialize(editHcoDiff)
         );
 
         Data_Change_Request__c alreadyApproved = new Data_Change_Request__c(
             Type__c = 'Edit HCP', Status__c = 'Approved', Subject_Name__c = 'Already Approved',
-            Submitted_By__c = 'Test Rep', Submitted_At__c = submittedAt.addMinutes(-10)
+            Submitted_By__c = UserInfo.getUserId(), Submitted_At__c = submittedAt.addMinutes(-10)
         );
         Data_Change_Request__c alreadyRejected = new Data_Change_Request__c(
             Type__c = 'New HCO', Status__c = 'Rejected', Subject_Name__c = 'Already Rejected',
-            Submitted_By__c = 'Test Rep', Submitted_At__c = submittedAt.addMinutes(-15),
+            Submitted_By__c = UserInfo.getUserId(), Submitted_At__c = submittedAt.addMinutes(-15),
             Rejection_Reason__c = 'Duplicate of an existing record'
         );
 
@@ -106,7 +106,7 @@ private class DCRReviewControllerTest {
         Data_Change_Request__c newHcp = [SELECT Id FROM Data_Change_Request__c WHERE Subject_Name__c = 'Dr. Amit Gupta' LIMIT 1];
 
         Test.startTest();
-        DCRReviewController.approveDCR(newHcp.Id);
+        DCRReviewController.approveDCR(newHcp.Id, null);
         Test.stopTest();
 
         Data_Change_Request__c updated = [
@@ -121,20 +121,50 @@ private class DCRReviewControllerTest {
     }
 
     @isTest
-    static void testApproveDCRForEditHCODoesNotAutoApplyDiffToAccount() {
+    static void testApproveDCRForEditHCO_appliesTheDiffToTheAccount() {
         Sciagen_Account__c hco = [SELECT Id, Phone__c, Billing_City__c FROM Sciagen_Account__c WHERE Name = 'DCR Test Hospital' LIMIT 1];
         Data_Change_Request__c editHco = [SELECT Id FROM Data_Change_Request__c WHERE Subject_Name__c = 'DCR Test Hospital' LIMIT 1];
 
         Test.startTest();
-        DCRReviewController.approveDCR(editHco.Id);
+        DCRReviewController.approveDCR(editHco.Id, null);
         Test.stopTest();
 
         Data_Change_Request__c updated = [SELECT Status__c FROM Data_Change_Request__c WHERE Id = :editHco.Id];
         System.assertEquals('Approved', updated.Status__c);
 
-        Sciagen_Account__c unchanged = [SELECT Phone__c, Billing_City__c FROM Sciagen_Account__c WHERE Id = :hco.Id];
-        System.assertEquals(hco.Phone__c, unchanged.Phone__c, 'Edit approval must not auto-write the requested phone onto the Account');
-        System.assertEquals(hco.Billing_City__c, unchanged.Billing_City__c, 'Edit approval must not auto-write the requested city onto the Account');
+        // Fixture's diff (see @testSetup): phone 9111100000 -> 9222200000, city Old Delhi -> New Delhi.
+        Sciagen_Account__c reloaded = [SELECT Phone__c, Billing_City__c FROM Sciagen_Account__c WHERE Id = :hco.Id];
+        System.assertEquals('9222200000', reloaded.Phone__c, 'Approving the edit must write the requested phone onto the Account');
+        System.assertEquals('New Delhi', reloaded.Billing_City__c, 'Approving the edit must write the requested city onto the Account');
+    }
+
+    @isTest
+    static void testApproveDCRWithCommentSetsStatusAndComment() {
+        Data_Change_Request__c newHcp = [SELECT Id FROM Data_Change_Request__c WHERE Subject_Name__c = 'Dr. Amit Gupta' LIMIT 1];
+
+        Test.startTest();
+        DCRReviewController.approveDCR(newHcp.Id, '  Verified against MCI registry  ');
+        Test.stopTest();
+
+        Data_Change_Request__c updated = [SELECT Status__c, Approval_Comment__c FROM Data_Change_Request__c WHERE Id = :newHcp.Id];
+        System.assertEquals('Approved', updated.Status__c);
+        System.assertEquals('Verified against MCI registry', updated.Approval_Comment__c, 'Must be trimmed, same as a rejection reason');
+
+        DCRReviewController.DCRDetail detail = DCRReviewController.getDCRDetail(newHcp.Id);
+        System.assertEquals('Verified against MCI registry', detail.approvalComment, 'getDCRDetail must surface it back to the review UI');
+    }
+
+    @isTest
+    static void testApproveDCRWithoutCommentLeavesCommentBlank() {
+        Data_Change_Request__c newHcp = [SELECT Id FROM Data_Change_Request__c WHERE Subject_Name__c = 'Dr. Amit Gupta' LIMIT 1];
+
+        Test.startTest();
+        DCRReviewController.approveDCR(newHcp.Id, null); // unlike rejectDCR's reason, a comment is optional on approve
+        Test.stopTest();
+
+        Data_Change_Request__c updated = [SELECT Status__c, Approval_Comment__c FROM Data_Change_Request__c WHERE Id = :newHcp.Id];
+        System.assertEquals('Approved', updated.Status__c);
+        System.assertEquals(null, updated.Approval_Comment__c);
     }
 
     @isTest
@@ -170,7 +200,7 @@ private class DCRReviewControllerTest {
 
         Test.startTest();
         try {
-            DCRReviewController.approveDCR(approved.Id);
+            DCRReviewController.approveDCR(approved.Id, null);
             System.assert(false, 'Expected AuraHandledException — request is already decided');
         } catch (AuraHandledException e) {
             System.assert(true);
@@ -182,68 +212,13 @@ private class DCRReviewControllerTest {
     static void testApproveAndRejectThrowForUnknownId() {
         Test.startTest();
         try {
-            DCRReviewController.approveDCR(UserInfo.getUserId()); // a valid Id of the wrong sObject type
+            DCRReviewController.approveDCR(UserInfo.getUserId(), null); // a valid Id of the wrong sObject type
             System.assert(false, 'Expected AuraHandledException');
         } catch (AuraHandledException e) {
             System.assert(true);
         }
         try {
             DCRReviewController.rejectDCR(UserInfo.getUserId(), 'reason');
-            System.assert(false, 'Expected AuraHandledException');
-        } catch (AuraHandledException e) {
-            System.assert(true);
-        }
-        Test.stopTest();
-    }
-
-    // MARK: - Comments
-
-    @isTest
-    static void testGetCommentsReturnsThreadInChronologicalOrderWithRollup() {
-        Data_Change_Request__c newHcp = [SELECT Id FROM Data_Change_Request__c WHERE Subject_Name__c = 'Dr. Amit Gupta' LIMIT 1];
-        insert new DCR_Comment__c(
-            Data_Change_Request__c = newHcp.Id, Author__c = UserInfo.getUserId(),
-            Author_Role__c = 'Requester', Body__c = 'Please review — rep left the territory.'
-        );
-
-        Test.startTest();
-        DCRReviewController.addComment(newHcp.Id, 'Approved on the strength of the note above.');
-        List<DCRReviewController.CommentItem> thread = DCRReviewController.getComments(newHcp.Id);
-        Test.stopTest();
-
-        System.assertEquals(2, thread.size());
-        System.assertEquals('Requester', thread[0].authorRole);
-        System.assertEquals('Please review — rep left the territory.', thread[0].body);
-        System.assertEquals('Business Admin', thread[1].authorRole);
-        System.assertEquals('Approved on the strength of the note above.', thread[1].body);
-
-        List<DCRReviewController.DCRQueueItem> queue = DCRReviewController.getDCRQueue();
-        for (DCRReviewController.DCRQueueItem item : queue) {
-            if (item.id == newHcp.Id) {
-                System.assertEquals(2, item.commentCount, 'Comment_Count__c roll-up must reflect both comments');
-            }
-        }
-    }
-
-    @isTest
-    static void testAddCommentThrowsWhenBodyIsBlank() {
-        Data_Change_Request__c newHcp = [SELECT Id FROM Data_Change_Request__c WHERE Subject_Name__c = 'Dr. Amit Gupta' LIMIT 1];
-
-        Test.startTest();
-        try {
-            DCRReviewController.addComment(newHcp.Id, '   ');
-            System.assert(false, 'Expected AuraHandledException for a blank reply');
-        } catch (AuraHandledException e) {
-            System.assert(true);
-        }
-        Test.stopTest();
-    }
-
-    @isTest
-    static void testAddCommentThrowsForUnknownDcr() {
-        Test.startTest();
-        try {
-            DCRReviewController.addComment(UserInfo.getUserId(), 'reply'); // a valid Id of the wrong sObject type
             System.assert(false, 'Expected AuraHandledException');
         } catch (AuraHandledException e) {
             System.assert(true);

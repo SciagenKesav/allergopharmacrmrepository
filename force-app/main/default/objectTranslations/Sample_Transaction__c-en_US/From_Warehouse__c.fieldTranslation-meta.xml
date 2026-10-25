@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- From Warehouse --></label>
+    <name>From_Warehouse__c</name>
+    <relationshipLabel><!-- Transactions From --></relationshipLabel>
+</CustomFieldTranslation>

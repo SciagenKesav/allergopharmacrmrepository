@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Earliest In-use Expiry --></label>
+    <name>Acaroid_Earliest_Inuse_Expiry__c</name>
+</CustomFieldTranslation>

@@ -5,6 +5,5 @@
     <isNavPersonalizationDisabled>false</isNavPersonalizationDisabled>
     <isNavTabPersistenceDisabled>false</isNavTabPersistenceDisabled>
     <isOmniPinnedViewEnabled>false</isOmniPinnedViewEnabled>
-    <tabs>standard-Chatter</tabs>
-    <tabs>Plan_Goal__c</tabs>
+    <tabs>Monthly_Call_Plan__c</tabs>
 </CustomApplication>

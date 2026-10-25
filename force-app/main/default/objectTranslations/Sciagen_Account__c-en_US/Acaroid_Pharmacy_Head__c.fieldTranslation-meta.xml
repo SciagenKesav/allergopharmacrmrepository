@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Pharmacy Head --></label>
+    <name>Acaroid_Pharmacy_Head__c</name>
+    <relationshipLabel><!-- Acaroid Pharmacy Head HCOs --></relationshipLabel>
+</CustomFieldTranslation>

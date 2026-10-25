@@ -5,8 +5,21 @@
         <enabled>true</enabled>
     </classAccesses>
     <description>Read access to the Promotional Item catalog and the Promotional Item lookup on Promotional Item Drops. Assign to anyone who logs promotional items on call reports.</description>
-    <hasActivationRequired>false</hasActivationRequired>
-    <label>Promotional Item Access</label>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Promo_Drop__c.Promotional_Item__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Promotional_Item__c.Active__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Promotional_Item__c.Description__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
     <fieldPermissions>
         <editable>false</editable>
         <field>Promotional_Item__c.Item_Code__c</field>
@@ -14,7 +27,7 @@
     </fieldPermissions>
     <fieldPermissions>
         <editable>false</editable>
-        <field>Promotional_Item__c.Description__c</field>
+        <field>Promotional_Item__c.Max_Qty_Per_Call__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
@@ -29,16 +42,6 @@
     </fieldPermissions>
     <fieldPermissions>
         <editable>false</editable>
-        <field>Promotional_Item__c.Max_Qty_Per_Call__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
-    <fieldPermissions>
-        <editable>false</editable>
-        <field>Promotional_Item__c.Active__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
-    <fieldPermissions>
-        <editable>false</editable>
         <field>Promotional_Item__c.Valid_From__c</field>
         <readable>true</readable>
     </fieldPermissions>
@@ -47,11 +50,8 @@
         <field>Promotional_Item__c.Valid_To__c</field>
         <readable>true</readable>
     </fieldPermissions>
-    <fieldPermissions>
-        <editable>true</editable>
-        <field>Promo_Drop__c.Promotional_Item__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>Promotional Item Access</label>
     <objectPermissions>
         <allowCreate>false</allowCreate>
         <allowDelete>false</allowDelete>
